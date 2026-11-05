@@ -79,7 +79,7 @@
     var ok = !!lic && SAFE.test(lic), value = ok ? lic : PH;
     installers.forEach(function (ins) {
       var cfg = JSON.parse(ins.getAttribute("data-installer"));
-      if (cfg.server) cfg.server.env.KEYFLINT_LICENSE = value;
+      if (cfg.server && cfg.server.env) cfg.server.env.KEYFLINT_LICENSE = value;
       $$("pre", ins).forEach(function (pre) {
         pre.firstChild.textContent = pre.getAttribute("data-tpl").split(PH).join(value);
       });
@@ -87,8 +87,9 @@
       if (c) c.href = "cursor://anysphere.cursor-deeplink/mcp/install?name=" + encodeURIComponent(cfg.slug) +
         "&config=" + encodeURIComponent(b64(JSON.stringify(cfg.server)));
       var v = cfg.server && ins.querySelector('[data-deeplink="vscode"]');
-      if (v) v.href = "vscode:mcp/install?" + encodeURIComponent(JSON.stringify({
-        name: cfg.slug, type: "stdio", command: cfg.server.command, args: cfg.server.args, env: cfg.server.env }));
+      if (v) v.href = "vscode:mcp/install?" + encodeURIComponent(JSON.stringify(cfg.server.url ?
+        { name: cfg.slug, type: "http", url: cfg.server.url } :
+        { name: cfg.slug, type: "stdio", command: cfg.server.command, args: cfg.server.args, env: cfg.server.env }));
       var input = ins.querySelector("[data-license]"), state = ins.querySelector("[data-license-state]"), help = ins.querySelector(".lic-help");
       if (input && document.activeElement !== input) input.value = lic || "";
       if (state) state.innerHTML = ok ? CHECK : "";

@@ -24,6 +24,8 @@ ROOT = Path(__file__).parent
 OUT = ROOT / "public"
 DATA = json.loads((ROOT / "data" / "catalog.json").read_text(encoding="utf-8"))
 SITE = DATA["site"]
+# Modo remoto (MCP por URL + OAuth): "remote": true en el catálogo cuando el contenedor esté desplegado. MCP_REMOTE=1 lo previsualiza.
+SITE["remote"] = os.environ.get("MCP_REMOTE") == "1" or bool(SITE.get("remote"))
 MCPS = DATA["mcps"]
 TODAY = dt.date.today().isoformat()
 VERSION = dt.datetime.now(dt.timezone.utc).strftime("%Y%m%d%H%M")
@@ -128,8 +130,40 @@ def snippets(m: dict) -> dict[str, str]:
             "codex_toml": toml, "antigravity": std}
 
 
+def remote_url(m: dict) -> str:
+    return f"{SITE['url']}/{m['slug']}/mcp"
+
+
+def remote_snippets(m: dict) -> dict[str, str]:
+    """Modo remoto: el cliente se conecta por URL y hace OAuth (pega la licencia una vez). Sin uv ni Python."""
+    ms = members(m)
+    auth = {"Authorization": f"Bearer {LIC_PLACEHOLDER}"}
+    dump = lambda d: json.dumps(d, indent=2, ensure_ascii=False)
+    return {
+        "url": "\n".join(remote_url(x) for x in ms),
+        "code": "\n".join(f"claude mcp add --transport http --scope user {x['slug']} {remote_url(x)}" for x in ms),
+        "cursor": dump({"mcpServers": {x["slug"]: {"url": remote_url(x)} for x in ms}}),
+        "vscode": dump({"servers": {x["slug"]: {"type": "http", "url": remote_url(x)} for x in ms}}),
+        "codex": "\n".join(f"codex mcp add {x['slug']} --url {remote_url(x)}\ncodex mcp login {x['slug']}" for x in ms),
+        "codex_toml": "\n\n".join(f"[mcp_servers.{x['slug']}]\nurl = \"{remote_url(x)}\"\n"
+                                   f"http_headers = {{ Authorization = \"Bearer {LIC_PLACEHOLDER}\" }}" for x in ms),
+        "headers": dump({"mcpServers": {x["slug"]: {"serverUrl": remote_url(x), "headers": auth} for x in ms}}),
+    }
+
+
 ALL = {"slug": "todos", "name": "Todos", "all": True, "icon": "stack"}
 
+
+CLIENTS_REMOTE = [
+    ("desktop", "Claude", "claude"),
+    ("chatgpt", "ChatGPT", "chatgpt"),
+    ("code", "Claude Code", "claude"),
+    ("cursor", "Cursor", "cursor"),
+    ("vscode", "VS Code", "vscode"),
+    ("codex", "Codex", "codex"),
+    ("antigravity", "Antigravity", "antigravity"),
+    ("windsurf", "Windsurf", "windsurf"),
+]
 
 CLIENTS = [
     ("desktop", "Claude Desktop", "claude"),
@@ -199,11 +233,20 @@ def installer(m: dict) -> str:
 {code_block(f"sn-{s}-windsurf", sn["windsurf"], "mcp_config.json")}
 <p class="path"><code>~/.codeium/windsurf/mcp_config.json</code></p>{uv_note}""",
     }
+    clients, server = CLIENTS, None if multi else server_cfg(m)
+    if SITE.get("remote"):
+        clients, server = CLIENTS_REMOTE, None if multi else {"url": remote_url(m)}
+        panels = remote_panels(m, panels["desktop"], cards)
+        tabs = "".join(
+            f'<button type="button" role="tab" id="tab-{s}-{cid}" aria-controls="pan-{s}-{cid}" '
+            f'aria-selected="{"true" if i == 0 else "false"}" tabindex="{0 if i == 0 else -1}" data-client="{cid}">'
+            f'{brand(ic)}<span>{e(name)}</span></button>'
+            for i, (cid, name, ic) in enumerate(clients))
     body = "".join(
         f'<div role="tabpanel" id="pan-{s}-{cid}" aria-labelledby="tab-{s}-{cid}" class="panel"'
         f'{"" if i == 0 else " data-hidden"}><h4 class="panel-title">{e(name)}</h4>{panels[cid]}</div>'
-        for i, (cid, name, _) in enumerate(CLIENTS))
-    cfg_json = e(json.dumps({"slug": s, "server": None if multi else server_cfg(m)}, ensure_ascii=False))
+        for i, (cid, name, _) in enumerate(clients))
+    cfg_json = e(json.dumps({"slug": s, "server": server}, ensure_ascii=False))
     return f"""<div class="installer" data-installer="{cfg_json}">
 <label class="lic"><span class="lic-label">{icon("key")}Tu licencia <span class="muted">· opcional</span></span>
 <span class="lic-field"><input type="text" autocomplete="off" spellcheck="false" placeholder="Pega aquí tu LIC-…" data-license aria-describedby="lic-help-{s}"><span class="lic-state" data-license-state aria-live="polite"></span></span>
@@ -211,6 +254,46 @@ def installer(m: dict) -> str:
 <div class="tabs" role="tablist" aria-label="Elige tu cliente">{tabs}</div>
 <div class="panels">{body}</div>
 </div>"""
+
+
+def remote_panels(m: dict, local_desktop: str, cards: str) -> dict[str, str]:
+    s, sn, multi = m["slug"], remote_snippets(m), bool(m.get("all"))
+    pl = "s" if multi else ""
+    oauth = ('<p class="note">' + icon("key") + '<span>La primera vez se abre una página de KeyFlint: pega tu licencia y '
+             'pulsa <b>Conectar</b>. No hay que instalar nada.</span></p>')
+    url_block = code_block(f"sn-{s}-url", sn["url"], "URL" + ("s" if multi else ""))
+    one_click = lambda cid, label, note: (
+        f'<p class="muted small">Pega el bloque. Para instalar con un clic, elige un solo servidor.</p>' if multi else
+        f'<a class="btn btn-primary btn-block" data-deeplink="{cid}" href="#">{brand(cid)}{label}</a>'
+        f'<p class="muted small center gap">{note}</p><details class="manual"><summary><span>Instalación manual</span>{icon("chevron")}</summary>')
+    end = "" if multi else "</details>"
+    return {
+        "desktop": f"""<ol class="mini-steps"><li>En Claude (web, escritorio o móvil): <b>Ajustes</b> › <b>Conectores</b> › <b>Añadir conector personalizado</b>.</li>
+<li>Ponle nombre y pega la URL{pl}. {"Repite con cada una." if multi else ""}</li><li>Pulsa <b>Conectar</b> e inicia sesión con tu licencia.</li></ol>
+{url_block}<a class="btn btn-block" href="https://claude.ai/settings/connectors" target="_blank" rel="noopener">{brand("claude")}Abrir conectores de Claude</a>
+{oauth}{cards}<details class="manual"><summary><span>Instalación local (.mcpb o configuración)</span>{icon("chevron")}</summary>{local_desktop}</details>""",
+        "chatgpt": f"""<ol class="mini-steps"><li>ChatGPT › <b>Ajustes</b> › <b>Apps y conectores</b> › <b>Avanzado</b>: activa el <b>modo desarrollador</b>.</li>
+<li><b>Crear</b> conector: pega la URL{pl}, autenticación <b>OAuth</b>.</li><li>Conecta e inicia sesión con tu licencia.</li></ol>
+{url_block}{oauth}""",
+        "code": f"""<ol class="mini-steps"><li>Ejecuta {"los comandos" if multi else "el comando"} en tu terminal.</li>
+<li>Abre Claude Code, escribe <code>/mcp</code> y elige <b>Authenticate</b> para pegar tu licencia.</li></ol>
+{code_block(f"sn-{s}-code", sn["code"], "Terminal")}{oauth}""",
+        "cursor": one_click("cursor", "Añadir a Cursor", "Cursor se abre, confirma y pulsa <b>Connect</b> para pegar tu licencia.")
+        + f"""<p>Pega el bloque en <code>~/.cursor/mcp.json</code>.</p>{code_block(f"sn-{s}-cursor", sn["cursor"], "mcp.json")}{end}{oauth}""",
+        "vscode": one_click("vscode", "Añadir a VS Code", "VS Code 1.102 o superior. Te pedirá iniciar sesión con tu licencia.")
+        + f"""<p>Pega el bloque en <code>.vscode/mcp.json</code>.</p>{code_block(f"sn-{s}-vscode", sn["vscode"], ".vscode/mcp.json")}{end}{cards}{oauth}""",
+        "codex": f"""<ol class="mini-steps"><li>Ejecuta {"los comandos" if multi else "el comando"}: añade{"n" if multi else ""} el servidor{"es" if multi else ""} e inicia sesión con tu licencia.</li>
+<li>Sirve para la CLI, la app y la extensión de Codex.</li></ol>
+{code_block(f"sn-{s}-codex", sn["codex"], "Terminal")}
+<details class="manual"><summary><span>Sin OAuth: licencia en config.toml</span>{icon("chevron")}</summary>
+<p>Pega el bloque en <code>~/.codex/config.toml</code>.</p>{code_block(f"sn-{s}-codex-toml", sn["codex_toml"], "config.toml")}</details>""",
+        "antigravity": f"""<ol class="mini-steps"><li>Antigravity › panel del agente › <b>…</b> › <b>MCP Servers</b> › <b>Manage MCP Servers</b> › <b>View raw config</b>.</li>
+<li>Pega el bloque (lleva tu licencia), guarda y pulsa <b>Refresh</b>.</li></ol>
+{code_block(f"sn-{s}-antigravity", sn["headers"], "mcp_config.json")}<p class="path"><code>~/.gemini/antigravity/mcp_config.json</code></p>""",
+        "windsurf": f"""<ol class="mini-steps"><li>Windsurf › <b>Settings</b> › <b>Cascade</b> › <b>MCP Servers</b> › <b>View raw config</b>.</li>
+<li>Pega el bloque (lleva tu licencia), guarda y pulsa <b>Refresh</b>.</li></ol>
+{code_block(f"sn-{s}-windsurf", sn["headers"], "mcp_config.json")}<p class="path"><code>~/.codeium/windsurf/mcp_config.json</code></p>""",
+    }
 
 
 # ---------------------------------------------------------------- layout
