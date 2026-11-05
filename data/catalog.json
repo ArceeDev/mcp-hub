@@ -391,8 +391,8 @@
           "con celdas tipadas"
         ]
       ],
-      "pypi": false,
-      "mcpb": false
+      "pypi": true,
+      "mcpb": true
     }
   ]
 }
