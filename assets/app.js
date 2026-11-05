@@ -141,6 +141,31 @@
     });
   }
 
+  /* licencia tras el pago (/gracias/?session_id=cs_…) */
+  var rv = document.querySelector("[data-reveal]");
+  var sid = rv && (new URLSearchParams(location.search).get("session_id") || "");
+  if (rv && /^cs_[A-Za-z0-9_]{10,250}$/.test(sid)) {
+    var meta = rv.querySelector("[data-reveal-meta]"), tries = 0;
+    rv.hidden = false;
+    (function poll() {
+      fetch("/api/licencia?session_id=" + encodeURIComponent(sid), { headers: { accept: "application/json" } })
+        .then(function (r) { return r.json().then(function (d) { d._s = r.status; return d; }); })
+        .then(function (d) {
+          if (d.ok && SAFE.test(d.license || "")) {
+            rv.querySelector("#lic-reveal").firstChild.textContent = d.license;
+            rv.querySelector("[data-reveal-box]").hidden = false;
+            meta.textContent = "Plan " + (d.tier || "").replace(/^./, function (c) { return c.toUpperCase(); }) +
+              (d.email_hint ? " · enviada a " + d.email_hint : "");
+            var lead = document.querySelector("[data-reveal-lead]"); if (lead) lead.textContent = "Tu licencia está lista. Cópiala o ve directo al instalador.";
+            store(KEY, d.license); apply(d.license);
+            history.replaceState(null, "", location.pathname);
+          } else if (d._s === 404 && ++tries < 15) { setTimeout(poll, 2000); }
+          else { meta.textContent = d.error || "No pudimos mostrarla aquí. Te llega por correo en unos minutos."; }
+        })
+        .catch(function () { if (++tries < 15) setTimeout(poll, 2000); else meta.textContent = "No pudimos mostrarla aquí. Te llega por correo en unos minutos."; });
+    })();
+  }
+
   /* reenviar licencia */
   var rf = document.querySelector("[data-recover-form]");
   if (rf) {

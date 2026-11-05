@@ -595,9 +595,15 @@ def thanks() -> str:
 <section class="hero hero-sm center"><div class="glow" aria-hidden="true"></div><div class="wrap narrow">
 <span class="tile tile-lg ok-tile">{icon("check")}</span>
 <h1>Pago completado</h1>
-<p class="lead">Tu licencia <code>LIC-…</code> está de camino a tu correo. Suele llegar en menos de un minuto.</p>
+<p class="lead" data-reveal-lead>Tu licencia <code>LIC-…</code> está de camino a tu correo. Suele llegar en menos de un minuto.</p>
 </div></section>
 <section class="section tight"><div class="wrap narrow">
+<div class="reveal glass" data-reveal hidden>
+<div class="reveal-head"><span class="tile tile-sm">{icon("key")}</span><div><h2 class="h3">Tu licencia</h2>
+<p class="muted small" data-reveal-meta aria-live="polite">Buscando tu licencia…</p></div></div>
+<div data-reveal-box hidden>{code_block("lic-reveal", "LIC-…", "KEYFLINT_LICENSE")}
+<p class="lic-help good">Guardada en este navegador: el instalador ya la tiene puesta. También te llega por correo.</p></div>
+</div>
 <ol class="steps steps-row">
 <li class="step"><span class="tile tile-sm">{icon("mail")}</span><div><h3><span class="step-n">1</span>Abre el correo</h3><p>Copia la licencia. Revisa spam si no aparece.</p></div></li>
 <li class="step"><span class="tile tile-sm">{icon("download")}</span><div><h3><span class="step-n">2</span>Instala un servidor</h3><p>Pega la licencia en el instalador y elige tu cliente.</p></div></li>

@@ -442,3 +442,7 @@ td code{color:var(--ink)}
 .picker{grid-template-columns:repeat(4,1fr)}
 @media (max-width:640px){.recover-row{flex-direction:column}.picker{grid-template-columns:1fr 1fr}.foot-base{flex-direction:column;align-items:flex-start}}
 .tabs{flex-wrap:wrap;row-gap:2px}
+.reveal{display:flex;flex-direction:column;gap:16px;padding:24px;margin:0 0 28px}
+.reveal-head{display:flex;gap:14px;align-items:center}
+.reveal-head h2{margin:0}
+.reveal pre{word-break:break-all;white-space:pre-wrap}
