@@ -136,10 +136,36 @@
           m.setAttribute("aria-label", nf.format(d.balance) + " de " + nf.format(d.allowance) + " créditos");
           m.firstElementChild.style.width = pct + "%"; m.classList.toggle("low", pct < 15);
           out.hidden = false;
+          loadUsage(lic);
         })
         .catch(function (e) { err.querySelector("span").textContent = e.message || "No se pudo consultar el saldo."; err.hidden = false; })
         .then(function () { btn.disabled = false; btn.removeAttribute("aria-busy"); });
     });
+  }
+
+  /* historial de uso (solo llamadas por URL remota) */
+  function loadUsage(lic) {
+    var box = document.querySelector("[data-usage]");
+    if (!box) return;
+    fetch("/api/uso?license=" + encodeURIComponent(lic), { headers: { accept: "application/json" } })
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        if (!d.ok || (!d.recent.length && !d.tools.length)) { box.hidden = true; return; }
+        var nf = new Intl.NumberFormat("es-ES"), when = new Intl.DateTimeFormat("es-ES", { dateStyle: "short", timeStyle: "short" });
+        function td(v, cls) { var c = document.createElement("td"); if (cls) c.className = cls; c.textContent = v; return c; }
+        function fill(sel, rows, cells) {
+          var tb = box.querySelector(sel); tb.textContent = "";
+          rows.forEach(function (r) { var tr = document.createElement("tr"); cells(r).forEach(function (c) { tr.appendChild(c); }); tb.appendChild(tr); });
+        }
+        fill("[data-usage-tools]", d.tools, function (r) {
+          return [td(r.slug), td(r.tool), td(nf.format(r.calls), "num"), td(nf.format(r.credits || 0), "num"), td(nf.format(r.errors || 0), "num" + (r.errors ? " bad" : ""))];
+        });
+        fill("[data-usage-recent]", d.recent, function (r) {
+          return [td(when.format(new Date(r.ts * 1000))), td(r.slug), td(r.tool), td(nf.format(r.credits || 0), "num"), td(r.ok ? "OK" : "Error", r.ok ? "" : "bad")];
+        });
+        box.hidden = false;
+      })
+      .catch(function () { box.hidden = true; });
   }
 
   /* licencia tras el pago (/gracias/?session_id=cs_…) */

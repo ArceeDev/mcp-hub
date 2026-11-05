@@ -24,6 +24,7 @@ const NAMES = { "web-intel": "Web Intel", norma43: "Norma 43", contabridge: "Con
 const SCOPE = "mcp";
 const LICENSE_RE = /^LIC-[A-Za-z0-9._~+\/=-]{6,400}$/;
 const INSTANCES = 3; // contenedores entre los que se reparte la carga
+const QUIET = new Set(["credits_balance", "pricing"]); // gratis y frecuentes: no ensucian el historial
 
 export class McpRuntime extends Container {
   defaultPort = 8080;
@@ -55,25 +56,108 @@ function servers(env) {
       if (LICENSE_RE.test(token)) return { props: { license: token }, audience: resource, scope: [SCOPE] };
       return as.validateToken(resource, token, env);
     },
-    handler: { fetch: (request, env, ctx) => forward(request, env, ctx.props && ctx.props.license) },
+    handler: { fetch: (request, env, ctx) => forward(request, env, ctx, ctx.props && ctx.props.license) },
   })]));
   cached = { base, as, resources };
   return cached;
 }
 
-async function forward(request, env, license) {
+async function forward(request, env, ctx, license) {
   if (!license || !LICENSE_RE.test(license)) return new Response("Licencia no válida", { status: 401 });
   const url = new URL(request.url);
+  const slug = url.pathname.split("/")[1];
+  const who = await userId(license);
+  const body = request.method === "POST" ? await request.text() : null;
+  const call = toolCall(body);
+
+  // Límite por licencia (frena bucles de agentes y abusos). Solo cuenta llamadas a herramientas.
+  if (call && env.MCP_LIMIT) {
+    const { success } = await env.MCP_LIMIT.limit({ key: who });
+    if (!success) return rpcError(call.id, -32029, "Demasiadas llamadas seguidas con esta licencia. Espera un minuto.", 429);
+  }
+
   const headers = new Headers(request.headers);
-  for (const h of ["authorization", "cookie", "x-license-key", "cf-connecting-ip", "x-forwarded-for"]) headers.delete(h);
+  for (const h of ["authorization", "cookie", "x-license-key", "cf-connecting-ip", "x-forwarded-for", "content-length"]) headers.delete(h);
   headers.set("x-license-key", license);
-  const upstream = new Request(`http://mcp${url.pathname}${url.search}`, {
-    method: request.method, headers, body: request.body, redirect: "manual",
-  });
+  const upstream = new Request(`http://mcp${url.pathname}${url.search}`, { method: request.method, headers, body, redirect: "manual" });
+  const t0 = Date.now();
+  const res = await upstreamFetch(env, url, upstream);
+  if (!call || !env.USAGE_DB || QUIET.has(call.name)) return res;
+
+  // Registro de uso: MCP, herramienta, resultado, créditos y duración. Nunca la licencia (solo su hash) ni el contenido.
+  const text = await res.text();
+  const out = parseResult(text);
+  ctx.waitUntil(env.USAGE_DB.prepare(
+    "INSERT INTO usage (lic, ts, slug, tool, ok, credits, ms) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
+  ).bind(who, Math.floor(t0 / 1000), slug, call.name.slice(0, 64), out.ok ? 1 : 0, out.credits, Date.now() - t0).run()
+    .catch((e) => console.error("usage insert", e.message)));
+  return new Response(text, { status: res.status, headers: res.headers });
+}
+
+async function upstreamFetch(env, url, upstream) {
   // Desarrollo local sin Docker: MCP_UPSTREAM=http://127.0.0.1:8091 (uvicorn container/app.py).
   if (env.MCP_UPSTREAM) return fetch(new Request(env.MCP_UPSTREAM.replace(/\/$/, "") + url.pathname + url.search, upstream));
   const container = await getRandom(env.MCP_RUNTIME, INSTANCES);
   return container.fetch(upstream);
+}
+
+function toolCall(body) {
+  if (!body || body.length > 50_000_000) return null;
+  try {
+    const m = JSON.parse(body);
+    if (m && m.method === "tools/call" && m.params && typeof m.params.name === "string") return { id: m.id ?? null, name: m.params.name };
+  } catch (e) { /* no es JSON-RPC */ }
+  return null;
+}
+
+function parseResult(text) {
+  try {
+    const r = JSON.parse(text).result;
+    if (!r) return { ok: false, credits: 0 };
+    let d = r.structuredContent;
+    if (d && typeof d === "object" && Object.keys(d).length === 1 && "result" in d) d = d.result;
+    const credits = Number(d && d.billing && d.billing.credits_charged) || 0;
+    return { ok: !r.isError, credits };
+  } catch (e) {
+    return { ok: false, credits: 0 };
+  }
+}
+
+function rpcError(id, code, message, status) {
+  return new Response(JSON.stringify({ jsonrpc: "2.0", id, error: { code, message } }), {
+    status, headers: { "content-type": "application/json", "retry-after": "60" },
+  });
+}
+
+// ---------------------------------------------------------------- /api/uso: historial de la licencia
+
+async function usage(request, env, url) {
+  const h = { "content-type": "application/json; charset=utf-8", "cache-control": "no-store", "x-content-type-options": "nosniff" };
+  const license = (url.searchParams.get("license") || "").trim();
+  if (!LICENSE_RE.test(license)) return new Response(JSON.stringify({ ok: false, error: "Licencia con formato no válido." }), { status: 400, headers: h });
+  if (!env.USAGE_DB) return new Response(JSON.stringify({ ok: true, recent: [], tools: [] }), { headers: h });
+  const who = await userId(license);
+  const since = Math.floor(Date.now() / 1000) - 30 * 86400;
+  const [recent, tools] = await env.USAGE_DB.batch([
+    env.USAGE_DB.prepare("SELECT ts, slug, tool, ok, credits, ms FROM usage WHERE lic = ?1 ORDER BY ts DESC LIMIT 10").bind(who),
+    env.USAGE_DB.prepare("SELECT slug, tool, COUNT(*) AS calls, SUM(credits) AS credits, SUM(1 - ok) AS errors FROM usage " +
+      "WHERE lic = ?1 AND ts >= ?2 GROUP BY slug, tool ORDER BY credits DESC, calls DESC LIMIT 30").bind(who, since),
+  ]);
+  return new Response(JSON.stringify({ ok: true, recent: recent.results, tools: tools.results }), { headers: h });
+}
+
+// ---------------------------------------------------------------- cron diario
+
+async function daily(env) {
+  if (env.USAGE_DB) {
+    const cutoff = Math.floor(Date.now() / 1000) - 180 * 86400;
+    await env.USAGE_DB.prepare("DELETE FROM usage WHERE ts < ?1").bind(cutoff).run();
+  }
+  const res = await upstreamFetch(env, new URL("http://mcp/healthz"), new Request("http://mcp/healthz"));
+  const data = await res.json().catch(() => ({}));
+  const missing = SLUGS.filter((s) => !(data.servers || []).includes(s));
+  if (!res.ok || missing.length) console.error("healthz", res.status, "faltan", missing.join(","));
+  else console.log("healthz ok", data.servers.join(","));
 }
 
 // ---------------------------------------------------------------- página de licencia (consentimiento)
@@ -194,9 +278,13 @@ export default {
     const path = url.pathname;
     const { as, resources } = servers(env);
     if (path === "/authorize") return authorize(request, env);
+    if (path === "/api/uso" && request.method === "GET") return usage(request, env, url);
     const m = path.match(/^\/([a-z0-9-]+)\/mcp(\/.*)?$/) || path.match(/^\/\.well-known\/oauth-protected-resource\/([a-z0-9-]+)\/mcp$/);
     if (m && resources[m[1]]) return resources[m[1]].fetch(request, env, ctx);
     if (path.startsWith("/oauth/") || path.startsWith("/.well-known/oauth-")) return as.fetch(request, env, ctx);
     return api.fetch(request, env, ctx);
+  },
+  async scheduled(_event, env, ctx) {
+    ctx.waitUntil(daily(env));
   },
 };

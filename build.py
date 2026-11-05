@@ -681,6 +681,12 @@ def balance_page() -> str:
 <div class="meter" role="meter" aria-valuemin="0" data-meter><span></span></div>
 <dl class="saldo-dl"><div><dt>Usados</dt><dd class="tabnum" data-f="consumed"></dd></div><div><dt>Total del plan</dt><dd class="tabnum" data-f="allowance"></dd></div></dl>
 <div class="cta-row"><a class="btn btn-primary" href="/precios/">{icon("card")}Comprar más créditos</a><a class="btn btn-ghost" href="/#instalar">Instalar servidores</a></div>
+</div>
+<div class="saldo-card uso" data-usage hidden><h3>Uso en los últimos 30 días</h3>
+<div class="tw"><table class="uso-t"><thead><tr><th>Servidor</th><th>Herramienta</th><th class="num">Llamadas</th><th class="num">Créditos</th><th class="num">Errores</th></tr></thead><tbody data-usage-tools></tbody></table></div>
+<h4>Últimas llamadas</h4>
+<div class="tw"><table class="uso-t"><thead><tr><th>Cuándo</th><th>Servidor</th><th>Herramienta</th><th class="num">Créditos</th><th>Estado</th></tr></thead><tbody data-usage-recent></tbody></table></div>
+<p class="muted small">Se registra servidor, herramienta, resultado y créditos de cada llamada por URL. Nunca el contenido. Se borra a los 180 días.</p>
 </div></div>
 <p class="saldo-err note" data-balance-err hidden>{icon("info")}<span></span></p>
 <div class="faq saldo-faq">{faq_html([

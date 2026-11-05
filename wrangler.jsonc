@@ -19,5 +19,12 @@
   "containers": [{ "class_name": "McpRuntime", "image": "./container/Dockerfile", "max_instances": 5, "instance_type": "basic" }],
   "durable_objects": { "bindings": [{ "name": "MCP_RUNTIME", "class_name": "McpRuntime" }] },
   "migrations": [{ "tag": "v1", "new_sqlite_classes": ["McpRuntime"] }],
+  // Uso por herramienta (historial en /saldo/). Crear con: npx wrangler d1 create mcp-usage; luego
+  // npx wrangler d1 migrations apply mcp-usage --remote
+  "d1_databases": [{ "binding": "USAGE_DB", "database_name": "mcp-usage", "database_id": "REPLACE_WITH_D1_ID", "migrations_dir": "migrations" }],
+  // 120 llamadas a herramientas por minuto y licencia.
+  "ratelimits": [{ "name": "MCP_LIMIT", "namespace_id": "1001", "simple": { "limit": 120, "period": 60 } }],
+  // Limpieza de uso antiguo y chequeo de los 5 MCP, cada día a las 04:17 UTC.
+  "triggers": { "crons": ["17 4 * * *"] },
   "observability": { "enabled": true }
 }
