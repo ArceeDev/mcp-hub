@@ -10,11 +10,11 @@ Sitio estático de **https://mcp.keyflint.dev**: catálogo, instalación, precio
 
 Añade una entrada a `mcps` en `data/catalog.json` y haz push. Cloudflare Pages vuelve a publicar.
 
-## Despliegue (Cloudflare Pages, gratis y con uso comercial permitido)
+## Despliegue (Cloudflare Workers, gratis y con uso comercial permitido)
 
-1. Cloudflare › Workers & Pages › Create › Pages › Connect to Git › `ArceeDev/mcp-hub`.
-2. Framework preset: *None*. Build command: `python3 build.py`. Output directory: `public`.
-3. Custom domains › `mcp.keyflint.dev`. En el DNS de keyflint.dev: `CNAME mcp → <proyecto>.pages.dev`.
+1. Cloudflare › Workers & Pages › Create › Import a repository › `ArceeDev/mcp-hub`.
+2. Build command: `python3 build.py`. Deploy command: `npx wrangler deploy` (lee `wrangler.jsonc`).
+3. Settings › Domains & Routes › Add › Custom domain › `mcp.keyflint.dev`.
 
 ## Pagos
 

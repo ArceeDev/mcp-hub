@@ -1,0 +1,10 @@
+{
+  // Sitio estático servido por Cloudflare Workers (assets). Build: python3 build.py
+  "name": "mcp-hub",
+  "compatibility_date": "2026-10-01",
+  "assets": {
+    "directory": "./public",
+    "not_found_handling": "404-page",
+    "html_handling": "auto-trailing-slash"
+  }
+}
