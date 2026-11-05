@@ -16,6 +16,15 @@ Añade una entrada a `mcps` en `data/catalog.json` y haz push. Cloudflare Pages 
 2. Build command: `python3 build.py`. Deploy command: `npx wrangler deploy` (lee `wrangler.jsonc`).
 3. Settings › Domains & Routes › Add › Custom domain › `mcp.keyflint.dev`.
 
+## API (`src/worker.js`)
+
+El Worker solo atiende `/api/*`; el resto lo sirven los assets estáticos.
+
+- `GET /api/saldo?license=…`: plan, estado y créditos (vía `/api/v1/billing/status` del gateway). No devuelve correo ni licencia.
+- `POST /api/recuperar {email}`: pide al gateway un enlace de acceso de un solo uso. Responde igual exista o no el correo.
+
+Probar en local: `npx wrangler dev --var GATEWAY_URL:http://127.0.0.1:9009` con un gateway falso.
+
 ## Pagos
 
 Los enlaces de Stripe llevan `metadata.tier` (`pro`, `indie`, `agency`) y `source=mcp-hub`. El webhook del gateway (`/api/v1/webhooks/stripe`) emite la licencia y la envía por correo. Tras pagar, Stripe redirige a `/gracias/`.

@@ -18,7 +18,7 @@ import urllib.request
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from icons import ICONS  # noqa: E402
+from icons import BRANDS, ICONS  # noqa: E402
 
 ROOT = Path(__file__).parent
 OUT = ROOT / "public"
@@ -60,6 +60,12 @@ def icon(name: str, cls: str = "i") -> str:
             f'{ICONS[name]}</svg>')
 
 
+def brand(name: str, cls: str = "b") -> str:
+    vb, inner, hexc = BRANDS[name]
+    return (f'<svg class="{cls} b-{name}" viewBox="{vb}" role="img" aria-hidden="true" focusable="false" '
+            f'style="--brand-c:#{hexc}">{inner}</svg>')
+
+
 def money(n: float) -> str:
     return f"{n:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".").removesuffix(",00")
 
@@ -94,22 +100,29 @@ def server_cfg(m: dict) -> dict:
     return {"command": "uvx", "args": ["--from", f"git+{m['repo']}", m["package"]], "env": server_env()}
 
 
+def members(m: dict) -> list[dict]:
+    return [x for x in MCPS] if m.get("all") else [m]
+
+
 def snippets(m: dict) -> dict[str, str]:
-    cfg = server_cfg(m)
-    std = json.dumps({"mcpServers": {m["slug"]: cfg}}, indent=2, ensure_ascii=False)
-    vscode = json.dumps({"servers": {m["slug"]: {"type": "stdio", **cfg}}}, indent=2, ensure_ascii=False)
-    cc = (f"claude mcp add {m['slug']} --scope user \\\n"
-          + "".join(f"  -e {k}={v} \\\n" for k, v in server_env().items())
-          + f"  -- uvx --from git+{m['repo']} {m['package']}")
+    ms = members(m)
+    std = json.dumps({"mcpServers": {x["slug"]: server_cfg(x) for x in ms}}, indent=2, ensure_ascii=False)
+    vscode = json.dumps({"servers": {x["slug"]: {"type": "stdio", **server_cfg(x)} for x in ms}}, indent=2, ensure_ascii=False)
+    cc = "\n\n".join(f"claude mcp add {x['slug']} --scope user \\\n"
+                      + "".join(f"  -e {k}={v} \\\n" for k, v in server_env().items())
+                      + f"  -- uvx --from git+{x['repo']} {x['package']}" for x in ms)
     return {"desktop": std, "code": cc, "cursor": std, "vscode": vscode, "windsurf": std}
 
 
+ALL = {"slug": "todos", "name": "Todos", "all": True, "icon": "stack"}
+
+
 CLIENTS = [
-    ("desktop", "Claude Desktop", "monitor"),
-    ("code", "Claude Code", "terminal"),
-    ("cursor", "Cursor", "pointer"),
-    ("vscode", "VS Code", "brackets"),
-    ("windsurf", "Windsurf", "wave"),
+    ("desktop", "Claude Desktop", "claude"),
+    ("code", "Claude Code", "claude"),
+    ("cursor", "Cursor", "cursor"),
+    ("vscode", "VS Code", "vscode"),
+    ("windsurf", "Windsurf", "windsurf"),
 ]
 
 
@@ -120,30 +133,37 @@ def installer(m: dict) -> str:
     tabs = "".join(
         f'<button type="button" role="tab" id="tab-{s}-{cid}" aria-controls="pan-{s}-{cid}" '
         f'aria-selected="{"true" if i == 0 else "false"}" tabindex="{0 if i == 0 else -1}" data-client="{cid}">'
-        f'{icon(ic)}<span>{e(name)}</span></button>'
+        f'{brand(ic)}<span>{e(name)}</span></button>'
         for i, (cid, name, ic) in enumerate(CLIENTS))
+    multi = bool(m.get("all"))
+    key_line = ("Si ya tienes servidores, copia solo los bloques de dentro de <code>mcpServers</code>." if multi
+                else f'Si ya tienes servidores, añade solo <code>"{s}"</code> dentro de <code>mcpServers</code>.')
     uv_note = (f'<p class="note">{icon("info")}<span>Necesita <a href="/empezar/#uv">uv</a> instalado: '
                'un comando, una sola vez.</span></p>')
     panels = {
         "desktop": f"""<ol class="mini-steps">
 <li>Abre Claude Desktop › <b>Ajustes</b> › <b>Desarrollador</b> › <b>Editar configuración</b>.</li>
-<li>Pega el bloque en <code>claude_desktop_config.json</code>. Si ya tienes servidores, añade solo <code>"{s}"</code> dentro de <code>mcpServers</code>.</li>
+<li>Pega el bloque en <code>claude_desktop_config.json</code>. {key_line}</li>
 <li>Guarda y reinicia Claude Desktop por completo.</li></ol>
 {code_block(f"sn-{s}-desktop", sn["desktop"], "claude_desktop_config.json")}
 <p class="path">macOS <code>~/Library/Application Support/Claude/</code><br>Windows <code>%APPDATA%\\Claude\\</code></p>{uv_note}""",
-        "code": f"""<ol class="mini-steps"><li>Ejecútalo en tu terminal. Queda disponible en todos tus proyectos.</li>
+        "code": f"""<ol class="mini-steps"><li>Ejecuta {"los comandos" if multi else "el comando"} en tu terminal. Queda{"n" if multi else ""} disponible{"s" if multi else ""} en todos tus proyectos.</li>
 <li>Compruébalo con <code>claude mcp list</code>.</li></ol>
 {code_block(f"sn-{s}-code", sn["code"], "Terminal")}{uv_note}""",
-        "cursor": f"""<a class="btn btn-primary btn-block" data-deeplink="cursor" href="#">{icon("download")}Añadir a Cursor</a>
+        "cursor": (f"""<p class="muted small">Pega el bloque en <code>~/.cursor/mcp.json</code>. Para instalar con un clic, elige un solo servidor.</p>
+{code_block(f"sn-{s}-cursor", sn["cursor"], "mcp.json")}{uv_note}""" if multi else
+                   f"""<a class="btn btn-primary btn-block" data-deeplink="cursor" href="#">{brand("cursor")}Añadir a Cursor</a>
 <p class="muted small center gap">Cursor se abre y te pide confirmar la instalación.</p>
 <details class="manual"><summary><span>Instalación manual</span>{icon("chevron")}</summary>
 <p>Pega el bloque en <code>~/.cursor/mcp.json</code> (todos los proyectos) o en <code>.cursor/mcp.json</code> (solo este).</p>
-{code_block(f"sn-{s}-cursor", sn["cursor"], "mcp.json")}</details>{uv_note}""",
-        "vscode": f"""<a class="btn btn-primary btn-block" data-deeplink="vscode" href="#">{icon("download")}Añadir a VS Code</a>
+{code_block(f"sn-{s}-cursor", sn["cursor"], "mcp.json")}</details>{uv_note}"""),
+        "vscode": (f"""<p class="muted small">Pega el bloque en <code>.vscode/mcp.json</code>. Para instalar con un clic, elige un solo servidor.</p>
+{code_block(f"sn-{s}-vscode", sn["vscode"], ".vscode/mcp.json")}{uv_note}""" if multi else
+                   f"""<a class="btn btn-primary btn-block" data-deeplink="vscode" href="#">{brand("vscode")}Añadir a VS Code</a>
 <p class="muted small center gap">Para VS Code 1.102 o superior, con el chat de Copilot en modo agente.</p>
 <details class="manual"><summary><span>Instalación manual</span>{icon("chevron")}</summary>
 <p>Pega el bloque en <code>.vscode/mcp.json</code> de tu proyecto.</p>
-{code_block(f"sn-{s}-vscode", sn["vscode"], ".vscode/mcp.json")}</details>{uv_note}""",
+{code_block(f"sn-{s}-vscode", sn["vscode"], ".vscode/mcp.json")}</details>{uv_note}"""),
         "windsurf": f"""<ol class="mini-steps"><li>Windsurf › <b>Settings</b> › <b>Cascade</b> › <b>MCP Servers</b> › <b>View raw config</b>.</li>
 <li>Pega el bloque, guarda y pulsa <b>Refresh</b>.</li></ol>
 {code_block(f"sn-{s}-windsurf", sn["windsurf"], "mcp_config.json")}
@@ -153,7 +173,7 @@ def installer(m: dict) -> str:
         f'<div role="tabpanel" id="pan-{s}-{cid}" aria-labelledby="tab-{s}-{cid}" class="panel"'
         f'{"" if i == 0 else " data-hidden"}><h4 class="panel-title">{e(name)}</h4>{panels[cid]}</div>'
         for i, (cid, name, _) in enumerate(CLIENTS))
-    cfg_json = e(json.dumps({"slug": s, "server": server_cfg(m)}, ensure_ascii=False))
+    cfg_json = e(json.dumps({"slug": s, "server": None if multi else server_cfg(m)}, ensure_ascii=False))
     return f"""<div class="installer" data-installer="{cfg_json}">
 <label class="lic"><span class="lic-label">{icon("key")}Tu licencia <span class="muted">· opcional</span></span>
 <span class="lic-field"><input type="text" autocomplete="off" spellcheck="false" placeholder="Pega aquí tu LIC-…" data-license aria-describedby="lic-help-{s}"><span class="lic-state" data-license-state aria-live="polite"></span></span>
@@ -169,7 +189,7 @@ def page(path: str, title: str, desc: str, body: str, ld: list | None = None, no
     url = SITE["url"] + path
     lds = "".join(jsonld(x) for x in (ld or []))
     robots = '<meta name="robots" content="noindex">\n' if noindex else ""
-    nav = [("/#catalogo", "Catálogo"), ("/#instalar", "Instalar"), ("/precios/", "Precios"), ("/empezar/", "Guía")]
+    nav = [("/#catalogo", "Catálogo"), ("/#instalar", "Instalar"), ("/precios/", "Precios"), ("/empezar/", "Guía"), ("/saldo/", "Mi saldo")]
     navh = "".join(f'<a href="{h}"' + (' aria-current="page"' if h == path else "") + f">{t}</a>" for h, t in nav)
     return f"""<!doctype html>
 <html lang="{SITE['lang']}" class="no-js">
@@ -212,10 +232,15 @@ def page(path: str, title: str, desc: str, body: str, ld: list | None = None, no
 <div class="foot-brand"><a class="brand" href="/">{icon("logo", "logo")}<span>KeyFlint</span><span class="brand-tag">MCP</span></a>
 <p class="muted small">Servidores MCP deterministas para agentes de IA, con licencias criptográficas y pago por uso.</p></div>
 <div><h3>Servidores</h3><ul>{''.join(f'<li><a href="/{m["slug"]}/">{e(m["name"])}</a></li>' for m in MCPS)}</ul></div>
-<div><h3>Recursos</h3><ul><li><a href="/empezar/">Guía de instalación</a></li><li><a href="/precios/">Precios</a></li><li><a href="https://keyflint.dev">KeyFlint</a></li></ul></div>
+<div><h3>Recursos</h3><ul><li><a href="/empezar/">Guía de instalación</a></li><li><a href="/saldo/">Consultar saldo</a></li><li><a href="/precios/">Precios</a></li><li><a href="https://keyflint.dev">KeyFlint</a></li></ul></div>
 <div><h3>Legal y soporte</h3><ul><li><a href="https://keyflint.dev/privacy.html">Privacidad</a></li><li><a href="https://keyflint.dev/dpa.html">Encargo de tratamiento</a></li><li><a href="{SITE['contact']}">{e(CONTACT)}</a></li></ul></div>
 </div>
-<p class="foot-base muted small">© {dt.date.today().year} KeyFlint · Pagos procesados por Stripe · Los servidores se ejecutan en tu equipo y no guardan tus datos.</p>
+<div class="foot-base">
+<p class="muted small">© {dt.date.today().year} KeyFlint · Los servidores se ejecutan en tu equipo y no guardan tus datos.</p>
+<div class="badges">
+<a class="badge-pill" href="https://stripe.com" rel="noopener"><span class="muted">Pagos con</span>{brand("stripe")}<b>Stripe</b></a>
+<a class="badge-pill kf" href="https://keyflint.dev"><span class="muted">Licencias</span><span class="kf-mark">{icon("logo", "logo")}by&nbsp;KeyFlint</span></a>
+</div></div>
 </div></footer>
 </body>
 </html>
@@ -253,7 +278,7 @@ def hero_demo() -> str:
 
 def home() -> str:
     cards = "\n".join(mcp_card(m) for m in MCPS)
-    clients = "".join(f'<li>{icon(ic)}<span>{e(n)}</span></li>' for _, n, ic in CLIENTS) + \
+    clients = "".join(f'<li>{brand(ic)}<span>{e(n)}</span></li>' for _, n, ic in CLIENTS) + \
         f'<li>{icon("plug")}<span>Cualquier cliente MCP</span></li>'
     feats = [
         ("key", "Una licencia para todo", "La misma clave funciona en todos los servidores. Sin cuentas ni contraseñas que recordar."),
@@ -273,12 +298,13 @@ def home() -> str:
     steps_html = "".join(f'<li class="step"><span class="tile tile-sm">{icon(i)}</span>'
                          f'<div><h3><span class="step-n">{n}</span>{t}</h3><p>{d}</p></div></li>'
                          for n, (i, t, d) in enumerate(steps, 1))
+    opts = MCPS + [ALL]
     picker = "".join(
         f'<button type="button" class="pick" aria-pressed="{"true" if i == 0 else "false"}" data-pick="{m["slug"]}">'
-        f'{icon(m["icon"])}<span>{e(m["name"])}</span></button>' for i, m in enumerate(MCPS))
+        f'{icon(m["icon"])}<span>{e(m["name"])}</span></button>' for i, m in enumerate(opts))
     installers = "".join(f'<div class="pick-panel" data-pick-panel="{m["slug"]}"{"" if i == 0 else " data-hidden"}>'
                          f'<h3 class="panel-title">{e(m["name"])}</h3>{installer(m)}</div>'
-                         for i, m in enumerate(MCPS))
+                         for i, m in enumerate(opts))
     faq = [
         ("¿Qué es un servidor MCP?", "MCP (Model Context Protocol) es el estándar abierto con el que agentes de IA como Claude o Cursor usan herramientas externas. Un servidor MCP le da a tu agente capacidades nuevas: leer extractos bancarios, convertir ficheros contables o auditar webs."),
         ("¿Necesito saber programar?", "No. Pulsas un botón en Cursor o VS Code, o copias un bloque en la configuración de Claude. Solo hay que instalar uv una vez, con un comando que te damos."),
@@ -472,7 +498,6 @@ def pricing() -> str:
 
 
 def start() -> str:
-    first = MCPS[0]
     mail = (f"{SITE['contact']}?subject=" + urllib.parse.quote("Licencia gratuita KeyFlint MCP")
             + "&body=" + urllib.parse.quote("Hola, quiero probar los servidores MCP.\n\nLo usaré para: \nCliente (Claude, Cursor…): "))
     body = f"""
@@ -498,9 +523,9 @@ def start() -> str:
 <p class="note">{icon("info")}<span>Después, cierra y vuelve a abrir tu cliente para que encuentre <code>uvx</code>.</span></p>
 </div></li>
 <li class="g-step"><span class="g-n">3</span><div class="g-body">
-<h2>Añade el servidor a tu cliente</h2>
-<p>Ejemplo con {e(first['name'])}. Cada servidor del <a href="/#catalogo">catálogo</a> tiene su instalador.</p>
-<div class="install-card glass">{installer(first)}</div>
+<h2>Añade los servidores a tu cliente</h2>
+<p>Pega tu licencia y copia la configuración con los {len(MCPS)} servidores a la vez. Si prefieres uno solo, cada servidor del <a href="/#catalogo">catálogo</a> tiene su instalador con un clic para Cursor y VS Code.</p>
+<div class="install-card glass">{installer(ALL)}</div>
 </div></li>
 <li class="g-step"><span class="g-n g-ok">{icon("check")}</span><div class="g-body">
 <h2>Compruébalo</h2>
@@ -522,6 +547,39 @@ def start() -> str:
                 body, ld)
 
 
+def balance_page() -> str:
+    body = f"""
+<section class="hero hero-sm"><div class="glow" aria-hidden="true"></div><div class="wrap narrow">
+<nav class="crumbs" aria-label="Ruta"><a href="/">Inicio</a>{icon("chevron-right")}<span aria-current="page">Mi saldo</span></nav>
+<h1>Consulta tu saldo</h1>
+<p class="lead">Pega tu licencia para ver tu plan, los créditos que te quedan y los que has usado.</p>
+</div></section>
+<section class="section tight"><div class="wrap narrow">
+<form class="saldo-form glass" data-balance-form novalidate>
+<label class="lic"><span class="lic-label">{icon("key")}Tu licencia</span>
+<span class="lic-field"><input type="text" name="license" autocomplete="off" spellcheck="false" placeholder="LIC-…" required aria-describedby="saldo-help"></span>
+<span id="saldo-help" class="lic-help">Se consulta a KeyFlint en el momento. Este sitio no la guarda.</span></label>
+<button class="btn btn-primary btn-lg" type="submit">{icon("gauge")}Consultar saldo</button>
+</form>
+<div class="saldo-out" data-balance-out aria-live="polite" hidden>
+<div class="saldo-card">
+<div class="saldo-head"><span class="eyebrow" data-f="tier"></span><span class="status" data-f="status"></span></div>
+<p class="saldo-num"><b class="tabnum" data-f="balance"></b><span class="muted"> créditos disponibles</span></p>
+<div class="meter" role="meter" aria-valuemin="0" data-meter><span></span></div>
+<dl class="saldo-dl"><div><dt>Usados</dt><dd class="tabnum" data-f="consumed"></dd></div><div><dt>Total del plan</dt><dd class="tabnum" data-f="allowance"></dd></div></dl>
+<div class="cta-row"><a class="btn btn-primary" href="/precios/">{icon("card")}Comprar más créditos</a><a class="btn btn-ghost" href="/#instalar">Instalar servidores</a></div>
+</div></div>
+<p class="saldo-err note" data-balance-err hidden>{icon("info")}<span></span></p>
+<div class="faq saldo-faq">{faq_html([
+        ("¿Perdiste tu licencia?", "Escribe tu correo en la página de confirmación del pago o en el portal de KeyFlint y te enviamos un enlace de acceso de un solo uso."),
+        ("¿Por qué no veo el detalle por servidor?", "KeyFlint registra el saldo de la licencia, no el uso por herramienta. Cada servidor te dice lo que cuesta antes de usarlo."),
+        ("¿Cómo añado créditos?", "Compra un plan y recibirás una licencia nueva con su saldo. Sustitúyela en tu configuración."),
+    ])}</div>
+</div></section>"""
+    return page("/saldo/", "Consulta tu saldo de créditos · KeyFlint MCP",
+                "Consulta los créditos que te quedan en tu licencia de KeyFlint MCP.", body, noindex=True)
+
+
 def thanks() -> str:
     body = f"""
 <section class="hero hero-sm center"><div class="glow" aria-hidden="true"></div><div class="wrap narrow">
@@ -536,7 +594,14 @@ def thanks() -> str:
 <li class="step"><span class="tile tile-sm">{icon("chat")}</span><div><h3><span class="step-n">3</span>Úsalo</h3><p>Pide la tarea a tu agente en lenguaje natural.</p></div></li>
 </ol>
 <div class="cta-row center"><a class="btn btn-primary btn-lg" href="/#instalar">Ir al instalador</a><a class="btn btn-ghost btn-lg" href="/empezar/">Ver la guía</a></div>
-<p class="muted small center">¿No te ha llegado en 10 minutos? Escribe a <a href="{SITE['contact']}">{e(CONTACT)}</a> con el correo que usaste al pagar.</p>
+<form class="recover glass" data-recover-form novalidate>
+<div><h2 class="h3">¿No te ha llegado en unos minutos?</h2>
+<p class="muted small">Escribe el correo que usaste al pagar y te enviaremos un enlace de acceso de un solo uso con tu licencia.</p></div>
+<div class="recover-row"><input type="email" name="email" autocomplete="email" placeholder="tu@correo.com" required aria-label="Correo electrónico">
+<button class="btn btn-ghost" type="submit">{icon("mail")}Enviar enlace</button></div>
+<p class="lic-help" data-recover-msg aria-live="polite"></p>
+</form>
+<p class="muted small center">¿Sigue sin llegar? Escribe a <a href="{SITE['contact']}">{e(CONTACT)}</a>.</p>
 </div></section>"""
     return page("/gracias/", "Pago completado · KeyFlint MCP", "Tu licencia está de camino.", body, noindex=True)
 
@@ -565,13 +630,14 @@ def main() -> None:
     write("precios/index.html", pricing())
     write("empezar/index.html", start())
     write("gracias/index.html", thanks())
+    write("saldo/index.html", balance_page())
     write("404.html", not_found())
     for m in MCPS:
         write(f"{m['slug']}/index.html", mcp_page(m))
     paths = ["/", "/empezar/", "/precios/"] + [f"/{m['slug']}/" for m in MCPS]
     write("sitemap.xml", '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
           + "".join(f"<url><loc>{SITE['url']}{p}</loc><lastmod>{TODAY}</lastmod></url>\n" for p in paths) + "</urlset>\n")
-    write("robots.txt", f"User-agent: *\nAllow: /\nDisallow: /gracias/\n\nSitemap: {SITE['url']}/sitemap.xml\n")
+    write("robots.txt", f"User-agent: *\nAllow: /\nDisallow: /gracias/\nDisallow: /saldo/\nDisallow: /api/\n\nSitemap: {SITE['url']}/sitemap.xml\n")
     write("llms.txt", f"# {SITE['name']}\n\n> {SITE['description']}\n\n## Servidores\n\n"
           + "".join(f"- [{m['name']}]({SITE['url']}/{m['slug']}/): {m['headline']}\n" for m in MCPS)
           + f"\n## Más\n\n- [Precios]({SITE['url']}/precios/)\n- [Guía de instalación]({SITE['url']}/empezar/)\n")

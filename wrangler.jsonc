@@ -1,10 +1,15 @@
 {
-  // Sitio estático servido por Cloudflare Workers (assets). Build: python3 build.py
+  // Sitio estático + API mínima (/api/*) en Cloudflare Workers. Build: python3 build.py
   "name": "mcp-hub",
+  "main": "src/worker.js",
   "compatibility_date": "2026-10-01",
   "assets": {
     "directory": "./public",
+    "binding": "ASSETS",
     "not_found_handling": "404-page",
-    "html_handling": "auto-trailing-slash"
-  }
+    "html_handling": "auto-trailing-slash",
+    "run_worker_first": ["/api/*"]
+  },
+  "vars": { "GATEWAY_URL": "https://licenses.keyflint.dev" },
+  "observability": { "enabled": true }
 }

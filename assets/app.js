@@ -79,14 +79,14 @@
     var ok = !!lic && SAFE.test(lic), value = ok ? lic : PH;
     installers.forEach(function (ins) {
       var cfg = JSON.parse(ins.getAttribute("data-installer"));
-      cfg.server.env.KEYFLINT_LICENSE = value;
+      if (cfg.server) cfg.server.env.KEYFLINT_LICENSE = value;
       $$("pre", ins).forEach(function (pre) {
         pre.firstChild.textContent = pre.getAttribute("data-tpl").split(PH).join(value);
       });
-      var c = ins.querySelector('[data-deeplink="cursor"]');
+      var c = cfg.server && ins.querySelector('[data-deeplink="cursor"]');
       if (c) c.href = "cursor://anysphere.cursor-deeplink/mcp/install?name=" + encodeURIComponent(cfg.slug) +
         "&config=" + encodeURIComponent(b64(JSON.stringify(cfg.server)));
-      var v = ins.querySelector('[data-deeplink="vscode"]');
+      var v = cfg.server && ins.querySelector('[data-deeplink="vscode"]');
       if (v) v.href = "vscode:mcp/install?" + encodeURIComponent(JSON.stringify({
         name: cfg.slug, type: "stdio", command: cfg.server.command, args: cfg.server.args, env: cfg.server.env }));
       var input = ins.querySelector("[data-license]"), state = ins.querySelector("[data-license-state]"), help = ins.querySelector(".lic-help");
@@ -107,4 +107,57 @@
     apply(lic);
   });
   apply(store(KEY) || "");
+
+  /* saldo */
+  var bf = document.querySelector("[data-balance-form]");
+  if (bf) {
+    var out = document.querySelector("[data-balance-out]"), err = document.querySelector("[data-balance-err]");
+    var nf = new Intl.NumberFormat("es-ES");
+    var TIERS = { community: "Gratis", pro: "Pro", indie: "Indie", agency: "Agency", studio: "Studio", lifetime: "Founder" };
+    var STATUS = { active: "Activa", grace_period: "En periodo de gracia", expired: "Caducada", suspended: "Suspendida", revoked: "Revocada" };
+    if (!bf.license.value) bf.license.value = store(KEY) || "";
+    function f(name, v) { var el = out.querySelector('[data-f="' + name + '"]'); if (el) el.textContent = v; }
+    bf.addEventListener("submit", function (ev) {
+      ev.preventDefault();
+      var lic = bf.license.value.trim(), btn = bf.querySelector("button");
+      out.hidden = true; err.hidden = true;
+      if (!SAFE.test(lic)) { err.querySelector("span").textContent = "Pega la licencia completa, tal como aparece en el correo."; err.hidden = false; return; }
+      btn.disabled = true; btn.setAttribute("aria-busy", "true");
+      fetch("/api/saldo?license=" + encodeURIComponent(lic), { headers: { accept: "application/json" } })
+        .then(function (r) { return r.json(); })
+        .then(function (d) {
+          if (!d.ok) throw new Error(d.error || "No se pudo consultar el saldo.");
+          f("tier", "Plan " + (TIERS[d.tier] || d.tier)); f("status", STATUS[d.status] || d.status);
+          out.querySelector('[data-f="status"]').className = "status" + (d.status === "active" ? " ok" : " warn");
+          f("balance", nf.format(d.balance)); f("consumed", nf.format(d.consumed)); f("allowance", nf.format(d.allowance));
+          var m = out.querySelector("[data-meter]"), pct = d.allowance ? Math.max(0, Math.min(100, d.balance / d.allowance * 100)) : 0;
+          m.setAttribute("aria-valuemax", d.allowance); m.setAttribute("aria-valuenow", d.balance);
+          m.setAttribute("aria-label", nf.format(d.balance) + " de " + nf.format(d.allowance) + " créditos");
+          m.firstElementChild.style.width = pct + "%"; m.classList.toggle("low", pct < 15);
+          out.hidden = false;
+        })
+        .catch(function (e) { err.querySelector("span").textContent = e.message || "No se pudo consultar el saldo."; err.hidden = false; })
+        .then(function () { btn.disabled = false; btn.removeAttribute("aria-busy"); });
+    });
+  }
+
+  /* reenviar licencia */
+  var rf = document.querySelector("[data-recover-form]");
+  if (rf) {
+    var msg = rf.querySelector("[data-recover-msg]");
+    rf.addEventListener("submit", function (ev) {
+      ev.preventDefault();
+      var btn = rf.querySelector("button"), email = rf.email.value.trim();
+      if (!rf.email.checkValidity() || !email) { msg.className = "lic-help warn"; msg.textContent = "Escribe un correo válido."; return; }
+      btn.disabled = true;
+      fetch("/api/recuperar", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ email: email }) })
+        .then(function (r) { return r.json(); })
+        .then(function (d) {
+          msg.className = "lic-help" + (d.ok ? " good" : " warn");
+          msg.textContent = d.ok ? "Si ese correo tiene licencias, te llegará un enlace en unos minutos. Revisa spam." : (d.error || "No se pudo enviar.");
+        })
+        .catch(function () { msg.className = "lic-help warn"; msg.textContent = "No se pudo enviar. Inténtalo en un minuto."; })
+        .then(function () { btn.disabled = false; });
+    });
+  }
 })();

@@ -388,3 +388,57 @@ td code{color:var(--ink)}
 .detail-side .tabs [role=tab]{padding:10px 10px 12px}
 .hero-sm h1{margin:8px 0 18px}
 .credits{line-height:1.45}
+
+/* logotipos de marca */
+.b{width:18px;height:18px;flex:none;fill:var(--brand-c)}
+.b-cursor,.b-windsurf{fill:currentColor}
+.tabs [role=tab] .b{width:16px;height:16px}
+.tabs [role=tab]:not([aria-selected=true]) .b{filter:grayscale(1);opacity:.75}
+.client-list .b{width:20px;height:20px}
+.btn .b{width:18px;height:18px;fill:currentColor}
+
+/* pie: sellos de marca */
+.foot-base{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
+.badges{display:flex;gap:10px;flex-wrap:wrap}
+.badge-pill{display:inline-flex;align-items:center;gap:8px;height:36px;padding:0 14px;border-radius:999px;border:1px solid var(--line-2);background:var(--surface);color:var(--ink);text-decoration:none;font-size:.8125rem}
+.badge-pill:hover{border-color:var(--ink-2)}
+.badge-pill b{font-weight:600;letter-spacing:-.01em}
+.badge-pill .b{width:16px;height:16px}
+@font-face{font-family:"IBM Plex Mono";src:url(/assets/fonts/plexmono-600.woff2) format("woff2");font-weight:600;font-display:swap}
+.kf-mark{display:inline-flex;align-items:center;gap:7px;font:600 .8125rem/1 "IBM Plex Mono",var(--mono);letter-spacing:-.01em;color:var(--ink)}
+.kf-mark .logo{width:18px;height:18px}
+.kf{border-color:var(--brand-line)}
+
+/* saldo */
+.saldo-form{display:flex;flex-direction:column;gap:18px;padding:24px}
+.saldo-form .btn{align-self:flex-start}
+.saldo-out{margin-top:20px}
+.saldo-card{padding:26px;border-radius:var(--r-lg);background:var(--surface);border:1px solid var(--line);display:flex;flex-direction:column;gap:16px}
+.saldo-head{display:flex;justify-content:space-between;align-items:center}
+.saldo-head .eyebrow{margin:0}
+.status{font:600 .75rem/1 var(--sans);padding:6px 10px;border-radius:999px;border:1px solid var(--line-2)}
+.status.ok{color:var(--ok);background:var(--ok-soft);border-color:color-mix(in srgb,var(--ok) 40%,transparent)}
+.status.warn{color:#E2B65C;border-color:rgba(226,182,92,.4)}
+.saldo-num b{font:600 clamp(2.25rem,6vw,3.25rem)/1 var(--display);letter-spacing:-.03em}
+.meter{height:10px;border-radius:999px;background:var(--surface-2);border:1px solid var(--line);overflow:hidden}
+.meter span{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--brand),#9BE600);border-radius:inherit;transition:width .6s cubic-bezier(.2,.8,.2,1)}
+.meter.low span{background:linear-gradient(90deg,#F07A6E,#E2B65C)}
+.saldo-dl{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:0}
+.saldo-dl div{padding:14px;border-radius:12px;background:var(--surface-2);border:1px solid var(--line)}
+.saldo-dl dt{font-size:.8125rem;color:var(--muted)}
+.saldo-dl dd{margin:4px 0 0;font:600 1.25rem/1.2 var(--display)}
+.saldo-card .cta-row{margin-top:4px}
+.saldo-err{margin-top:16px}
+.saldo-faq{margin-top:40px}
+[hidden]{display:none!important}
+.btn[disabled]{opacity:.6;cursor:progress}
+
+/* recuperar licencia */
+.recover{display:flex;flex-direction:column;gap:14px;padding:24px;margin:8px 0 20px}
+.recover-row{display:flex;gap:10px}
+.recover input{flex:1;min-width:0;height:44px;padding:0 14px;border-radius:10px;border:1px solid var(--line-2);background:var(--bg);color:var(--ink);font:400 .9375rem var(--sans)}
+.recover input:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 4px var(--brand-soft)}
+.lic-help.good{color:var(--ok)}
+.picker{grid-template-columns:repeat(4,1fr)}
+@media (max-width:640px){.recover-row{flex-direction:column}.picker{grid-template-columns:1fr 1fr}.foot-base{flex-direction:column;align-items:flex-start}}
+.tabs{flex-wrap:wrap;row-gap:2px}

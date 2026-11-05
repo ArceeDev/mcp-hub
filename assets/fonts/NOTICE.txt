@@ -1,0 +1,3 @@
+Inter, Inter Display, JetBrains Mono, IBM Plex Mono: SIL Open Font License 1.1 (ver LICENSE-*.txt).
+Logotipos de Claude, Cursor, Windsurf y Stripe: simple-icons (CC0). Logotipo de VS Code: Codicons (CC BY 4.0, Microsoft).
+Todas las marcas pertenecen a sus titulares; se usan solo para indicar compatibilidad.
