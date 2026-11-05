@@ -12,14 +12,23 @@ import json
 import os
 import re
 import shutil
+import sys
+import urllib.parse
 import urllib.request
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).parent))
+from icons import ICONS  # noqa: E402
 
 ROOT = Path(__file__).parent
 OUT = ROOT / "public"
 DATA = json.loads((ROOT / "data" / "catalog.json").read_text(encoding="utf-8"))
 SITE = DATA["site"]
+MCPS = DATA["mcps"]
+TODAY = dt.date.today().isoformat()
+VERSION = dt.datetime.now(dt.timezone.utc).strftime("%Y%m%d%H%M")
 KEY_RE = r"[0-9a-f]{64}(,[0-9a-f]{64})*|[\w.-]+=[0-9a-f]{64}(,[\w.-]+=[0-9a-f]{64})*"
+e = html.escape
 
 
 def _gateway_keyring() -> str:
@@ -39,270 +48,508 @@ SITE["public_keys"] = (os.environ.get("KEYFLINT_PUBLIC_KEYS", "").strip()
 if not re.fullmatch(KEY_RE, SITE["public_keys"]):
     raise SystemExit("ERROR: falta la clave pública del gateway. Pon KEYFLINT_PUBLIC_KEYS (hex de "
                      "https://licenses.keyflint.dev/api/v1/licenses/public-key) en data/catalog.json o como variable de entorno.")
-MCPS = DATA["mcps"]
-TODAY = dt.date.today().isoformat()
-e = html.escape
+
+CONTACT = SITE["contact"].removeprefix("mailto:")
+LIC_PLACEHOLDER = "LIC-tu-licencia"
 
 
-def jsonld(obj) -> str:
-    return f'<script type="application/ld+json">{json.dumps(obj, ensure_ascii=False)}</script>'
+# ---------------------------------------------------------------- helpers
 
-
-def page(path: str, title: str, desc: str, body: str, ld: list | None = None) -> str:
-    url = SITE["url"] + path
-    lds = "".join(jsonld(x) for x in (ld or []))
-    return f"""<!doctype html>
-<html lang="{SITE['lang']}">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{e(title)}</title>
-<meta name="description" content="{e(desc)}">
-<link rel="canonical" href="{url}">
-<meta property="og:type" content="website">
-<meta property="og:site_name" content="{e(SITE['name'])}">
-<meta property="og:title" content="{e(title)}">
-<meta property="og:description" content="{e(desc)}">
-<meta property="og:url" content="{url}">
-<meta property="og:locale" content="es_ES">
-<meta name="twitter:card" content="summary">
-<meta name="theme-color" content="#0f172a">
-<link rel="icon" href="/assets/icon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/style.css">
-{lds}
-</head>
-<body>
-<header class="top"><div class="wrap">
-<a class="brand" href="/">KeyFlint <b>MCP</b></a>
-<nav><a href="/#catalogo">Catálogo</a><a href="/empezar/">Empezar</a><a href="/precios/">Precios</a></nav>
-</div></header>
-<main class="wrap">
-{body}
-</main>
-<footer class="foot"><div class="wrap">
-<p>{e(SITE['name'])} · Licencias y créditos con <a href="https://keyflint.dev">KeyFlint</a> · <a href="{SITE['contact']}">Contacto</a></p>
-<p class="muted">Los servidores no guardan tus datos entre llamadas. Una llamada que falla se reembolsa.</p>
-</div></footer>
-<script>document.addEventListener('click',function(ev){{var b=ev.target.closest('[data-copy]');if(!b)return;var t=document.getElementById(b.dataset.copy).innerText;navigator.clipboard&&navigator.clipboard.writeText(t).then(function(){{b.textContent='Copiado';setTimeout(function(){{b.textContent='Copiar'}},1500)}})}});</script>
-</body>
-</html>
-"""
-
-
-def code(id_: str, text: str, lang: str = "") -> str:
-    return (f'<div class="code"><button type="button" data-copy="{id_}">Copiar</button>'
-            f'<pre id="{id_}"><code>{e(text)}</code></pre></div>')
-
-
-def claude_config(m: dict) -> str:
-    cfg = {"mcpServers": {m["slug"]: {
-        "command": "uvx",
-        "args": ["--from", f"git+{m['repo']}", m["package"]],
-        "env": {"KEYFLINT_LICENSE": "LIC-tu-licencia",
-                "KEYFLINT_URL": SITE["keyflint_url"],
-                "KEYFLINT_PUBLIC_KEYS": SITE["public_keys"]},
-    }}}
-    return json.dumps(cfg, indent=2, ensure_ascii=False)
-
-
-def claude_code_cmd(m: dict) -> str:
-    return (f"claude mcp add {m['slug']} \\\n  -e KEYFLINT_LICENSE=LIC-tu-licencia \\\n"
-            f"  -e KEYFLINT_URL={SITE['keyflint_url']} \\\n"
-            f"  -e KEYFLINT_PUBLIC_KEYS={SITE['public_keys']} \\\n"
-            f"  -- uvx --from git+{m['repo']} {m['package']}")
-
-
-def card(m: dict) -> str:
-    return f"""<a class="card" href="/{m['slug']}/">
-<span class="tag">{e(m['category'])}</span>
-<h3>{e(m['name'])}</h3>
-<p>{e(m['headline'])}</p>
-<span class="muted small">{len(m['tools'])} herramientas · {e(m['audience'])}</span>
-</a>"""
-
-
-def home() -> str:
-    cards = "\n".join(card(m) for m in MCPS)
-    body = f"""
-<section class="hero">
-<h1>Herramientas MCP que tu agente puede usar hoy</h1>
-<p class="lead">{e(SITE['tagline'])} Funcionan en Claude, Cursor, Claude Code y cualquier cliente MCP.</p>
-<p><a class="btn" href="/empezar/">Empieza gratis con {SITE['free_credits']} créditos</a> <a class="btn ghost" href="/precios/">Ver precios</a></p>
-<ul class="points">
-<li><b>Una licencia para todo.</b> La misma clave funciona en todos los servidores del catálogo.</li>
-<li><b>Pagas por uso.</b> Cada herramienta cuesta créditos fijos; las utilidades son gratis.</li>
-<li><b>Sin sorpresas.</b> Lo que falla o se rechaza no se cobra. Resultados deterministas, sin IA intermedia.</li>
-<li><b>Privado.</b> No guardamos tus ficheros ni tus datos entre llamadas.</li>
-</ul>
-</section>
-<section id="catalogo">
-<h2>Catálogo</h2>
-<div class="grid">{cards}</div>
-</section>
-<section>
-<h2>Cómo funciona</h2>
-<ol class="steps">
-<li><b>Consigue tu licencia</b> gratuita o compra un plan.</li>
-<li><b>Copia la configuración</b> del servidor que quieras en tu cliente MCP.</li>
-<li><b>Pídeselo a tu agente</b> en lenguaje natural: «concilia este extracto con estas facturas».</li>
-</ol>
-</section>"""
-    ld = [
-        {"@context": "https://schema.org", "@type": "WebSite", "name": SITE["name"], "url": SITE["url"] + "/",
-         "description": SITE["description"], "inLanguage": "es"},
-        {"@context": "https://schema.org", "@type": "Organization", "name": "KeyFlint", "url": "https://keyflint.dev"},
-        {"@context": "https://schema.org", "@type": "ItemList", "itemListElement": [
-            {"@type": "ListItem", "position": i + 1, "url": f"{SITE['url']}/{m['slug']}/", "name": m["name"]}
-            for i, m in enumerate(MCPS)]},
-    ]
-    return page("/", f"{SITE['name']}: servidores MCP para agentes de IA", SITE["description"], body, ld)
-
-
-def mcp_page(m: dict) -> str:
-    rows = "".join(f"<tr><td><code>{e(t)}</code></td><td>{e(c)}</td><td>{e(d)}</td></tr>" for t, c, d in m["tools"])
-    faq = "".join(f"<details><summary>{e(q)}</summary><p>{e(a)}</p></details>" for q, a in m["faq"])
-    s = m["slug"]
-    body = f"""
-<nav class="crumbs"><a href="/">Inicio</a> › {e(m['name'])}</nav>
-<section class="hero">
-<span class="tag">{e(m['category'])}</span>
-<h1>{e(m['headline'])}</h1>
-<p class="lead">{e(m['summary'])}</p>
-<p><a class="btn" href="#instalar">Instalar</a> <a class="btn ghost" href="/precios/">Comprar créditos</a> <a class="btn ghost" href="{m['repo']}">Código</a></p>
-</section>
-<section>
-<h2>Herramientas y coste</h2>
-<div class="table"><table><thead><tr><th>Herramienta</th><th>Créditos</th><th>Qué hace</th></tr></thead><tbody>{rows}</tbody></table></div>
-</section>
-<section id="instalar">
-<h2>Instalar</h2>
-<h3>Claude Desktop, Cursor y otros clientes</h3>
-<p>Añade esto a la configuración MCP de tu cliente (en Claude Desktop: Ajustes › Desarrollador › Editar configuración). Necesitas <a href="https://docs.astral.sh/uv/">uv</a>.</p>
-{code(f'cfg-{s}', claude_config(m))}
-<h3>Claude Code</h3>
-{code(f'cc-{s}', claude_code_cmd(m))}
-<p class="muted">¿No tienes licencia? <a href="/empezar/">Consigue {SITE['free_credits']} créditos gratis</a>.</p>
-</section>
-<section>
-<h2>Preguntas frecuentes</h2>
-{faq}
-</section>"""
-    ld = [
-        {"@context": "https://schema.org", "@type": "SoftwareApplication", "name": f"{m['name']} MCP",
-         "applicationCategory": "DeveloperApplication", "operatingSystem": "Windows, macOS, Linux",
-         "description": m["summary"], "url": f"{SITE['url']}/{s}/", "codeRepository": m["repo"],
-         "keywords": ", ".join(m["keywords"]),
-         "offers": {"@type": "AggregateOffer", "priceCurrency": "USD",
-                    "lowPrice": 0, "highPrice": max(p["price"] for p in SITE["packs"])}},
-        {"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [
-            {"@type": "Question", "name": q, "acceptedAnswer": {"@type": "Answer", "text": a}} for q, a in m["faq"]]},
-        {"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [
-            {"@type": "ListItem", "position": 1, "name": "Inicio", "item": SITE["url"] + "/"},
-            {"@type": "ListItem", "position": 2, "name": m["name"], "item": f"{SITE['url']}/{s}/"}]},
-    ]
-    title = f"{m['name']} MCP: {m['headline'].lower()}"
-    return page(f"/{s}/", title, m["summary"][:158], body, ld)
+def icon(name: str, cls: str = "i") -> str:
+    return (f'<svg class="{cls}" viewBox="0 0 24 24" aria-hidden="true" focusable="false">'
+            f'{ICONS[name]}</svg>')
 
 
 def money(n: float) -> str:
     return f"{n:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".").removesuffix(",00")
 
 
-def pricing() -> str:
-    cards = []
-    for p in SITE["packs"]:
-        per100 = p["price"] / p["credits"] * 100
-        cards.append(f"""<div class="pack{' featured' if p.get('featured') else ''}">
-<h3>{e(p['name'])}</h3><p class="price">{money(p['price'])} $<span class="per">{e(p.get('period', ''))}</span></p>
-<p>{money(p['credits'])} créditos</p><p class="muted small">{e(p['note'])}<br>{money(round(per100, 2))} $ por cada 100 créditos</p>
-<a class="btn" href="{p['checkout']}" rel="nofollow">Comprar {e(p['name'])}</a></div>""")
-    body = f"""
-<section class="hero">
-<h1>Precios: un saldo para todos los MCPs</h1>
-<p class="lead">Una sola licencia y un solo saldo de créditos para todos los servidores del catálogo. Cada herramienta tiene un coste fijo en créditos y lo que falla no se cobra.</p>
-</section>
-<div class="packs">
-<div class="pack"><h3>Gratis</h3><p class="price">0 $</p><p>{SITE['free_credits']} créditos</p><p class="muted small">Para probar cualquier servidor</p><a class="btn ghost" href="/empezar/">Pedir licencia gratis</a></div>
-{''.join(cards)}
+def jsonld(obj) -> str:
+    return f'<script type="application/ld+json">{json.dumps(obj, ensure_ascii=False)}</script>'
+
+
+def code_block(id_: str, text: str, label: str = "") -> str:
+    head = f'<span class="code-label">{e(label)}</span>' if label else "<span></span>"
+    return (f'<div class="code"><div class="code-head">{head}'
+            f'<button type="button" class="copy" data-copy="{id_}">{icon("copy")}<span>Copiar</span></button></div>'
+            f'<pre id="{id_}" tabindex="0"><code>{e(text)}</code></pre></div>')
+
+
+def faq_html(items) -> str:
+    return "".join(f'<details class="qa"><summary><span>{e(q)}</span>{icon("chevron")}</summary><p>{e(a)}</p></details>'
+                   for q, a in items)
+
+
+def faq_ld(items) -> dict:
+    return {"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [
+        {"@type": "Question", "name": q, "acceptedAnswer": {"@type": "Answer", "text": a}} for q, a in items]}
+
+
+def server_env() -> dict:
+    return {"KEYFLINT_LICENSE": LIC_PLACEHOLDER, "KEYFLINT_URL": SITE["keyflint_url"],
+            "KEYFLINT_PUBLIC_KEYS": SITE["public_keys"]}
+
+
+def server_cfg(m: dict) -> dict:
+    return {"command": "uvx", "args": ["--from", f"git+{m['repo']}", m["package"]], "env": server_env()}
+
+
+def snippets(m: dict) -> dict[str, str]:
+    cfg = server_cfg(m)
+    std = json.dumps({"mcpServers": {m["slug"]: cfg}}, indent=2, ensure_ascii=False)
+    vscode = json.dumps({"servers": {m["slug"]: {"type": "stdio", **cfg}}}, indent=2, ensure_ascii=False)
+    cc = (f"claude mcp add {m['slug']} --scope user \\\n"
+          + "".join(f"  -e {k}={v} \\\n" for k, v in server_env().items())
+          + f"  -- uvx --from git+{m['repo']} {m['package']}")
+    return {"desktop": std, "code": cc, "cursor": std, "vscode": vscode, "windsurf": std}
+
+
+CLIENTS = [
+    ("desktop", "Claude Desktop", "monitor"),
+    ("code", "Claude Code", "terminal"),
+    ("cursor", "Cursor", "pointer"),
+    ("vscode", "VS Code", "brackets"),
+    ("windsurf", "Windsurf", "wave"),
+]
+
+
+def installer(m: dict) -> str:
+    """Instalador por cliente. Sin JS: paneles apilados. Con JS: pestañas, licencia en vivo y enlaces de 1 clic."""
+    s = m["slug"]
+    sn = snippets(m)
+    tabs = "".join(
+        f'<button type="button" role="tab" id="tab-{s}-{cid}" aria-controls="pan-{s}-{cid}" '
+        f'aria-selected="{"true" if i == 0 else "false"}" tabindex="{0 if i == 0 else -1}" data-client="{cid}">'
+        f'{icon(ic)}<span>{e(name)}</span></button>'
+        for i, (cid, name, ic) in enumerate(CLIENTS))
+    uv_note = (f'<p class="note">{icon("info")}<span>Necesita <a href="/empezar/#uv">uv</a> instalado: '
+               'un comando, una sola vez.</span></p>')
+    panels = {
+        "desktop": f"""<ol class="mini-steps">
+<li>Abre Claude Desktop › <b>Ajustes</b> › <b>Desarrollador</b> › <b>Editar configuración</b>.</li>
+<li>Pega el bloque en <code>claude_desktop_config.json</code>. Si ya tienes servidores, añade solo <code>"{s}"</code> dentro de <code>mcpServers</code>.</li>
+<li>Guarda y reinicia Claude Desktop por completo.</li></ol>
+{code_block(f"sn-{s}-desktop", sn["desktop"], "claude_desktop_config.json")}
+<p class="path">macOS <code>~/Library/Application Support/Claude/</code><br>Windows <code>%APPDATA%\\Claude\\</code></p>{uv_note}""",
+        "code": f"""<ol class="mini-steps"><li>Ejecútalo en tu terminal. Queda disponible en todos tus proyectos.</li>
+<li>Compruébalo con <code>claude mcp list</code>.</li></ol>
+{code_block(f"sn-{s}-code", sn["code"], "Terminal")}{uv_note}""",
+        "cursor": f"""<a class="btn btn-primary btn-block" data-deeplink="cursor" href="#">{icon("download")}Añadir a Cursor</a>
+<p class="muted small center gap">Cursor se abre y te pide confirmar la instalación.</p>
+<details class="manual"><summary><span>Instalación manual</span>{icon("chevron")}</summary>
+<p>Pega el bloque en <code>~/.cursor/mcp.json</code> (todos los proyectos) o en <code>.cursor/mcp.json</code> (solo este).</p>
+{code_block(f"sn-{s}-cursor", sn["cursor"], "mcp.json")}</details>{uv_note}""",
+        "vscode": f"""<a class="btn btn-primary btn-block" data-deeplink="vscode" href="#">{icon("download")}Añadir a VS Code</a>
+<p class="muted small center gap">Para VS Code 1.102 o superior, con el chat de Copilot en modo agente.</p>
+<details class="manual"><summary><span>Instalación manual</span>{icon("chevron")}</summary>
+<p>Pega el bloque en <code>.vscode/mcp.json</code> de tu proyecto.</p>
+{code_block(f"sn-{s}-vscode", sn["vscode"], ".vscode/mcp.json")}</details>{uv_note}""",
+        "windsurf": f"""<ol class="mini-steps"><li>Windsurf › <b>Settings</b> › <b>Cascade</b> › <b>MCP Servers</b> › <b>View raw config</b>.</li>
+<li>Pega el bloque, guarda y pulsa <b>Refresh</b>.</li></ol>
+{code_block(f"sn-{s}-windsurf", sn["windsurf"], "mcp_config.json")}
+<p class="path"><code>~/.codeium/windsurf/mcp_config.json</code></p>{uv_note}""",
+    }
+    body = "".join(
+        f'<div role="tabpanel" id="pan-{s}-{cid}" aria-labelledby="tab-{s}-{cid}" class="panel"'
+        f'{"" if i == 0 else " data-hidden"}><h4 class="panel-title">{e(name)}</h4>{panels[cid]}</div>'
+        for i, (cid, name, _) in enumerate(CLIENTS))
+    cfg_json = e(json.dumps({"slug": s, "server": server_cfg(m)}, ensure_ascii=False))
+    return f"""<div class="installer" data-installer="{cfg_json}">
+<label class="lic"><span class="lic-label">{icon("key")}Tu licencia <span class="muted">· opcional</span></span>
+<span class="lic-field"><input type="text" autocomplete="off" spellcheck="false" placeholder="Pega aquí tu LIC-…" data-license aria-describedby="lic-help-{s}"><span class="lic-state" data-license-state aria-live="polite"></span></span>
+<span id="lic-help-{s}" class="lic-help">Se rellena en todos los fragmentos. No sale de tu navegador.</span></label>
+<div class="tabs" role="tablist" aria-label="Elige tu cliente">{tabs}</div>
+<div class="panels">{body}</div>
+</div>"""
+
+
+# ---------------------------------------------------------------- layout
+
+def page(path: str, title: str, desc: str, body: str, ld: list | None = None, noindex: bool = False) -> str:
+    url = SITE["url"] + path
+    lds = "".join(jsonld(x) for x in (ld or []))
+    robots = '<meta name="robots" content="noindex">\n' if noindex else ""
+    nav = [("/#catalogo", "Catálogo"), ("/#instalar", "Instalar"), ("/precios/", "Precios"), ("/empezar/", "Guía")]
+    navh = "".join(f'<a href="{h}"' + (' aria-current="page"' if h == path else "") + f">{t}</a>" for h, t in nav)
+    return f"""<!doctype html>
+<html lang="{SITE['lang']}" class="no-js">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{e(title)}</title>
+<meta name="description" content="{e(desc)}">
+{robots}<link rel="canonical" href="{url}">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="{e(SITE['name'])}">
+<meta property="og:title" content="{e(title)}">
+<meta property="og:description" content="{e(desc)}">
+<meta property="og:url" content="{url}">
+<meta property="og:image" content="{SITE['url']}/assets/og.png">
+<meta property="og:locale" content="es_ES">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#0B0D17" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#F7F8FA" media="(prefers-color-scheme: light)">
+<script>document.documentElement.className="js"</script>
+<link rel="icon" href="/assets/icon.svg" type="image/svg+xml">
+<link rel="preload" href="/assets/fonts/inter-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/assets/fonts/interdisplay-600.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/assets/style.css?v={VERSION}">
+<script defer src="/assets/app.js?v={VERSION}"></script>
+{lds}
+</head>
+<body>
+<a class="skip" href="#main">Saltar al contenido</a>
+<header class="top"><div class="wrap top-in">
+<a class="brand" href="/" aria-label="KeyFlint MCP, inicio">{icon("logo", "logo")}<span>KeyFlint</span><span class="brand-tag">MCP</span></a>
+<nav class="nav" aria-label="Principal">{navh}</nav>
+<a class="btn btn-primary btn-sm top-cta" href="/precios/">Conseguir licencia</a>
+</div></header>
+<main id="main">
+{body}
+</main>
+<footer class="foot"><div class="wrap">
+<div class="foot-grid">
+<div class="foot-brand"><a class="brand" href="/">{icon("logo", "logo")}<span>KeyFlint</span><span class="brand-tag">MCP</span></a>
+<p class="muted small">Servidores MCP deterministas para agentes de IA, con licencias criptográficas y pago por uso.</p></div>
+<div><h3>Servidores</h3><ul>{''.join(f'<li><a href="/{m["slug"]}/">{e(m["name"])}</a></li>' for m in MCPS)}</ul></div>
+<div><h3>Recursos</h3><ul><li><a href="/empezar/">Guía de instalación</a></li><li><a href="/precios/">Precios</a></li><li><a href="https://keyflint.dev">KeyFlint</a></li></ul></div>
+<div><h3>Legal y soporte</h3><ul><li><a href="https://keyflint.dev/privacy.html">Privacidad</a></li><li><a href="https://keyflint.dev/dpa.html">Encargo de tratamiento</a></li><li><a href="{SITE['contact']}">{e(CONTACT)}</a></li></ul></div>
 </div>
-<p class="muted small">Precios en dólares (USD). Los impuestos se calculan en el pago según tu país. El pago lo procesa Stripe y recibes factura. Si tienes NIF/VAT, puedes introducirlo en el pago.</p>
-<section>
-<h2>¿Cuánto da de sí?</h2>
-<ul>
-<li>Leer una web: 1 crédito. Auditoría SEO completa: 3.</li>
-<li>Leer un extracto Norma 43: 1. Conciliarlo con facturas: 3.</li>
-<li>Convertir un libro diario de A3 a ContaPlus: 2. Validarlo: 1.</li>
-<li>Validar IBAN, NIF o detectar formatos: gratis.</li>
+<p class="foot-base muted small">© {dt.date.today().year} KeyFlint · Pagos procesados por Stripe · Los servidores se ejecutan en tu equipo y no guardan tus datos.</p>
+</div></footer>
+</body>
+</html>
+"""
+
+
+# ---------------------------------------------------------------- sections
+
+def mcp_card(m: dict) -> str:
+    chips = "".join(f'<li><code>{e(t[0].split(",")[0])}</code></li>' for t in m["tools"][:3])
+    return f"""<a class="card mcp-card" href="/{m['slug']}/">
+<div class="card-top"><span class="tile">{icon(m['icon'])}</span><span class="eyebrow">{e(m['category'])}</span></div>
+<h3>{e(m['name'])}</h3>
+<p>{e(m['headline'])}</p>
+<ul class="chips">{chips}</ul>
+<span class="card-foot"><span class="muted small">{len(m['tools'])} herramientas</span><span class="link-arrow">Ver servidor{icon("arrow-right")}</span></span>
+</a>"""
+
+
+def hero_demo() -> str:
+    return f"""<figure class="demo glass" aria-label="Ejemplo: un agente usa tres herramientas">
+<div class="demo-bar"><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span><span class="demo-title">Agente · Norma 43 + ContaBridge</span></div>
+<div class="demo-body">
+<div class="msg user"><span class="who">Tú</span><p>Concilia el extracto de octubre con las facturas pendientes y pásame los asientos a A3.</p></div>
+<ul class="calls">
+<li class="call"><span class="call-ic">{icon("plug")}</span><code>parse_norma43</code><span class="call-res">142 movimientos</span><span class="cr">1 cr</span></li>
+<li class="call"><span class="call-ic">{icon("plug")}</span><code>reconcile_movements</code><span class="call-res">131 conciliados · 3 a revisar</span><span class="cr">3 cr</span></li>
+<li class="call"><span class="call-ic">{icon("plug")}</span><code>bank_to_journal</code><span class="call-res">SUENLACE.DAT listo</span><span class="cr">3 cr</span></li>
 </ul>
-<p>Ejemplo: con el plan Indie (10.000 créditos), una gestoría puede conciliar y convertir unos 2.000 extractos (5 créditos cada uno).</p>
-</section>
-<section>
-<h2>Preguntas frecuentes</h2>
-<details><summary>¿Cómo recibo la licencia?</summary><p>Por correo, en el email que uses al pagar, unos segundos después del pago. Revisa la carpeta de spam si no la ves.</p></details>
-<details><summary>¿Qué pasa si se me acaban los créditos?</summary><p>La herramienta te avisa con el enlace de compra. El plan Pro se recarga cada mes; Indie y Agency son de pago único.</p></details>
-<details><summary>¿Qué es un equipo?</summary><p>Cada ordenador o servidor donde usas la licencia. Indie y Pro permiten 3; Agency, 25.</p></details>
-<details><summary>¿Puedo cancelar Pro?</summary><p>Sí, cuando quieras, sin permanencia: desde el enlace de gestión del correo de Stripe o escribiéndonos.</p></details>
-<details><summary>¿Qué datos guardáis?</summary><p>Ninguno de tus ficheros: los servidores procesan cada llamada y no guardan nada. Ver <a href="https://keyflint.dev/privacy.html">privacidad</a> y <a href="https://keyflint.dev/dpa.html">encargo de tratamiento</a>.</p></details>
-</section>"""
+<div class="msg bot"><span class="who">Agente</span><p>Listo: 131 de 142 movimientos conciliados. Te dejo 3 casos para revisar y el fichero para importar en A3.</p></div>
+</div>
+<figcaption class="demo-foot"><span>{icon("shield")}Licencia verificada en local</span><span class="tabnum">7 créditos</span></figcaption>
+</figure>"""
+
+
+def home() -> str:
+    cards = "\n".join(mcp_card(m) for m in MCPS)
+    clients = "".join(f'<li>{icon(ic)}<span>{e(n)}</span></li>' for _, n, ic in CLIENTS) + \
+        f'<li>{icon("plug")}<span>Cualquier cliente MCP</span></li>'
+    feats = [
+        ("key", "Una licencia para todo", "La misma clave funciona en todos los servidores. Sin cuentas ni contraseñas que recordar."),
+        ("gauge", "Pagas por uso", "Cada herramienta tiene un coste fijo en créditos. Validaciones y utilidades, gratis."),
+        ("refund", "Lo que falla no se cobra", "Los ficheros no válidos se rechazan antes de cobrar y, si algo falla después, se reembolsa solo."),
+        ("lock", "Tus ficheros no salen de tu equipo", "El servidor se ejecuta en tu ordenador. Solo se comunica con KeyFlint para la licencia y el saldo."),
+        ("target", "Resultados deterministas", "La misma entrada da siempre la misma salida, sin IA intermedia. Cada resultado es auditable."),
+        ("shield", "Licencias criptográficas", "Firmadas con Ed25519 y verificadas en local en menos de un milisegundo."),
+    ]
+    feat_html = "".join(f'<div class="feat"><span class="tile tile-sm">{icon(i)}</span><h3>{t}</h3><p>{d}</p></div>'
+                        for i, t, d in feats)
+    steps = [
+        ("key", "Consigue tu licencia", f"{SITE['free_credits']} créditos gratis o un plan de pago. Llega a tu correo en segundos."),
+        ("download", "Instala en tu cliente", "Un clic en Cursor y VS Code. Copiar y pegar en Claude y Windsurf."),
+        ("chat", "Pídeselo a tu agente", "En lenguaje natural. El agente elige la herramienta y te dice lo que cuesta."),
+    ]
+    steps_html = "".join(f'<li class="step"><span class="tile tile-sm">{icon(i)}</span>'
+                         f'<div><h3><span class="step-n">{n}</span>{t}</h3><p>{d}</p></div></li>'
+                         for n, (i, t, d) in enumerate(steps, 1))
+    picker = "".join(
+        f'<button type="button" class="pick" aria-pressed="{"true" if i == 0 else "false"}" data-pick="{m["slug"]}">'
+        f'{icon(m["icon"])}<span>{e(m["name"])}</span></button>' for i, m in enumerate(MCPS))
+    installers = "".join(f'<div class="pick-panel" data-pick-panel="{m["slug"]}"{"" if i == 0 else " data-hidden"}>'
+                         f'<h3 class="panel-title">{e(m["name"])}</h3>{installer(m)}</div>'
+                         for i, m in enumerate(MCPS))
+    faq = [
+        ("¿Qué es un servidor MCP?", "MCP (Model Context Protocol) es el estándar abierto con el que agentes de IA como Claude o Cursor usan herramientas externas. Un servidor MCP le da a tu agente capacidades nuevas: leer extractos bancarios, convertir ficheros contables o auditar webs."),
+        ("¿Necesito saber programar?", "No. Pulsas un botón en Cursor o VS Code, o copias un bloque en la configuración de Claude. Solo hay que instalar uv una vez, con un comando que te damos."),
+        ("¿Cómo se cuentan los créditos?", "Cada herramienta tiene un coste fijo que el agente ve antes de usarla. Las validaciones y utilidades cuestan 0. Si una llamada falla, el crédito se devuelve automáticamente."),
+        ("¿Dónde se procesan mis datos?", "En tu propio ordenador. El servidor se ejecuta en local y solo contacta con KeyFlint para verificar la licencia y descontar créditos. Tus ficheros no salen de tu equipo."),
+        ("¿Funciona en Windows, macOS y Linux?", "Sí, en los tres. Los servidores se ejecutan con uv, que funciona igual en todos ellos."),
+    ]
+    min_price = min(p["price"] for p in SITE["packs"])
+    body = f"""
+<section class="hero"><div class="glow" aria-hidden="true"></div><div class="wrap hero-grid">
+<div class="hero-copy">
+<p class="kicker"><a class="pill" href="/contabridge/"><span class="pill-dot" aria-hidden="true"></span>Nuevo: ContaBridge para gestorías{icon("arrow-right")}</a></p>
+<h1>Herramientas MCP fiables para tu agente de IA</h1>
+<p class="lead">{e(SITE['tagline'])} Funcionan en Claude, Cursor, VS Code y cualquier cliente compatible.</p>
+<div class="cta-row"><a class="btn btn-primary btn-lg" href="#instalar">{icon("download")}Instalar en 2 minutos</a>
+<a class="btn btn-ghost btn-lg" href="/precios/">Ver precios</a></div>
+<ul class="assure">
+<li>{icon("check")}{SITE['free_credits']} créditos gratis</li><li>{icon("check")}Sin permanencia</li><li>{icon("check")}Se ejecuta en tu equipo</li></ul>
+</div>
+{hero_demo()}
+</div></section>
+
+<section class="clients" aria-label="Clientes compatibles"><div class="wrap clients-in">
+<p class="clients-title">Compatible con</p><ul class="client-list">{clients}</ul></div></section>
+
+<section class="section" id="catalogo"><div class="wrap">
+<div class="section-head"><p class="eyebrow">Catálogo</p><h2>Servidores listos para trabajo real</h2>
+<p class="lead-sm">Cada servidor resuelve una tarea de principio a fin y valida los datos igual que el programa de destino.</p></div>
+<div class="grid-3">{cards}</div>
+</div></section>
+
+<section class="section alt"><div class="wrap">
+<div class="section-head"><p class="eyebrow">Por qué KeyFlint MCP</p><h2>Pensados para producción, no para demos</h2></div>
+<div class="feat-grid">{feat_html}</div>
+</div></section>
+
+<section class="section" id="instalar"><div class="wrap install-grid">
+<div class="section-head left"><p class="eyebrow">Instalación</p><h2>Elige servidor y cliente. Copia. Listo.</h2>
+<p class="lead-sm">Pega tu licencia y todos los fragmentos se rellenan solos. En Cursor y VS Code basta un clic.</p>
+<ol class="steps">{steps_html}</ol></div>
+<div class="install-card glass"><div class="picker" role="group" aria-label="Elige servidor">{picker}</div>{installers}</div>
+</div></section>
+
+<section class="section alt"><div class="wrap faq-grid">
+<div class="section-head left"><p class="eyebrow">Preguntas frecuentes</p><h2>Lo que suelen preguntarnos</h2>
+<p class="lead-sm">¿Otra duda? Escríbenos a <a href="{SITE['contact']}">{e(CONTACT)}</a> y te respondemos en un día laborable.</p></div>
+<div class="faq">{faq_html(faq)}</div>
+</div></section>
+
+<section class="section"><div class="wrap"><div class="cta-band">
+<div><h2>Empieza gratis hoy</h2><p class="lead-sm">{SITE['free_credits']} créditos para probar cualquier servidor. Planes desde {money(min_price)} $.</p></div>
+<div class="cta-row"><a class="btn btn-primary btn-lg" href="/precios/">Ver planes</a><a class="btn btn-ghost btn-lg" href="/empezar/">Leer la guía</a></div>
+</div></div></section>"""
+    ld = [
+        {"@context": "https://schema.org", "@type": "WebSite", "name": SITE["name"], "url": SITE["url"] + "/",
+         "description": SITE["description"], "inLanguage": "es"},
+        {"@context": "https://schema.org", "@type": "Organization", "name": "KeyFlint", "url": "https://keyflint.dev",
+         "logo": SITE["url"] + "/assets/icon.svg", "email": CONTACT},
+        {"@context": "https://schema.org", "@type": "ItemList", "itemListElement": [
+            {"@type": "ListItem", "position": i + 1, "url": f"{SITE['url']}/{m['slug']}/", "name": m["name"]}
+            for i, m in enumerate(MCPS)]},
+        faq_ld(faq),
+    ]
+    return page("/", f"{SITE['name']}: servidores MCP para Claude, Cursor y agentes de IA", SITE["description"], body, ld)
+
+
+def mcp_page(m: dict) -> str:
+    s = m["slug"]
+    rows = "".join(
+        f'<tr><td><code>{e(t)}</code></td><td><span class="credit{" free" if c == "0" else ""}">'
+        f'{"Gratis" if c == "0" else e(c) + " cr"}</span></td><td>{e(d)}</td></tr>' for t, c, d in m["tools"])
+    prompts = "".join(
+        f'<li><span class="q-ic">{icon("chat")}</span><span class="prompt-text" id="pr-{s}-{i}">{e(p)}</span>'
+        f'<button type="button" class="copy icon-only" data-copy="pr-{s}-{i}" aria-label="Copiar ejemplo">{icon("copy")}</button></li>'
+        for i, p in enumerate(m["prompts"]))
+    facts = "".join(f'<div class="fact"><b>{e(v)}</b><span>{e(k)}</span></div>' for v, k in m["facts"])
+    others = "".join(mcp_card(o) for o in MCPS if o["slug"] != s)
+    body = f"""
+<section class="hero hero-sm"><div class="glow" aria-hidden="true"></div><div class="wrap">
+<nav class="crumbs" aria-label="Ruta"><a href="/">Inicio</a>{icon("chevron-right")}<a href="/#catalogo">Catálogo</a>{icon("chevron-right")}<span aria-current="page">{e(m['name'])}</span></nav>
+<div class="mcp-hero">
+<span class="tile tile-lg">{icon(m['icon'])}</span>
+<div class="mcp-hero-copy"><p class="eyebrow">{e(m['category'])}</p>
+<h1>{e(m['headline'])}</h1>
+<p class="lead">{e(m['summary'])}</p>
+<div class="cta-row"><a class="btn btn-primary btn-lg" href="#instalar">{icon("download")}Instalar</a>
+<a class="btn btn-ghost btn-lg" href="/precios/">Comprar créditos</a>
+<a class="btn btn-quiet btn-lg" href="{m['repo']}" rel="noopener">{icon("github")}Código</a></div>
+<p class="muted small for">Para: {e(m['audience'])}</p>
+</div></div>
+<div class="facts">{facts}</div>
+</div></section>
+
+<section class="section"><div class="wrap detail-grid">
+<div class="detail-main">
+<div class="block"><h2>Pídeselo así a tu agente</h2>
+<p class="muted">Copia un ejemplo y pégalo en el chat de tu cliente.</p>
+<ul class="prompts">{prompts}</ul></div>
+
+<div class="block"><h2>Herramientas y coste</h2>
+<p class="muted">El agente ve el coste de cada herramienta antes de usarla. Si una llamada falla, el crédito se devuelve.</p>
+<div class="table-wrap"><table><thead><tr><th scope="col">Herramienta</th><th scope="col">Coste</th><th scope="col">Qué hace</th></tr></thead><tbody>{rows}</tbody></table></div></div>
+
+<div class="block"><h2>Preguntas frecuentes</h2>
+<div class="faq">{faq_html(m["faq"])}</div></div>
+</div>
+<aside class="detail-side" id="instalar" aria-label="Instalar {e(m['name'])}">
+<div class="install-card glass sticky"><h2 class="h3">Instalar {e(m['name'])}</h2>{installer(m)}
+<p class="muted small side-foot">¿Sin licencia? <a href="/empezar/#licencia">{SITE['free_credits']} créditos gratis</a> o <a href="/precios/">elige un plan</a>.</p></div>
+</aside>
+</div></section>
+
+<section class="section alt"><div class="wrap">
+<div class="section-head"><p class="eyebrow">Con la misma licencia</p><h2>Otros servidores del catálogo</h2></div>
+<div class="grid-2">{others}</div></div></section>"""
+    ld = [
+        {"@context": "https://schema.org", "@type": "SoftwareApplication", "name": f"{m['name']} MCP",
+         "applicationCategory": "DeveloperApplication", "operatingSystem": "Windows, macOS, Linux",
+         "description": m["summary"], "url": f"{SITE['url']}/{s}/", "keywords": ", ".join(m["keywords"]),
+         "offers": {"@type": "AggregateOffer", "priceCurrency": "USD",
+                    "lowPrice": 0, "highPrice": max(p["price"] for p in SITE["packs"])}},
+        faq_ld(m["faq"]),
+        {"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [
+            {"@type": "ListItem", "position": 1, "name": "Inicio", "item": SITE["url"] + "/"},
+            {"@type": "ListItem", "position": 2, "name": m["name"], "item": f"{SITE['url']}/{s}/"}]},
+    ]
+    title = f"{m['name']} MCP: {m['headline'][0].lower()}{m['headline'][1:]}"
+    return page(f"/{s}/", title, m["summary"][:158], body, ld)
+
+
+def pricing() -> str:
+    common = ["Todos los servidores del catálogo", "Reembolso automático si algo falla", "Factura con NIF/VAT"]
+    cards = [f"""<div class="plan">
+<div class="plan-head"><h2 class="h3">Gratis</h2><p class="muted small">Para probar sin compromiso</p></div>
+<p class="price">0 $</p><p class="credits">{SITE['free_credits']} créditos</p>
+<a class="btn btn-ghost btn-block" href="/empezar/#licencia">Pedir licencia gratis</a>
+<ul class="checks"><li>{icon("check")}1 equipo</li><li>{icon("check")}Todos los servidores</li><li>{icon("check")}Sin tarjeta</li></ul></div>"""]
+    for p in SITE["packs"]:
+        per100 = money(round(p["price"] / p["credits"] * 100, 2))
+        feats = [p["billing"], f"{p['seats']} equipos"] + common
+        badge = '<span class="badge">Más elegido</span>' if p.get("featured") else ""
+        cards.append(f"""<div class="plan{' featured' if p.get('featured') else ''}">{badge}
+<div class="plan-head"><h2 class="h3">{e(p['name'])}</h2><p class="muted small">{e(p['who'])}</p></div>
+<p class="price">{money(p['price'])} $<span class="per">{e(p.get('period', ''))}</span></p>
+<p class="credits">{money(p['credits'])} créditos{' al mes' if p.get('period') else ''}<span class="muted"> · {per100} $ / 100</span></p>
+<a class="btn {'btn-primary' if p.get('featured') else 'btn-ghost'} btn-block" href="{p['checkout']}" rel="nofollow">Comprar {e(p['name'])}</a>
+<ul class="checks">{''.join(f'<li>{icon("check")}{e(f)}</li>' for f in feats)}</ul></div>""")
+    usage = [("web-intel", "Leer una web", 1), ("web-intel", "Auditoría SEO completa", 3),
+             ("norma43", "Leer un extracto Norma 43", 1), ("norma43", "Conciliar un extracto con facturas", 3),
+             ("contabridge", "Convertir un diario de A3 a ContaPlus", 2), ("contabridge", "Validar un diario antes de importar", 1),
+             ("norma43", "Validar un IBAN, NIF o CIF", 0)]
+    by = {m["slug"]: m for m in MCPS}
+    urows = "".join(f'<tr><td><span class="row"><span class="row-ic">{icon(by[s]["icon"])}</span>{e(t)}</span></td>'
+                    f'<td class="r"><span class="credit{" free" if c == 0 else ""}">{"Gratis" if c == 0 else f"{c} cr"}</span></td></tr>'
+                    for s, t, c in usage)
+    faq = [
+        ("¿Cómo recibo la licencia?", "Por correo, en el email que uses al pagar, unos segundos después del pago. Si no la ves, revisa la carpeta de spam."),
+        ("¿Qué pasa si se me acaban los créditos?", "La herramienta te avisa con el enlace de compra y no se cobra nada. El plan Pro se recarga cada mes; Indie y Agency son de pago único."),
+        ("¿Qué es un equipo?", "Cada ordenador o servidor donde usas la licencia. Pro e Indie permiten 3; Agency, 25."),
+        ("¿Puedo cancelar Pro?", "Sí, cuando quieras y sin permanencia, desde el enlace de gestión del correo de Stripe o escribiéndonos."),
+        ("¿Por qué en dólares?", "Es la moneda de todos los planes de KeyFlint. Stripe te muestra el importe en tu moneda y calcula los impuestos de tu país."),
+        ("¿Qué datos guardáis?", "Ninguno de tus ficheros: los servidores se ejecutan en tu equipo. Solo registramos la licencia y el consumo de créditos."),
+    ]
+    body = f"""
+<section class="hero hero-sm center"><div class="glow" aria-hidden="true"></div><div class="wrap narrow">
+<p class="eyebrow">Precios</p>
+<h1>Un saldo para todos los servidores</h1>
+<p class="lead">Una licencia, un saldo de créditos y un coste fijo por herramienta. Lo que falla no se cobra.</p>
+</div></section>
+<section class="section tight"><div class="wrap">
+<div class="plans">{''.join(cards)}</div>
+<p class="muted small center fine">{icon("lock")}Pago seguro con Stripe. Precios en USD, impuestos según tu país. Recibes factura y puedes añadir tu NIF/VAT.</p>
+</div></section>
+<section class="section alt"><div class="wrap usage-grid">
+<div class="section-head left"><p class="eyebrow">Cuánto da de sí</p><h2>Coste de las tareas más habituales</h2>
+<p class="lead-sm">Con el plan Indie, una gestoría concilia y pasa a asientos unos 2.000 extractos (5 créditos cada uno).</p></div>
+<div class="table-wrap card-flat"><table><thead><tr><th scope="col">Tarea</th><th scope="col" class="r">Coste</th></tr></thead><tbody>{urows}</tbody></table></div>
+</div></section>
+<section class="section"><div class="wrap faq-grid">
+<div class="section-head left"><p class="eyebrow">Preguntas frecuentes</p><h2>Pagos y licencias</h2></div>
+<div class="faq">{faq_html(faq)}</div></div></section>"""
     ld = [{"@context": "https://schema.org", "@type": "Product", "name": "Créditos KeyFlint MCP",
            "description": "Créditos de uso para todos los servidores MCP de KeyFlint.",
            "brand": {"@type": "Brand", "name": "KeyFlint"},
            "offers": [{"@type": "Offer", "name": p["name"], "price": p["price"], "priceCurrency": "USD",
-                       "url": f"{SITE['url']}/precios/", "availability": "https://schema.org/InStock"} for p in SITE["packs"]]}]
+                       "url": f"{SITE['url']}/precios/", "availability": "https://schema.org/InStock"} for p in SITE["packs"]]},
+          faq_ld(faq)]
     return page("/precios/", "Precios de los servidores MCP · KeyFlint MCP",
-                f"Un saldo de créditos para todos los servidores MCP de KeyFlint. Desde 29 $/mes o pago único. {SITE['free_credits']} créditos gratis para probar.",
+                f"Un saldo de créditos para todos los servidores MCP de KeyFlint. Desde {money(min(p['price'] for p in SITE['packs']))} $ o gratis con {SITE['free_credits']} créditos.",
+                body, ld)
+
+
+def start() -> str:
+    first = MCPS[0]
+    mail = (f"{SITE['contact']}?subject=" + urllib.parse.quote("Licencia gratuita KeyFlint MCP")
+            + "&body=" + urllib.parse.quote("Hola, quiero probar los servidores MCP.\n\nLo usaré para: \nCliente (Claude, Cursor…): "))
+    body = f"""
+<section class="hero hero-sm"><div class="glow" aria-hidden="true"></div><div class="wrap narrow">
+<nav class="crumbs" aria-label="Ruta"><a href="/">Inicio</a>{icon("chevron-right")}<span aria-current="page">Guía</span></nav>
+<h1>Empieza en tres pasos</h1>
+<p class="lead">De cero a tu primera herramienta funcionando en unos dos minutos. No hace falta saber programar.</p>
+</div></section>
+<section class="section tight"><div class="wrap narrow">
+<ol class="guide">
+<li class="g-step" id="licencia"><span class="g-n">1</span><div class="g-body">
+<h2>Consigue tu licencia</h2>
+<p>Tu licencia tiene la forma <code>LIC-…</code>, llega por correo y sirve para todos los servidores.</p>
+<div class="choice">
+<a class="choice-card" href="{e(mail)}"><span class="tile tile-sm">{icon("mail")}</span><span class="cc-text"><b>Gratis · {SITE['free_credits']} créditos</b><span class="muted small">Escríbenos y te la enviamos en un día laborable.</span></span>{icon("arrow-right")}</a>
+<a class="choice-card" href="/precios/"><span class="tile tile-sm">{icon("card")}</span><span class="cc-text"><b>Plan de pago</b><span class="muted small">Licencia inmediata tras el pago.</span></span>{icon("arrow-right")}</a>
+</div></div></li>
+<li class="g-step" id="uv"><span class="g-n">2</span><div class="g-body">
+<h2>Instala uv, una sola vez</h2>
+<p><a href="https://docs.astral.sh/uv/" rel="noopener">uv</a> descarga y ejecuta los servidores de forma aislada en tu equipo. Abre una terminal y ejecuta el comando de tu sistema:</p>
+{code_block("uv-mac", "curl -LsSf https://astral.sh/uv/install.sh | sh", "macOS y Linux · Terminal")}
+{code_block("uv-win", 'powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"', "Windows · PowerShell")}
+<p class="note">{icon("info")}<span>Después, cierra y vuelve a abrir tu cliente para que encuentre <code>uvx</code>.</span></p>
+</div></li>
+<li class="g-step"><span class="g-n">3</span><div class="g-body">
+<h2>Añade el servidor a tu cliente</h2>
+<p>Ejemplo con {e(first['name'])}. Cada servidor del <a href="/#catalogo">catálogo</a> tiene su instalador.</p>
+<div class="install-card glass">{installer(first)}</div>
+</div></li>
+<li class="g-step"><span class="g-n g-ok">{icon("check")}</span><div class="g-body">
+<h2>Compruébalo</h2>
+<p>Pregunta a tu agente: <q>¿cuántos créditos me quedan?</q> Usará la herramienta gratuita <code>credits_balance</code> y te dirá tu saldo.</p>
+<div class="faq">{faq_html([
+        ("No aparecen las herramientas", "Reinicia el cliente por completo (en Windows, ciérralo también desde la bandeja del sistema). Comprueba que uvx --version funciona en una terminal nueva."),
+        ("Dice que la licencia no es válida", f"Revisa que copiaste la licencia completa, sin espacios, en KEYFLINT_LICENSE. Si sigue fallando, escríbenos a {CONTACT}."),
+        ("Me he quedado sin créditos", "La herramienta te devuelve el enlace de compra. Al comprar recibes una licencia nueva: sustitúyela en la configuración."),
+    ])}</div>
+</div></li>
+</ol>
+</div></section>"""
+    ld = [{"@context": "https://schema.org", "@type": "HowTo", "name": "Instalar un servidor MCP de KeyFlint",
+           "totalTime": "PT2M",
+           "step": [{"@type": "HowToStep", "name": n} for n in
+                    ["Consigue tu licencia", "Instala uv", "Añade el servidor a tu cliente MCP", "Compruébalo con tu agente"]]}]
+    return page("/empezar/", "Cómo instalar un servidor MCP en Claude, Cursor o VS Code · KeyFlint MCP",
+                "Guía paso a paso para instalar servidores MCP en Claude Desktop, Claude Code, Cursor, VS Code y Windsurf con una licencia gratuita.",
                 body, ld)
 
 
 def thanks() -> str:
     body = f"""
-<section class="hero">
-<h1>¡Gracias por tu compra!</h1>
+<section class="hero hero-sm center"><div class="glow" aria-hidden="true"></div><div class="wrap narrow">
+<span class="tile tile-lg ok-tile">{icon("check")}</span>
+<h1>Pago completado</h1>
 <p class="lead">Tu licencia <code>LIC-…</code> está de camino a tu correo. Suele llegar en menos de un minuto.</p>
-</section>
-<section>
-<h2>Siguiente paso</h2>
-<ol class="steps">
-<li>Copia la licencia del correo (revisa spam si no aparece).</li>
-<li>Elige un servidor del <a href="/#catalogo">catálogo</a> y copia su configuración.</li>
-<li>Sustituye <code>LIC-tu-licencia</code> por tu licencia y reinicia tu cliente.</li>
+</div></section>
+<section class="section tight"><div class="wrap narrow">
+<ol class="steps steps-row">
+<li class="step"><span class="tile tile-sm">{icon("mail")}</span><div><h3><span class="step-n">1</span>Abre el correo</h3><p>Copia la licencia. Revisa spam si no aparece.</p></div></li>
+<li class="step"><span class="tile tile-sm">{icon("download")}</span><div><h3><span class="step-n">2</span>Instala un servidor</h3><p>Pega la licencia en el instalador y elige tu cliente.</p></div></li>
+<li class="step"><span class="tile tile-sm">{icon("chat")}</span><div><h3><span class="step-n">3</span>Úsalo</h3><p>Pide la tarea a tu agente en lenguaje natural.</p></div></li>
 </ol>
-<p>¿No te ha llegado en 10 minutos? Escribe a <a href="{SITE['contact']}">{e(SITE['contact'].removeprefix('mailto:'))}</a> con el correo que usaste al pagar.</p>
-<p><a class="btn" href="/empezar/">Ver la guía de instalación</a></p>
-</section>"""
-    return page("/gracias/", "Gracias por tu compra · KeyFlint MCP", "Tu licencia está de camino.", body).replace(
-        '<meta name="description"', '<meta name="robots" content="noindex">\n<meta name="description"', 1)
-
-
-def start() -> str:
-    m = MCPS[0]
-    body = f"""
-<section class="hero">
-<h1>Empieza en 3 minutos</h1>
-<p class="lead">Instala un servidor MCP en Claude, Cursor o Claude Code con una licencia gratuita de {SITE['free_credits']} créditos.</p>
-</section>
-<section>
-<h2>1. Consigue tu licencia</h2>
-<p>Escríbenos a <a href="{SITE['contact']}">{e(SITE['contact'].removeprefix('mailto:'))}</a> para una licencia gratuita, o <a href="/precios/">compra un plan</a> y la recibirás por correo. Tiene la forma <code>LIC-…</code> y sirve para todos los servidores.</p>
-<h2>2. Instala uv</h2>
-{code('uv', 'curl -LsSf https://astral.sh/uv/install.sh | sh   # macOS / Linux' + chr(10) + 'powershell -c "irm https://astral.sh/uv/install.ps1 | iex"   # Windows')}
-<h2>3. Añade el servidor a tu cliente</h2>
-<p>Ejemplo con {e(m['name'])}. Cada página del <a href="/#catalogo">catálogo</a> tiene su configuración lista para copiar.</p>
-{code('cfg', claude_config(m))}
-<h2>4. Úsalo</h2>
-<p>Reinicia el cliente y pídeselo a tu agente. Para ver tu saldo: «¿cuántos créditos me quedan?» (herramienta <code>credits_balance</code>, gratis).</p>
-</section>"""
-    ld = [{"@context": "https://schema.org", "@type": "HowTo", "name": "Instalar un servidor MCP de KeyFlint",
-           "step": [{"@type": "HowToStep", "name": n} for n in
-                    ["Consigue tu licencia", "Instala uv", "Añade el servidor a tu cliente MCP", "Úsalo desde tu agente"]]}]
-    return page("/empezar/", "Cómo instalar un servidor MCP en Claude o Cursor · KeyFlint MCP",
-                "Guía para instalar servidores MCP en Claude Desktop, Cursor y Claude Code con una licencia gratuita.", body, ld)
+<div class="cta-row center"><a class="btn btn-primary btn-lg" href="/#instalar">Ir al instalador</a><a class="btn btn-ghost btn-lg" href="/empezar/">Ver la guía</a></div>
+<p class="muted small center">¿No te ha llegado en 10 minutos? Escribe a <a href="{SITE['contact']}">{e(CONTACT)}</a> con el correo que usaste al pagar.</p>
+</div></section>"""
+    return page("/gracias/", "Pago completado · KeyFlint MCP", "Tu licencia está de camino.", body, noindex=True)
 
 
 def not_found() -> str:
     return page("/404", "Página no encontrada · KeyFlint MCP", "Página no encontrada.",
-                '<section class="hero"><h1>Esta página no existe</h1><p><a class="btn" href="/">Ir al catálogo</a></p></section>')
+                f'<section class="hero hero-sm center"><div class="glow" aria-hidden="true"></div><div class="wrap narrow"><p class="eyebrow">Error 404</p>'
+                f'<h1>Esta página no existe</h1><p class="lead">Puede que el enlace haya cambiado.</p>'
+                f'<div class="cta-row center"><a class="btn btn-primary btn-lg" href="/">Ir al inicio</a>'
+                f'<a class="btn btn-ghost btn-lg" href="/#catalogo">Ver catálogo</a></div></div></section>', noindex=True)
 
+
+# ---------------------------------------------------------------- output
 
 def write(rel: str, text: str) -> None:
     p = OUT / rel
@@ -317,18 +564,18 @@ def main() -> None:
     write("index.html", home())
     write("precios/index.html", pricing())
     write("empezar/index.html", start())
-    write("404.html", not_found())
     write("gracias/index.html", thanks())
+    write("404.html", not_found())
     for m in MCPS:
         write(f"{m['slug']}/index.html", mcp_page(m))
     paths = ["/", "/empezar/", "/precios/"] + [f"/{m['slug']}/" for m in MCPS]
     write("sitemap.xml", '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
           + "".join(f"<url><loc>{SITE['url']}{p}</loc><lastmod>{TODAY}</lastmod></url>\n" for p in paths) + "</urlset>\n")
-    write("robots.txt", f"User-agent: *\nAllow: /\n\nSitemap: {SITE['url']}/sitemap.xml\n")
-    write("llms.txt", f"# {SITE['name']}\n\n> {SITE['description']}\n\n"
+    write("robots.txt", f"User-agent: *\nAllow: /\nDisallow: /gracias/\n\nSitemap: {SITE['url']}/sitemap.xml\n")
+    write("llms.txt", f"# {SITE['name']}\n\n> {SITE['description']}\n\n## Servidores\n\n"
           + "".join(f"- [{m['name']}]({SITE['url']}/{m['slug']}/): {m['headline']}\n" for m in MCPS)
-          + f"- [Precios]({SITE['url']}/precios/)\n- [Empezar]({SITE['url']}/empezar/)\n")
-    print(f"OK: {len(paths)} páginas en {OUT}")
+          + f"\n## Más\n\n- [Precios]({SITE['url']}/precios/)\n- [Guía de instalación]({SITE['url']}/empezar/)\n")
+    print(f"OK: {len(paths)} páginas indexables en {OUT}")
 
 
 if __name__ == "__main__":

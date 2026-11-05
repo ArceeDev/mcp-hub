@@ -1,0 +1,32 @@
+"""Iconos SVG propios (rejilla 24 px, trazo 1.75). Dibujados para este sitio."""
+
+ICONS = {
+    "logo": '<rect width="24" height="24" rx="6" class="logo-bg"/>'
+            '<path d="M7.5 5.25v13.5M7.5 12l7.5-6.75M10.5 9.75l5.25 9" class="logo-mark"/>',
+    "globe": '<circle cx="12" cy="12" r="9"/><path d="M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3z"/><path d="M3.6 9h16.8M3.6 15h16.8"/>',
+    "landmark": '<path d="M3.5 9 12 4l8.5 5"/><path d="M4.5 9.5h15"/><path d="M6.5 12v5M10.2 12v5M13.8 12v5M17.5 12v5"/><path d="M4.5 17.5h15M3.5 20.5h17"/>',
+    "ledger": '<path d="M5 18.5V5.5A2 2 0 0 1 7 3.5h12v14H7a2 2 0 0 0-2 2 2 2 0 0 0 2 2h12v-4"/><path d="M9 7.5h6M9 11h4"/>',
+    "key": '<circle cx="8" cy="15.5" r="4.5"/><path d="M11.2 12.3 19.5 4M16.3 7.2l2.4 2.4M18.2 5.3l1.8 1.8"/>',
+    "shield": '<path d="M12 3 4.5 6v5.5c0 4.6 3.2 8.3 7.5 9.5 4.3-1.2 7.5-4.9 7.5-9.5V6z"/><path d="m9 12 2.2 2.2L15.2 10"/>',
+    "gauge": '<path d="M4.3 17.5a8.5 8.5 0 1 1 15.4 0"/><path d="m12 13.5 3.8-4.3"/><circle cx="12" cy="13.5" r="1.4"/><path d="M12 5.5v1.5M6.3 7.8l1 1M17.7 7.8l-1 1M4 13.5h1.5M18.5 13.5H20"/>',
+    "refund": '<path d="M4.5 12a7.5 7.5 0 1 0 2.2-5.3"/><path d="M4.5 4.5v4h4"/><path d="M12 8.5v7M14 10c-.4-.9-1.2-1.3-2.1-1.3-1.2 0-2 .6-2 1.6 0 2.3 4.3 1.2 4.3 3.4 0 1-.9 1.7-2.2 1.7-1 0-1.8-.5-2.2-1.3"/>',
+    "lock": '<rect x="4.5" y="10.5" width="15" height="10" rx="2"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/><path d="M12 14.5v2"/>',
+    "target": '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.2" class="fill"/>',
+    "check": '<path d="m5 12.5 4.5 4.5L19 7.5"/>',
+    "copy": '<rect x="8.5" y="8.5" width="11.5" height="11.5" rx="2"/><path d="M15.5 8.5V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v7.5a2 2 0 0 0 2 2h2.5"/>',
+    "download": '<path d="M12 4v10.5M7.5 10 12 14.5 16.5 10"/><path d="M4.5 16.5v1.5a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-1.5"/>',
+    "chat": '<path d="M5.5 5h13A2 2 0 0 1 20.5 7v8a2 2 0 0 1-2 2H11l-4.5 3.5V17h-1a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z"/><path d="M8 9.5h8M8 12.5h5"/>',
+    "arrow-right": '<path d="M5 12h14M13.5 6.5 19 12l-5.5 5.5"/>',
+    "chevron": '<path d="m6.5 9.5 5.5 5.5 5.5-5.5"/>',
+    "chevron-right": '<path d="m9.5 6.5 5.5 5.5-5.5 5.5"/>',
+    "info": '<circle cx="12" cy="12" r="9"/><path d="M12 11v5.5M12 7.7v.1"/>',
+    "plug": '<path d="M9 3v4.5M15 3v4.5"/><path d="M6.5 7.5h11v3a5.5 5.5 0 0 1-11 0z"/><path d="M12 16v5"/>',
+    "monitor": '<rect x="3" y="4" width="18" height="12.5" rx="2"/><path d="M8.5 20.5h7M12 16.5v4"/>',
+    "terminal": '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="m7 9.5 3 2.5-3 2.5M12.5 15H17"/>',
+    "pointer": '<path d="M5.5 4.5 18.5 10l-5.7 2.3-2.3 5.7z"/><path d="m13 13 5 5"/>',
+    "brackets": '<path d="M8 7.5 3.5 12 8 16.5M16 7.5l4.5 4.5-4.5 4.5"/><path d="m13.5 5.5-3 13"/>',
+    "wave": '<path d="M3 9.5c2.25 0 2.25-2 4.5-2s2.25 2 4.5 2 2.25-2 4.5-2 2.25 2 4.5 2"/><path d="M3 15.5c2.25 0 2.25-2 4.5-2s2.25 2 4.5 2 2.25-2 4.5-2 2.25 2 4.5 2"/>',
+    "github": '<circle cx="6.5" cy="5.5" r="2"/><circle cx="6.5" cy="18.5" r="2"/><circle cx="17.5" cy="7.5" r="2"/><path d="M6.5 7.5v9M17.5 9.5c0 4.5-6.5 3.5-10 7.3"/>',
+    "mail": '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3.8 6.8 8.2 6.2 8.2-6.2"/>',
+    "card": '<rect x="3" y="5.5" width="18" height="13" rx="2"/><path d="M3 10h18M7 14.5h3.5"/>',
+}

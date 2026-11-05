@@ -3,7 +3,7 @@
     "name": "KeyFlint MCP",
     "url": "https://mcp.keyflint.dev",
     "lang": "es",
-    "tagline": "Herramientas MCP de calidad para tu agente de IA. Una licencia, todos los servidores.",
+    "tagline": "Servidores MCP deterministas para tu agente de IA. Una licencia, todos los servidores, pago por uso.",
     "description": "Catálogo de servidores MCP deterministas para Claude, Cursor y cualquier agente: lectura web y SEO, extractos Norma 43, conciliación bancaria y conversión contable A3/ContaPlus. Pago por uso con créditos.",
     "keyflint_url": "https://licenses.keyflint.dev",
     "public_keys": "<issuer-public-hex>",
@@ -17,7 +17,9 @@
         "price": 29,
         "period": "/mes",
         "checkout": "https://buy.stripe.com/bJefZ9dwMdkf9IM9wTawo08",
-        "note": "Se recargan cada mes · 3 equipos · cancela cuando quieras"
+        "seats": 3,
+        "who": "Uso constante cada mes",
+        "billing": "Se recarga cada mes, cancela cuando quieras"
       },
       {
         "id": "indie",
@@ -26,8 +28,10 @@
         "price": 149,
         "period": "",
         "checkout": "https://buy.stripe.com/cNi14fboE3JF6wAaAXawo09",
-        "note": "Pago único · 3 equipos",
-        "featured": true
+        "featured": true,
+        "seats": 3,
+        "who": "Profesionales y pymes",
+        "billing": "Pago único, sin suscripción"
       },
       {
         "id": "agency",
@@ -36,7 +40,9 @@
         "price": 349,
         "period": "",
         "checkout": "https://buy.stripe.com/cNi6oz9gw1BxbQUfVhawo0a",
-        "note": "Pago único · 25 equipos · gestorías y agencias"
+        "seats": 25,
+        "who": "Gestorías, agencias y equipos",
+        "billing": "Pago único, sin suscripción"
       }
     ],
     "currency_symbol": "$"
@@ -106,6 +112,26 @@
           "¿Puede leer redes internas?",
           "No. Rechaza direcciones privadas y limita cada descarga a 3 MB y 15 segundos."
         ]
+      ],
+      "icon": "globe",
+      "prompts": [
+        "Audita el SEO de https://mi-tienda.es y dime las 5 mejoras más importantes.",
+        "Compara mi página de precios con la de estos dos competidores.",
+        "¿Qué tecnología usa https://ejemplo.com? CMS, analítica y pagos."
+      ],
+      "facts": [
+        [
+          "16",
+          "comprobaciones SEO"
+        ],
+        [
+          "3 MB",
+          "límite por página"
+        ],
+        [
+          "0",
+          "IA intermedia"
+        ]
       ]
     },
     {
@@ -167,6 +193,26 @@
           "¿Qué pasa con los empates?",
           "Se devuelven como ambiguos para que decidas tú; nunca se concilia a ciegas."
         ]
+      ],
+      "icon": "landmark",
+      "prompts": [
+        "Lee este extracto Norma 43 y pásamelo a Excel.",
+        "Concilia los movimientos del extracto con estas facturas pendientes.",
+        "Valida estos IBAN y NIF antes de generar la remesa."
+      ],
+      "facts": [
+        [
+          "1:N",
+          "conciliación múltiple"
+        ],
+        [
+          "AEB43",
+          "formato bancario"
+        ],
+        [
+          "0",
+          "datos guardados"
+        ]
       ]
     },
     {
@@ -227,6 +273,26 @@
         [
           "¿En qué codificación sale?",
           "Windows-1252 con CRLF (UTF-8 con BOM para CSV), que es lo que importan estos programas."
+        ]
+      ],
+      "icon": "ledger",
+      "prompts": [
+        "Convierte este SUENLACE.DAT de A3 a ContaPlus con subcuentas de 8 dígitos.",
+        "Pasa el extracto del banco a asientos: comisiones a la 626, Iberdrola a la 628.",
+        "Valida este diario antes de importarlo en A3."
+      ],
+      "facts": [
+        [
+          "A3 ⇄ Sage",
+          "formatos oficiales"
+        ],
+        [
+          "555",
+          "cuenta puente automática"
+        ],
+        [
+          "0",
+          "cobro si A3 lo rechazaría"
         ]
       ]
     }
