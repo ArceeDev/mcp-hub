@@ -45,7 +45,8 @@
         "billing": "Pago único, sin suscripción"
       }
     ],
-    "currency_symbol": "$"
+    "currency_symbol": "$",
+    "remote": true
   },
   "mcps": [
     {

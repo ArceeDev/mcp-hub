@@ -446,3 +446,12 @@ td code{color:var(--ink)}
 .reveal-head{display:flex;gap:14px;align-items:center}
 .reveal-head h2{margin:0}
 .reveal pre{word-break:break-all;white-space:pre-wrap}
+
+.uso h3{font-size:1.125rem}.uso h4{font-size:.9375rem;margin-top:4px}
+.uso .tw{overflow-x:auto;border:1px solid var(--line);border-radius:12px}
+.uso-t{width:100%;border-collapse:collapse;font-size:.875rem}
+.uso-t th,.uso-t td{padding:8px 12px;text-align:left;white-space:nowrap}
+.uso-t th{background:var(--surface-2);color:var(--muted);font-weight:500}
+.uso-t tr+tr td{border-top:1px solid var(--line)}
+.uso-t .num{text-align:right;font-variant-numeric:tabular-nums}
+.uso-t .bad{color:#ef5350}

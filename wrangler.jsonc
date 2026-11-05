@@ -1,15 +1,30 @@
 {
-  // Sitio estático + API mínima (/api/*) en Cloudflare Workers. Build: python3 build.py
+  // Web estática + API (/api/*) + MCP remotos con OAuth en Cloudflare Workers. Build: python3 build.py
   "name": "mcp-hub",
-  "main": "src/worker.js",
+  "main": "src/index.js",
   "compatibility_date": "2026-10-01",
+  // CIMD: el servidor OAuth descarga metadatos de clientes; solo a IPs públicas.
+  "compatibility_flags": ["global_fetch_strictly_public"],
   "assets": {
     "directory": "./public",
     "binding": "ASSETS",
     "not_found_handling": "404-page",
     "html_handling": "auto-trailing-slash",
-    "run_worker_first": ["/api/*"]
+    "run_worker_first": ["/api/*", "/authorize", "/oauth/*", "/.well-known/oauth-*", "/*/mcp", "/*/mcp/*"]
   },
-  "vars": { "GATEWAY_URL": "https://licenses.keyflint.dev" },
+  "vars": { "GATEWAY_URL": "https://licenses.keyflint.dev", "PUBLIC_ORIGIN": "https://mcp.keyflint.dev" },
+  // Tokens, clientes y licencias (cifradas) de OAuth. Crear con: npx wrangler kv namespace create OAUTH_KV
+  "kv_namespaces": [{ "binding": "OAUTH_KV", "id": "4d4c7d1064234b88913b591456fc7867" }],
+  // Los 5 MCP en Python, en un contenedor (requiere el plan Workers Paid).
+  "containers": [{ "class_name": "McpRuntime", "image": "./container/Dockerfile", "max_instances": 5, "instance_type": "basic" }],
+  "durable_objects": { "bindings": [{ "name": "MCP_RUNTIME", "class_name": "McpRuntime" }] },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["McpRuntime"] }],
+  // Uso por herramienta (historial en /saldo/). Crear con: npx wrangler d1 create mcp-usage; luego
+  // npx wrangler d1 migrations apply mcp-usage --remote
+  "d1_databases": [{ "binding": "USAGE_DB", "database_name": "mcp-usage", "database_id": "a41de037-4297-4000-a60f-7bfbbd30a578", "migrations_dir": "migrations" }],
+  // 120 llamadas a herramientas por minuto y licencia.
+  "ratelimits": [{ "name": "MCP_LIMIT", "namespace_id": "1001", "simple": { "limit": 120, "period": 60 } }],
+  // Limpieza de uso antiguo y chequeo de los 5 MCP, cada día a las 04:17 UTC.
+  "triggers": { "crons": ["17 4 * * *"] },
   "observability": { "enabled": true }
 }
