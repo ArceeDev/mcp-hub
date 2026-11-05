@@ -142,7 +142,7 @@ def home() -> str:
 <section>
 <h2>Cómo funciona</h2>
 <ol class="steps">
-<li><b>Consigue tu licencia</b> gratuita o compra un pack de créditos.</li>
+<li><b>Consigue tu licencia</b> gratuita o compra un plan.</li>
 <li><b>Copia la configuración</b> del servidor que quieras en tu cliente MCP.</li>
 <li><b>Pídeselo a tu agente</b> en lenguaje natural: «concilia este extracto con estas facturas».</li>
 </ol>
