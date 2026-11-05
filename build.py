@@ -119,7 +119,13 @@ def snippets(m: dict) -> dict[str, str]:
     cc = "\n\n".join(f"claude mcp add {x['slug']} --scope user \\\n"
                       + "".join(f"  -e {k}={v} \\\n" for k, v in server_env(x).items())
                       + "  -- uvx " + " ".join(uvx_args(x)) for x in ms)
-    return {"desktop": std, "code": cc, "cursor": std, "vscode": vscode, "windsurf": std}
+    codex = "\n\n".join(f"codex mcp add {x['slug']} "
+                         + "".join(f"--env {k}={v} " for k, v in server_env(x).items())
+                         + "-- uvx " + " ".join(uvx_args(x)) for x in ms)
+    toml = "\n\n".join(f"[mcp_servers.{x['slug']}]\ncommand = \"uvx\"\nargs = {json.dumps(uvx_args(x))}\nenv = {{ "
+                        + ", ".join(f"{k} = {json.dumps(v)}" for k, v in server_env(x).items()) + " }" for x in ms)
+    return {"desktop": std, "code": cc, "cursor": std, "vscode": vscode, "windsurf": std, "codex": codex,
+            "codex_toml": toml, "antigravity": std}
 
 
 ALL = {"slug": "todos", "name": "Todos", "all": True, "icon": "stack"}
@@ -130,6 +136,8 @@ CLIENTS = [
     ("code", "Claude Code", "claude"),
     ("cursor", "Cursor", "cursor"),
     ("vscode", "VS Code", "vscode"),
+    ("codex", "Codex", "codex"),
+    ("antigravity", "Antigravity", "antigravity"),
     ("windsurf", "Windsurf", "windsurf"),
 ]
 
@@ -148,6 +156,8 @@ def installer(m: dict) -> str:
                 else f'Si ya tienes servidores, añade solo <code>"{s}"</code> dentro de <code>mcpServers</code>.')
     uv_note = (f'<p class="note">{icon("info")}<span>Necesita <a href="/empezar/#uv">uv</a> instalado: '
                'un comando, una sola vez.</span></p>')
+    cards = (f'<p class="note">{icon("card")}<span>Los resultados se ven como <b>tarjetas visuales</b> en el chat: '
+             'saldo de créditos, cifras clave e incidencias.</span></p>')
     panels = {
         "desktop": (f"""<a class="btn btn-primary btn-block" href="{m['repo']}/releases/latest" rel="noopener">{brand("claude")}Descargar extensión para Claude Desktop</a>
 <p class="muted small center gap">Abre el archivo <code>.mcpb</code> descargado, pulsa <b>Instalar</b> y pega tu licencia. Sin terminal.</p>
@@ -156,7 +166,7 @@ def installer(m: dict) -> str:
 <li>Pega el bloque en <code>claude_desktop_config.json</code>. {key_line}</li>
 <li>Guarda y reinicia Claude Desktop por completo.</li></ol>
 {code_block(f"sn-{s}-desktop", sn["desktop"], "claude_desktop_config.json")}
-<p class="path">macOS <code>~/Library/Application Support/Claude/</code><br>Windows <code>%APPDATA%\\Claude\\</code></p>""" + ("</details>" if m.get("mcpb") else "") + uv_note,
+<p class="path">macOS <code>~/Library/Application Support/Claude/</code><br>Windows <code>%APPDATA%\\Claude\\</code></p>""" + ("</details>" if m.get("mcpb") else "") + cards + uv_note,
         "code": f"""<ol class="mini-steps"><li>Ejecuta {"los comandos" if multi else "el comando"} en tu terminal. Queda{"n" if multi else ""} disponible{"s" if multi else ""} en todos tus proyectos.</li>
 <li>Compruébalo con <code>claude mcp list</code>.</li></ol>
 {code_block(f"sn-{s}-code", sn["code"], "Terminal")}{uv_note}""",
@@ -173,7 +183,17 @@ def installer(m: dict) -> str:
 <p class="muted small center gap">Para VS Code 1.102 o superior, con el chat de Copilot en modo agente.</p>
 <details class="manual"><summary><span>Instalación manual</span>{icon("chevron")}</summary>
 <p>Pega el bloque en <code>.vscode/mcp.json</code> de tu proyecto.</p>
-{code_block(f"sn-{s}-vscode", sn["vscode"], ".vscode/mcp.json")}</details>{uv_note}"""),
+{code_block(f"sn-{s}-vscode", sn["vscode"], ".vscode/mcp.json")}</details>{cards}{uv_note}"""),
+        "codex": f"""<ol class="mini-steps"><li>Ejecuta {"los comandos" if multi else "el comando"} en tu terminal. Sirve{"n" if multi else ""} para la CLI, la app y la extensión de Codex, que comparten configuración.</li>
+<li>Compruébalo con <code>codex mcp list</code> o con <code>/mcp</code> dentro de Codex.</li></ol>
+{code_block(f"sn-{s}-codex", sn["codex"], "Terminal")}
+<details class="manual"><summary><span>Instalación manual</span>{icon("chevron")}</summary>
+<p>Pega el bloque en <code>~/.codex/config.toml</code>.</p>
+{code_block(f"sn-{s}-codex-toml", sn["codex_toml"], "config.toml")}</details>{uv_note}""",
+        "antigravity": f"""<ol class="mini-steps"><li>Antigravity › panel del agente › menú <b>…</b> › <b>MCP Servers</b> › <b>Manage MCP Servers</b> › <b>View raw config</b>.</li>
+<li>Pega el bloque, guarda y pulsa <b>Refresh</b>. {key_line}</li></ol>
+{code_block(f"sn-{s}-antigravity", sn["antigravity"], "mcp_config.json")}
+<p class="path"><code>~/.gemini/antigravity/mcp_config.json</code></p>{uv_note}""",
         "windsurf": f"""<ol class="mini-steps"><li>Windsurf › <b>Settings</b> › <b>Cascade</b> › <b>MCP Servers</b> › <b>View raw config</b>.</li>
 <li>Pega el bloque, guarda y pulsa <b>Refresh</b>.</li></ol>
 {code_block(f"sn-{s}-windsurf", sn["windsurf"], "mcp_config.json")}
@@ -302,7 +322,7 @@ def home() -> str:
                         for i, t, d in feats)
     steps = [
         ("key", "Consigue tu licencia", f"{SITE['free_credits']} créditos gratis o un plan de pago. Llega a tu correo en segundos."),
-        ("download", "Instala en tu cliente", "Un clic en Cursor y VS Code. Copiar y pegar en Claude y Windsurf."),
+        ("download", "Instala en tu cliente", "Un clic en Claude Desktop, Cursor y VS Code. Un comando en Claude Code y Codex. Copiar y pegar en Antigravity y Windsurf."),
         ("chat", "Pídeselo a tu agente", "En lenguaje natural. El agente elige la herramienta y te dice lo que cuesta."),
     ]
     steps_html = "".join(f'<li class="step"><span class="tile tile-sm">{icon(i)}</span>'
@@ -317,7 +337,7 @@ def home() -> str:
                          for i, m in enumerate(opts))
     faq = [
         ("¿Qué es un servidor MCP?", "MCP (Model Context Protocol) es el estándar abierto con el que agentes de IA como Claude o Cursor usan herramientas externas. Un servidor MCP le da a tu agente capacidades nuevas: leer extractos bancarios, convertir ficheros contables o auditar webs."),
-        ("¿Necesito saber programar?", "No. Pulsas un botón en Cursor o VS Code, o copias un bloque en la configuración de Claude. Solo hay que instalar uv una vez, con un comando que te damos."),
+        ("¿Necesito saber programar?", "No. Pulsas un botón en Claude Desktop, Cursor o VS Code, o copias un bloque en Codex, Antigravity o Windsurf. Solo hay que instalar uv una vez, con un comando que te damos."),
         ("¿Cómo se cuentan los créditos?", "Cada herramienta tiene un coste fijo que el agente ve antes de usarla. Las validaciones y utilidades cuestan 0. Si una llamada falla, el crédito se devuelve automáticamente."),
         ("¿Dónde se procesan mis datos?", "En tu propio ordenador. El servidor se ejecuta en local y solo contacta con KeyFlint para verificar la licencia y descontar créditos. Tus ficheros no salen de tu equipo."),
         ("¿Funciona en Windows, macOS y Linux?", "Sí, en los tres. Los servidores se ejecutan con uv, que funciona igual en todos ellos."),
@@ -328,7 +348,7 @@ def home() -> str:
 <div class="hero-copy">
 <p class="kicker"><a class="pill" href="/contabridge/"><span class="pill-dot" aria-hidden="true"></span>Nuevo: ContaBridge para gestorías{icon("arrow-right")}</a></p>
 <h1>Herramientas MCP fiables para tu agente de IA</h1>
-<p class="lead">{e(SITE['tagline'])} Funcionan en Claude, Cursor, VS Code y cualquier cliente compatible.</p>
+<p class="lead">{e(SITE['tagline'])} Funcionan en Claude, Cursor, VS Code, Codex, Antigravity y cualquier cliente compatible, con resultados en tarjetas visuales.</p>
 <div class="cta-row"><a class="btn btn-primary btn-lg" href="#instalar">{icon("download")}Instalar en 2 minutos</a>
 <a class="btn btn-ghost btn-lg" href="/precios/">Ver precios</a></div>
 <ul class="assure">
@@ -353,7 +373,7 @@ def home() -> str:
 
 <section class="section" id="instalar"><div class="wrap install-grid">
 <div class="section-head left"><p class="eyebrow">Instalación</p><h2>Elige servidor y cliente. Copia. Listo.</h2>
-<p class="lead-sm">Pega tu licencia y todos los fragmentos se rellenan solos. En Cursor y VS Code basta un clic.</p>
+<p class="lead-sm">Pega tu licencia y todos los fragmentos se rellenan solos. En Claude Desktop, Cursor y VS Code basta un clic.</p>
 <ol class="steps">{steps_html}</ol></div>
 <div class="install-card glass"><div class="picker" role="group" aria-label="Elige servidor">{picker}</div>{installers}</div>
 </div></section>
@@ -553,7 +573,7 @@ def start() -> str:
            "step": [{"@type": "HowToStep", "name": n} for n in
                     ["Consigue tu licencia", "Instala uv", "Añade el servidor a tu cliente MCP", "Compruébalo con tu agente"]]}]
     return page("/empezar/", "Cómo instalar un servidor MCP en Claude, Cursor o VS Code · KeyFlint MCP",
-                "Guía paso a paso para instalar servidores MCP en Claude Desktop, Claude Code, Cursor, VS Code y Windsurf con una licencia gratuita.",
+                "Guía paso a paso para instalar servidores MCP en Claude Desktop, Claude Code, Cursor, VS Code, Codex, Antigravity y Windsurf con una licencia gratuita.",
                 body, ld)
 
 
