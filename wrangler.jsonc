@@ -14,7 +14,7 @@
   },
   "vars": { "GATEWAY_URL": "https://licenses.keyflint.dev", "PUBLIC_ORIGIN": "https://mcp.keyflint.dev" },
   // Tokens, clientes y licencias (cifradas) de OAuth. Crear con: npx wrangler kv namespace create OAUTH_KV
-  "kv_namespaces": [{ "binding": "OAUTH_KV", "id": "REPLACE_WITH_OAUTH_KV_ID" }],
+  "kv_namespaces": [{ "binding": "OAUTH_KV", "id": "4d4c7d1064234b88913b591456fc7867" }],
   // Los 5 MCP en Python, en un contenedor (requiere el plan Workers Paid).
   "containers": [{ "class_name": "McpRuntime", "image": "./container/Dockerfile", "max_instances": 5, "instance_type": "basic" }],
   "durable_objects": { "bindings": [{ "name": "MCP_RUNTIME", "class_name": "McpRuntime" }] },
