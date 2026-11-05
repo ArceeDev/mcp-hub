@@ -1,0 +1,234 @@
+{
+  "site": {
+    "name": "KeyFlint MCP",
+    "url": "https://mcp.keyflint.dev",
+    "lang": "es",
+    "tagline": "Herramientas MCP de calidad para tu agente de IA. Una licencia, todos los servidores.",
+    "description": "Catálogo de servidores MCP deterministas para Claude, Cursor y cualquier agente: lectura web y SEO, extractos Norma 43, conciliación bancaria y conversión contable A3/ContaPlus. Pago por uso con créditos.",
+    "keyflint_url": "https://licenses.keyflint.dev",
+    "public_keys": "<issuer-public-hex>",
+    "contact": "mailto:support@keyflint.dev",
+    "free_credits": 25,
+    "packs": [
+      {
+        "id": "pro",
+        "name": "Pro",
+        "credits": 500,
+        "price": 29,
+        "period": "/mes",
+        "checkout": "https://buy.stripe.com/bJefZ9dwMdkf9IM9wTawo08",
+        "note": "Se recargan cada mes · 3 equipos · cancela cuando quieras"
+      },
+      {
+        "id": "indie",
+        "name": "Indie",
+        "credits": 10000,
+        "price": 149,
+        "period": "",
+        "checkout": "https://buy.stripe.com/cNi14fboE3JF6wAaAXawo09",
+        "note": "Pago único · 3 equipos",
+        "featured": true
+      },
+      {
+        "id": "agency",
+        "name": "Agency",
+        "credits": 50000,
+        "price": 349,
+        "period": "",
+        "checkout": "https://buy.stripe.com/cNi6oz9gw1BxbQUfVhawo0a",
+        "note": "Pago único · 25 equipos · gestorías y agencias"
+      }
+    ],
+    "currency_symbol": "$"
+  },
+  "mcps": [
+    {
+      "slug": "web-intel",
+      "name": "Web Intel",
+      "package": "web-intel-mcp",
+      "repo": "https://github.com/ArceeDev/web-intel-mcp",
+      "category": "Web y SEO",
+      "audience": "Desarrolladores, marketing, SEO, agencias",
+      "status": "disponible",
+      "headline": "Lee cualquier web y audita su SEO desde tu agente",
+      "summary": "Convierte páginas en Markdown limpio, extrae metadatos y enlaces, detecta la tecnología de un sitio y puntúa su SEO de 0 a 100 con las 5 mejoras prioritarias. Compara tu página con la de tus competidores.",
+      "keywords": [
+        "mcp lectura web",
+        "mcp seo",
+        "auditoría seo ia",
+        "web scraping mcp",
+        "detectar tecnología web"
+      ],
+      "env_prefix": "WEB_INTEL",
+      "tools": [
+        [
+          "read_url",
+          "1",
+          "Contenido principal en Markdown limpio (sin menús, pies ni banners de cookies)"
+        ],
+        [
+          "page_metadata",
+          "1",
+          "Título, descripción, canonical, idioma, Open Graph, JSON-LD y encabezados"
+        ],
+        [
+          "extract_links",
+          "1",
+          "Enlaces internos y externos sin duplicados, con su texto"
+        ],
+        [
+          "tech_stack",
+          "2",
+          "Frameworks, CMS, analítica, pagos, CDN y cabeceras de seguridad"
+        ],
+        [
+          "seo_audit",
+          "3",
+          "Puntuación 0-100, nota A-F, 16 comprobaciones y 5 mejoras principales"
+        ],
+        [
+          "compare_seo",
+          "3 por URL",
+          "Compara de 2 a 5 páginas; solo cobra las que se descargan"
+        ],
+        [
+          "pricing, credits_balance",
+          "0",
+          "Precios y saldo"
+        ]
+      ],
+      "faq": [
+        [
+          "¿Se cobra si la web no carga?",
+          "No. Las descargas fallidas se reembolsan automáticamente."
+        ],
+        [
+          "¿Puede leer redes internas?",
+          "No. Rechaza direcciones privadas y limita cada descarga a 3 MB y 15 segundos."
+        ]
+      ]
+    },
+    {
+      "slug": "norma43",
+      "name": "Norma 43",
+      "package": "norma43-mcp",
+      "repo": "https://github.com/ArceeDev/norma43-mcp",
+      "category": "Banca y conciliación",
+      "audience": "Gestorías, asesorías, departamentos financieros",
+      "status": "disponible",
+      "headline": "Lee extractos Norma 43 y concilia el banco con tus facturas",
+      "summary": "Interpreta extractos bancarios españoles (Cuaderno 43 / AEB43 / CSB43) con las mismas comprobaciones que un banco, los exporta a Excel y concilia movimientos con facturas: 1 a 1, una transferencia para varias facturas y pagos parciales. Valida IBAN, NIF/NIE/CIF e identificador de acreedor SEPA gratis.",
+      "keywords": [
+        "norma 43",
+        "cuaderno 43",
+        "conciliación bancaria ia",
+        "aeb43 a excel",
+        "validar iban nif"
+      ],
+      "env_prefix": "NORMA43",
+      "tools": [
+        [
+          "parse_norma43",
+          "1",
+          "Cuentas, IBAN, saldos, movimientos y campos SEPA, con comprobación de totales"
+        ],
+        [
+          "norma43_to_csv",
+          "1",
+          "CSV para Excel español, protegido contra inyección de fórmulas"
+        ],
+        [
+          "reconcile_movements",
+          "3",
+          "Conciliación 1:1, 1:N y N:1 con puntuación y evidencias"
+        ],
+        [
+          "validate_identifier",
+          "0",
+          "IBAN, CCC, NIF/NIE/CIF, acreedor SEPA"
+        ],
+        [
+          "sepa_creditor_id",
+          "0",
+          "Identificador de acreedor SEPA desde el NIF"
+        ],
+        [
+          "pricing, credits_balance",
+          "0",
+          "Precios y saldo"
+        ]
+      ],
+      "faq": [
+        [
+          "¿Guardáis mis extractos?",
+          "No. El servidor no almacena nada entre llamadas y el resultado es determinista."
+        ],
+        [
+          "¿Qué pasa con los empates?",
+          "Se devuelven como ambiguos para que decidas tú; nunca se concilia a ciegas."
+        ]
+      ]
+    },
+    {
+      "slug": "contabridge",
+      "name": "ContaBridge",
+      "package": "contabridge-mcp",
+      "repo": "https://github.com/ArceeDev/contabridge-mcp",
+      "category": "Contabilidad",
+      "audience": "Gestorías con muchos clientes, contables, ERPs",
+      "status": "disponible",
+      "headline": "Pasa el libro diario entre A3, ContaPlus, Sage 50 y Excel",
+      "summary": "Convierte asientos entre a3ASESOR/a3ECO/a3CON (SUENLACE.DAT), Sage ContaPlus / Sage 50 y CSV de Holded o Excel. Ajusta la longitud de subcuentas, convierte un extracto Norma 43 en asientos con tus reglas y valida el fichero antes de importarlo.",
+      "keywords": [
+        "suenlace.dat",
+        "importar asientos a3",
+        "contaplus importar diario",
+        "convertir a3 a contaplus",
+        "norma 43 a asientos"
+      ],
+      "env_prefix": "CONTABRIDGE",
+      "tools": [
+        [
+          "convert_journal",
+          "2",
+          "Convierte el diario entre A3, ContaPlus/Sage 50 y CSV; ajusta subcuentas"
+        ],
+        [
+          "bank_to_journal",
+          "3",
+          "Norma 43 a asientos con reglas; lo no reconocido va a la 555"
+        ],
+        [
+          "build_journal",
+          "2",
+          "Escribe en cualquier formato los asientos que compone tu agente"
+        ],
+        [
+          "validate_journal",
+          "1",
+          "Detecta descuadres, cuentas inválidas y fechas fuera de ejercicio"
+        ],
+        [
+          "resize_account, detect_format",
+          "0",
+          "Utilidades gratuitas"
+        ],
+        [
+          "pricing, credits_balance",
+          "0",
+          "Precios y saldo"
+        ]
+      ],
+      "faq": [
+        [
+          "¿Se cobra un fichero que A3 rechazaría?",
+          "No. Los ficheros descuadrados o ilegibles se rechazan antes de cobrar."
+        ],
+        [
+          "¿En qué codificación sale?",
+          "Windows-1252 con CRLF (UTF-8 con BOM para CSV), que es lo que importan estos programas."
+        ]
+      ]
+    }
+  ]
+}
