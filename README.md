@@ -6,6 +6,13 @@ Sitio estático de **https://mcp.keyflint.dev**: catálogo, instalación, precio
 - `python3 build.py` genera `public/` (HTML, sitemap.xml, robots.txt, llms.txt, JSON-LD, `_headers`). Sin dependencias.
 - La clave pública del gateway se lee en cada build de `https://licenses.keyflint.dev/api/v1/licenses/public-key` (o de la variable `KEYFLINT_PUBLIC_KEYS`). Si no hay clave válida, el build falla a propósito para no publicar instrucciones rotas.
 
+## Publicar en PyPI y .mcpb
+
+Cada MCP de `data/catalog.json` tiene dos interruptores:
+
+- `"pypi": true` cuando el paquete está en PyPI: la configuración pasa a `uvx <paquete>` con solo `KEYFLINT_LICENSE`.
+- `"mcpb": true` cuando el `.mcpb` está publicado en `<repo>/releases/latest`: Claude Desktop muestra el botón de descarga.
+
 ## Añadir un MCP
 
 Añade una entrada a `mcps` en `data/catalog.json` y haz push. Cloudflare Pages vuelve a publicar.

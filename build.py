@@ -42,10 +42,11 @@ def _gateway_keyring() -> str:
         return ""
 
 
-SITE["public_keys"] = (os.environ.get("KEYFLINT_PUBLIC_KEYS", "").strip()
+NEEDS_KEYS = any(not m.get("pypi") for m in MCPS)  # los paquetes de PyPI ya traen la clave pública
+SITE["public_keys"] = "" if not NEEDS_KEYS else (os.environ.get("KEYFLINT_PUBLIC_KEYS", "").strip()
                        or (SITE["public_keys"] if re.fullmatch(KEY_RE, SITE["public_keys"]) else "")
                        or _gateway_keyring())
-if not re.fullmatch(KEY_RE, SITE["public_keys"]):
+if NEEDS_KEYS and not re.fullmatch(KEY_RE, SITE["public_keys"]):
     raise SystemExit("ERROR: falta la clave pública del gateway. Pon KEYFLINT_PUBLIC_KEYS (hex de "
                      "https://licenses.keyflint.dev/api/v1/licenses/public-key) en data/catalog.json o como variable de entorno.")
 
@@ -91,13 +92,20 @@ def faq_ld(items) -> dict:
         {"@type": "Question", "name": q, "acceptedAnswer": {"@type": "Answer", "text": a}} for q, a in items]}
 
 
-def server_env() -> dict:
+def server_env(m: dict) -> dict:
+    # Publicado en PyPI (v0.1.0+): el servidor ya trae gateway, clave pública y checkout por defecto.
+    if m.get("pypi"):
+        return {"KEYFLINT_LICENSE": LIC_PLACEHOLDER}
     return {"KEYFLINT_LICENSE": LIC_PLACEHOLDER, "KEYFLINT_URL": SITE["keyflint_url"],
             "KEYFLINT_PUBLIC_KEYS": SITE["public_keys"]}
 
 
+def uvx_args(m: dict) -> list[str]:
+    return [m["package"]] if m.get("pypi") else ["--from", f"git+{m['repo']}", m["package"]]
+
+
 def server_cfg(m: dict) -> dict:
-    return {"command": "uvx", "args": ["--from", f"git+{m['repo']}", m["package"]], "env": server_env()}
+    return {"command": "uvx", "args": uvx_args(m), "env": server_env(m)}
 
 
 def members(m: dict) -> list[dict]:
@@ -109,8 +117,8 @@ def snippets(m: dict) -> dict[str, str]:
     std = json.dumps({"mcpServers": {x["slug"]: server_cfg(x) for x in ms}}, indent=2, ensure_ascii=False)
     vscode = json.dumps({"servers": {x["slug"]: {"type": "stdio", **server_cfg(x)} for x in ms}}, indent=2, ensure_ascii=False)
     cc = "\n\n".join(f"claude mcp add {x['slug']} --scope user \\\n"
-                      + "".join(f"  -e {k}={v} \\\n" for k, v in server_env().items())
-                      + f"  -- uvx --from git+{x['repo']} {x['package']}" for x in ms)
+                      + "".join(f"  -e {k}={v} \\\n" for k, v in server_env(x).items())
+                      + "  -- uvx " + " ".join(uvx_args(x)) for x in ms)
     return {"desktop": std, "code": cc, "cursor": std, "vscode": vscode, "windsurf": std}
 
 
@@ -141,12 +149,14 @@ def installer(m: dict) -> str:
     uv_note = (f'<p class="note">{icon("info")}<span>Necesita <a href="/empezar/#uv">uv</a> instalado: '
                'un comando, una sola vez.</span></p>')
     panels = {
-        "desktop": f"""<ol class="mini-steps">
+        "desktop": (f"""<a class="btn btn-primary btn-block" href="{m['repo']}/releases/latest" rel="noopener">{brand("claude")}Descargar extensión para Claude Desktop</a>
+<p class="muted small center gap">Abre el archivo <code>.mcpb</code> descargado, pulsa <b>Instalar</b> y pega tu licencia. Sin terminal.</p>
+<details class="manual"><summary><span>Instalación manual</span>{icon("chevron")}</summary>""" if m.get("mcpb") else "") + f"""<ol class="mini-steps">
 <li>Abre Claude Desktop › <b>Ajustes</b> › <b>Desarrollador</b> › <b>Editar configuración</b>.</li>
 <li>Pega el bloque en <code>claude_desktop_config.json</code>. {key_line}</li>
 <li>Guarda y reinicia Claude Desktop por completo.</li></ol>
 {code_block(f"sn-{s}-desktop", sn["desktop"], "claude_desktop_config.json")}
-<p class="path">macOS <code>~/Library/Application Support/Claude/</code><br>Windows <code>%APPDATA%\\Claude\\</code></p>{uv_note}""",
+<p class="path">macOS <code>~/Library/Application Support/Claude/</code><br>Windows <code>%APPDATA%\\Claude\\</code></p>""" + ("</details>" if m.get("mcpb") else "") + uv_note,
         "code": f"""<ol class="mini-steps"><li>Ejecuta {"los comandos" if multi else "el comando"} en tu terminal. Queda{"n" if multi else ""} disponible{"s" if multi else ""} en todos tus proyectos.</li>
 <li>Compruébalo con <code>claude mcp list</code>.</li></ol>
 {code_block(f"sn-{s}-code", sn["code"], "Terminal")}{uv_note}""",

@@ -132,7 +132,9 @@
           "0",
           "IA intermedia"
         ]
-      ]
+      ],
+      "pypi": false,
+      "mcpb": false
     },
     {
       "slug": "norma43",
@@ -213,7 +215,9 @@
           "0",
           "datos guardados"
         ]
-      ]
+      ],
+      "pypi": false,
+      "mcpb": false
     },
     {
       "slug": "contabridge",
@@ -294,7 +298,9 @@
           "0",
           "cobro si A3 lo rechazaría"
         ]
-      ]
+      ],
+      "pypi": false,
+      "mcpb": false
     }
   ]
 }
