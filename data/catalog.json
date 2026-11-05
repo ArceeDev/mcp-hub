@@ -46,7 +46,7 @@
       }
     ],
     "currency_symbol": "$",
-    "remote": false
+    "remote": true
   },
   "mcps": [
     {
