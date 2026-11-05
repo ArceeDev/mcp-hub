@@ -4,7 +4,7 @@
     "url": "https://mcp.keyflint.dev",
     "lang": "es",
     "tagline": "Servidores MCP deterministas para tu agente de IA. Una licencia, todos los servidores, pago por uso.",
-    "description": "Catálogo de servidores MCP deterministas para Claude, Cursor y cualquier agente: lectura web y SEO, extractos Norma 43, conciliación bancaria y conversión contable A3/ContaPlus. Pago por uso con créditos.",
+    "description": "Catálogo de servidores MCP deterministas para Claude, Cursor y cualquier agente: lectura web y SEO, extractos Norma 43, conciliación bancaria, conversión contable A3/ContaPlus/QuickBooks/Xero y limpieza de CSV y Excel. Pago por uso con créditos.",
     "keyflint_url": "https://licenses.keyflint.dev",
     "public_keys": "<issuer-public-hex>",
     "contact": "mailto:support@keyflint.dev",
@@ -227,21 +227,24 @@
       "category": "Contabilidad",
       "audience": "Gestorías con muchos clientes, contables, ERPs",
       "status": "disponible",
-      "headline": "Pasa el libro diario entre A3, ContaPlus, Sage 50 y Excel",
-      "summary": "Convierte asientos entre a3ASESOR/a3ECO/a3CON (SUENLACE.DAT), Sage ContaPlus / Sage 50 y CSV de Holded o Excel. Ajusta la longitud de subcuentas, convierte un extracto Norma 43 en asientos con tus reglas y valida el fichero antes de importarlo.",
+      "headline": "Pasa el libro diario entre A3, ContaPlus, Sage 50, QuickBooks, Xero y Excel",
+      "summary": "Convierte asientos entre a3ASESOR/a3ECO/a3CON (SUENLACE.DAT), Sage ContaPlus / Sage 50, QuickBooks (IIF de Desktop y CSV de Online), Xero (CSV de asientos manuales) y CSV de Holded o Excel. Ajusta la longitud de subcuentas, convierte un extracto Norma 43 en asientos o en el CSV bancario de Xero y QuickBooks, y valida el fichero antes de importarlo.",
       "keywords": [
         "suenlace.dat",
         "importar asientos a3",
         "contaplus importar diario",
         "convertir a3 a contaplus",
-        "norma 43 a asientos"
+        "norma 43 a asientos",
+        "importar asientos quickbooks",
+        "xero manual journal csv",
+        "quickbooks iif"
       ],
       "env_prefix": "CONTABRIDGE",
       "tools": [
         [
           "convert_journal",
           "2",
-          "Convierte el diario entre A3, ContaPlus/Sage 50 y CSV; ajusta subcuentas"
+          "Convierte el diario entre A3, ContaPlus/Sage 50, QuickBooks, Xero y CSV; ajusta subcuentas"
         ],
         [
           "bank_to_journal",
@@ -252,6 +255,11 @@
           "build_journal",
           "2",
           "Escribe en cualquier formato los asientos que compone tu agente"
+        ],
+        [
+          "bank_statement_csv",
+          "1",
+          "Norma 43 al CSV bancario que importan Xero y QuickBooks Online"
         ],
         [
           "validate_journal",
@@ -283,7 +291,8 @@
       "prompts": [
         "Convierte este SUENLACE.DAT de A3 a ContaPlus con subcuentas de 8 dígitos.",
         "Pasa el extracto del banco a asientos: comisiones a la 626, Iberdrola a la 628.",
-        "Valida este diario antes de importarlo en A3."
+        "Valida este diario antes de importarlo en A3.",
+        "Pasa este diario de A3 a Xero con el plan de cuentas de mi cliente de Reino Unido."
       ],
       "facts": [
         [
@@ -297,6 +306,89 @@
         [
           "0",
           "cobro si A3 lo rechazaría"
+        ]
+      ],
+      "pypi": false,
+      "mcpb": false
+    },
+    {
+      "slug": "dataclean",
+      "name": "DataClean",
+      "package": "dataclean-mcp",
+      "repo": "https://github.com/ArceeDev/dataclean-mcp",
+      "category": "Datos",
+      "audience": "Desarrolladores de IA, analistas, marketing, ventas, contables",
+      "status": "disponible",
+      "headline": "Limpia CSV y Excel antes de que tu agente los lea mal",
+      "summary": "Detecta el tipo real de cada columna, entiende importes europeos y americanos (1.250,50 € y 1,250.50), fechas día/mes o mes/día, quita caracteres NUL, espacios raros y mojibake, normaliza teléfonos a E.164, deduplica y valida contra un esquema. Lo ambiguo se marca, nunca se adivina. Devuelve CSV, JSON o Excel tipado.",
+      "keywords": [
+        "limpiar csv ia",
+        "mcp excel",
+        "normalizar fechas csv",
+        "validar esquema csv",
+        "data cleaning mcp",
+        "limpieza de datos llm"
+      ],
+      "env_prefix": "DATACLEAN",
+      "tools": [
+        [
+          "profile_table",
+          "1",
+          "Tipo real de cada columna, formato de números y fechas, nulos, duplicados y problemas"
+        ],
+        [
+          "clean_table",
+          "1",
+          "Copia limpia y tipada en CSV, JSON o .xlsx con informe de cada cambio"
+        ],
+        [
+          "validate_schema",
+          "1",
+          "Comprueba tipos, obligatorios, únicos, rangos, listas y patrones fila a fila"
+        ],
+        [
+          "normalize_values",
+          "1",
+          "Normaliza una lista de importes, fechas, teléfonos, emails o IBAN"
+        ],
+        [
+          "pricing, credits_balance",
+          "0",
+          "Precios y saldo"
+        ]
+      ],
+      "faq": [
+        [
+          "¿Qué hace con 03/04/2026?",
+          "Lo convierte solo si otra fecha de la columna (p. ej. 13/04) o tu parámetro date_order deciden el orden; si no, lo deja igual y lo marca."
+        ],
+        [
+          "¿Pierde los ceros de los códigos postales?",
+          "No. Los números con ceros a la izquierda o de más de 15 dígitos se tratan como identificadores de texto."
+        ],
+        [
+          "¿Qué tamaño admite?",
+          "Hasta 20 MB o 200.000 filas por llamada; 100.000 filas se limpian en unos 4 segundos."
+        ]
+      ],
+      "icon": "table",
+      "prompts": [
+        "Perfila este Excel de clientes y dime qué columnas tienen problemas.",
+        "Limpia este CSV del banco: fechas día/mes, importes en formato europeo, y devuélvemelo en Excel.",
+        "Valida que este fichero cumple el esquema antes de importarlo en el CRM."
+      ],
+      "facts": [
+        [
+          "1",
+          "crédito por tabla"
+        ],
+        [
+          "0",
+          "valores adivinados"
+        ],
+        [
+          "xlsx",
+          "con celdas tipadas"
         ]
       ],
       "pypi": false,
