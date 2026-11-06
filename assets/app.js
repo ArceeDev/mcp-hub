@@ -212,4 +212,25 @@
         .then(function () { btn.disabled = false; });
     });
   }
+
+  /* licencia gratis de prueba */
+  var tf = document.querySelector("[data-trial-form]");
+  if (tf) {
+    var tmsg = tf.querySelector("[data-trial-msg]");
+    tf.addEventListener("submit", function (ev) {
+      ev.preventDefault();
+      var btn = tf.querySelector("button"), email = tf.email.value.trim();
+      if (!tf.email.checkValidity() || !email) { tmsg.className = "lic-help warn"; tmsg.textContent = "Escribe un correo válido."; return; }
+      btn.disabled = true;
+      fetch("/api/prueba", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ email: email }) })
+        .then(function (r) { return r.json(); })
+        .then(function (d) {
+          if (d.unavailable && tf.dataset.fallback) { location.href = tf.dataset.fallback; return; }
+          tmsg.className = "lic-help" + (d.ok ? " good" : " warn");
+          tmsg.textContent = d.ok ? "Listo. Si ese correo aún no tenía licencia, te llega en unos minutos. Revisa spam." : (d.error || "No se pudo enviar.");
+        })
+        .catch(function () { tmsg.className = "lic-help warn"; tmsg.textContent = "No se pudo enviar. Inténtalo en un minuto."; })
+        .then(function () { btn.disabled = false; });
+    });
+  }
 })();

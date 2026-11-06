@@ -89,12 +89,35 @@ async function recover(request, env, url) {
   return json({ ok: true });
 }
 
+async function trial(request, env, url) {
+  if (!sameOrigin(request, url)) return json({ ok: false }, 403);
+  if (env.TRIAL_LIMIT) {
+    const ip = request.headers.get("cf-connecting-ip") || "unknown";
+    const { success } = await env.TRIAL_LIMIT.limit({ key: "trial:" + ip });
+    if (!success) return json({ ok: false, error: "Demasiados intentos. Espera un minuto." }, 429);
+  }
+  let email = "";
+  try { email = String((await request.json()).email || "").trim(); } catch (e) { /* cuerpo no válido */ }
+  if (!EMAIL_RE.test(email)) return json({ ok: false, error: "Escribe un correo válido." }, 400);
+  try {
+    const r = await gateway(env, "/api/v1/billing/trial", { method: "POST", body: JSON.stringify({ email, source: "mcp-hub" }) });
+    if (r.status === 503) return json({ ok: false, unavailable: true, error: "La prueba gratis no está activa ahora mismo." }, 503);
+    if (r.status === 422) return json({ ok: false, error: "Escribe un correo válido." }, 400);
+    if (!r.ok) return json({ ok: false, error: "KeyFlint no responde ahora mismo. Inténtalo en un minuto." }, 502);
+  } catch (e) {
+    return json({ ok: false, error: "KeyFlint no responde ahora mismo. Inténtalo en un minuto." }, 502);
+  }
+  // Misma respuesta si ya tenía licencia: no revela quién es cliente. La licencia solo va al correo.
+  return json({ ok: true });
+}
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
     if (url.pathname === "/api/saldo" && request.method === "GET") return balance(request, env, url);
     if (url.pathname === "/api/licencia" && request.method === "GET") return reveal(request, env, url);
     if (url.pathname === "/api/recuperar" && request.method === "POST") return recover(request, env, url);
+    if (url.pathname === "/api/prueba" && request.method === "POST") return trial(request, env, url);
     if (url.pathname.startsWith("/api/")) return json({ ok: false, error: "No encontrado." }, 404);
     return env.ASSETS.fetch(request);
   },

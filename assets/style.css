@@ -440,7 +440,7 @@ td code{color:var(--ink)}
 .recover input:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 4px var(--brand-soft)}
 .lic-help.good{color:var(--ok)}
 .picker{grid-template-columns:repeat(4,1fr)}
-@media (max-width:640px){.recover-row{flex-direction:column}.picker{grid-template-columns:1fr 1fr}.foot-base{flex-direction:column;align-items:flex-start}}
+@media (max-width:640px){.recover-row{flex-direction:column}.recover input{flex:none}.picker{grid-template-columns:1fr 1fr}.foot-base{flex-direction:column;align-items:flex-start}}
 .tabs{flex-wrap:wrap;row-gap:2px}
 .reveal{display:flex;flex-direction:column;gap:16px;padding:24px;margin:0 0 28px}
 .reveal-head{display:flex;gap:14px;align-items:center}

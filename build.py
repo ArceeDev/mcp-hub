@@ -624,8 +624,14 @@ def start() -> str:
 <li class="g-step" id="licencia"><span class="g-n">1</span><div class="g-body">
 <h2>Consigue tu licencia</h2>
 <p>Tu licencia tiene la forma <code>LIC-…</code>, llega por correo y sirve para todos los servidores.</p>
+<form class="recover glass" data-trial-form data-fallback="{e(mail)}" novalidate>
+<div><h3 class="h3">Gratis · {SITE['free_credits']} créditos</h3>
+<p class="muted small">Sin tarjeta. Una licencia por correo; si luego compras, se amplía la misma.</p></div>
+<div class="recover-row"><input type="email" name="email" autocomplete="email" placeholder="tu@correo.com" required aria-label="Correo electrónico">
+<button class="btn btn-primary" type="submit">{icon("mail")}Enviarme la licencia</button></div>
+<p class="lic-help" data-trial-msg aria-live="polite"></p>
+</form>
 <div class="choice">
-<a class="choice-card" href="{e(mail)}"><span class="tile tile-sm">{icon("mail")}</span><span class="cc-text"><b>Gratis · {SITE['free_credits']} créditos</b><span class="muted small">Escríbenos y te la enviamos en un día laborable.</span></span>{icon("arrow-right")}</a>
 <a class="choice-card" href="/precios/"><span class="tile tile-sm">{icon("card")}</span><span class="cc-text"><b>Plan de pago</b><span class="muted small">Licencia inmediata tras el pago.</span></span>{icon("arrow-right")}</a>
 </div></div></li>
 <li class="g-step" id="uv"><span class="g-n">2</span><div class="g-body">
