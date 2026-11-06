@@ -185,7 +185,7 @@ function page(title, body, headers = new Headers(), status = 200) {
   headers.set("cache-control", "no-store");
   return new Response(`<!doctype html><html lang="es"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex">
-<title>${esc(title)} · KeyFlint MCP</title><link rel="stylesheet" href="/assets/style.css"><link rel="icon" href="/assets/icon.svg">
+<title>${esc(title)} · KeyFlint MCP</title><link rel="stylesheet" href="/assets/style.css"><link rel="icon" href="/favicon.ico" sizes="32x32"><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="icon" href="/assets/icon.svg">
 <style>.auth{max-width:460px;margin:8vh auto;padding:0 16px}.auth .card{background:var(--surface);border:1px solid var(--line);
 border-radius:16px;padding:28px}.auth h1{font-size:1.5rem;margin:.2em 0 .5em}.auth input{width:100%;font:inherit;font-family:var(--mono);
 font-size:.9rem;padding:.7em .8em;border-radius:10px;border:1px solid var(--line-2);background:var(--bg-2);color:var(--ink)}

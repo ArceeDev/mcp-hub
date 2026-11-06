@@ -326,7 +326,10 @@ def page(path: str, title: str, desc: str, body: str, ld: list | None = None, no
 <meta name="theme-color" content="#0B0D17" media="(prefers-color-scheme: dark)">
 <meta name="theme-color" content="#F7F8FA" media="(prefers-color-scheme: light)">
 <script>document.documentElement.className="js"</script>
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="icon" href="/assets/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="preload" href="/assets/fonts/inter-400.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/assets/fonts/interdisplay-600.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/assets/style.css?v={VERSION}">
@@ -837,6 +840,10 @@ def main() -> None:
     shutil.rmtree(OUT, ignore_errors=True)
     shutil.copytree(ROOT / "assets", OUT / "assets")
     shutil.copy(ROOT / "_headers", OUT / "_headers")
+    for fname in ["favicon.ico", "favicon.svg", "apple-touch-icon.png"]:
+        src = ROOT / "assets" / fname
+        if src.exists():
+            shutil.copy(src, OUT / fname)
     write("index.html", home())
     write("precios/index.html", pricing())
     write("empezar/index.html", start())
