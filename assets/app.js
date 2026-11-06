@@ -287,6 +287,23 @@
     });
   }
 
+
+  /* estado del servicio (/estado/) */
+  var st = document.querySelector("[data-status]");
+  if (st) {
+    var paint = function (k, ok) {
+      var el = st.querySelector('[data-st="' + k + '"]');
+      if (el) { el.textContent = ok ? "Funciona" : "Con problemas"; el.className = "st " + (ok ? "st-ok" : "st-bad"); }
+    };
+    fetch("/api/estado").then(function (r) { return r.json(); }).then(function (d) {
+      paint("licenses", d.licenses);
+      Object.keys(d.tools || {}).forEach(function (k) { paint(k, d.tools[k]); });
+      var t = document.querySelector("[data-st-time]");
+      if (t && d.checked) t.textContent = new Date(d.checked).toLocaleString();
+    }).catch(function () {
+      [].forEach.call(st.querySelectorAll("[data-st]"), function (el) { el.textContent = "Sin respuesta"; el.className = "st st-bad"; });
+    });
+  }
   /* licencia gratis de prueba (/probar/) */
   var tf = document.querySelector("[data-trial-form]");
   if (tf) {

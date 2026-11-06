@@ -18,6 +18,7 @@ import {
 } from "@cloudflare/workers-oauth-provider";
 import api from "./worker.js";
 import { demo } from "./demo.js";
+import { status } from "./status.js";
 
 export const SLUGS = ["web-intel", "norma43", "contabridge", "verifactu", "dataclean"];
 const NAMES = { "web-intel": "Web Intel", norma43: "Norma 43", contabridge: "ContaBridge", verifactu: "VeriFactu",
@@ -185,13 +186,13 @@ function page(title, body, headers = new Headers(), status = 200) {
   headers.set("cache-control", "no-store");
   return new Response(`<!doctype html><html lang="es"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex">
-<title>${esc(title)} · KeyFlint MCP</title><link rel="stylesheet" href="/assets/style.css"><link rel="icon" href="/favicon.ico" sizes="32x32"><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="icon" href="/assets/icon.svg">
+<title>${esc(title)} · Flint</title><link rel="stylesheet" href="/assets/style.css"><link rel="icon" href="/favicon.ico" sizes="32x32"><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="icon" href="/assets/flint-icon.svg">
 <style>.auth{max-width:460px;margin:8vh auto;padding:0 16px}.auth .card{background:var(--surface);border:1px solid var(--line);
 border-radius:16px;padding:28px}.auth h1{font-size:1.5rem;margin:.2em 0 .5em}.auth input{width:100%;font:inherit;font-family:var(--mono);
 font-size:.9rem;padding:.7em .8em;border-radius:10px;border:1px solid var(--line-2);background:var(--bg-2);color:var(--ink)}
 .auth .row{display:flex;gap:10px;margin-top:18px}.auth .row .btn{flex:1;justify-content:center}.auth .warn{color:#e5a50a}
 .auth .err{color:#ef5350;margin:.6em 0 0}.auth .muted{color:var(--muted);font-size:.9rem}.auth .logo{display:flex;gap:10px;align-items:center;font-weight:600;white-space:nowrap;margin-bottom:12px}
-.auth .logo img{width:28px;height:28px}</style></head><body><main class="auth"><div class="logo"><img src="/assets/icon.svg" alt="">KeyFlint MCP</div>
+.auth .logo img{width:28px;height:28px}</style></head><body><main class="auth"><div class="logo"><img src="/assets/flint-icon.svg" alt="">Flint <span class="muted">by KeyFlint</span></div>
 <div class="card">${body}</div></main></body></html>`, { status, headers });
 }
 
@@ -295,6 +296,8 @@ export default {
     const { as, resources } = servers(env);
     if (path === "/authorize") return authorize(request, env);
     if (path === "/api/uso" && request.method === "GET") return usage(request, env, url);
+    if (path === "/api/estado" && request.method === "GET")
+      return status(env, ctx, SLUGS, () => upstreamFetch(env, new URL("http://mcp/healthz"), new Request("http://mcp/healthz")));
     const dm = path.match(/^\/api\/demo\/([a-z0-9-]+)$/);
     if (dm && request.method === "POST") return demo(request, env, url, dm[1], (slug, name, args, lic) => demoCall(env, url, slug, name, args, lic));
     const m = path.match(/^\/([a-z0-9-]+)\/mcp(\/.*)?$/) || path.match(/^\/\.well-known\/oauth-protected-resource\/([a-z0-9-]+)\/mcp$/);

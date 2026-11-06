@@ -325,13 +325,16 @@ def page(path: str, title: str, desc: str, body: str, ld: list | None = None, no
     T = ({"locale": "en_US", "skip": "Skip to content", "home": "/en/", "cta": ("/en/try/", "Try free"), "navl": "Main"} if en else
          {"locale": "es_ES", "skip": "Saltar al contenido", "home": "/", "cta": ("/probar/", "Probar gratis"), "navl": "Principal"})
     navh = "".join(f'<a href="{h}"' + (' aria-current="page"' if h == path else "") + f">{t}</a>" for h, t in nav)
+    tok = SITE.get("cf_analytics_token", "").strip()
+    analytics = (f'<script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon=\'{{"token": "{e(tok)}"}}\'></script>\n'
+                 if tok and not noindex else "")
     foot_es = "" if en else f"""<footer class="foot"><div class="wrap">
 <div class="foot-grid">
 <div class="foot-brand"><a class="brand" href="/">{flint()}<span>Flint</span><span class="brand-tag">by KeyFlint</span></a>
 <p class="muted small">Servidores MCP deterministas para agentes de IA, con licencias criptográficas y pago por uso.</p></div>
 <div><h3>Servidores</h3><ul>{''.join(f'<li><a href="/{m["slug"]}/">{e(m["name"])}</a></li>' for m in MCPS)}</ul></div>
 <div><h3>Recursos</h3><ul><li><a href="/empezar/">Guía de instalación</a></li><li><a href="/saldo/">Consultar saldo</a></li><li><a href="/precios/">Precios</a></li><li><a href="https://keyflint.dev">KeyFlint</a></li></ul></div>
-<div><h3>Legal y soporte</h3><ul><li><a href="/terminos/">Términos de uso</a></li><li><a href="/reembolsos/">Reembolsos</a></li><li><a href="/aviso-legal/">Aviso legal</a></li><li><a href="https://keyflint.dev/privacy.html">Privacidad</a></li><li><a href="https://keyflint.dev/dpa.html">Encargo de tratamiento</a></li><li><a href="{SITE['contact']}">{e(CONTACT)}</a></li></ul></div>
+<div><h3>Legal y soporte</h3><ul><li><a href="/terminos/">Términos de uso</a></li><li><a href="/reembolsos/">Reembolsos</a></li><li><a href="/aviso-legal/">Aviso legal</a></li><li><a href="/estado/">Estado del servicio</a></li><li><a href="https://keyflint.dev/privacy.html">Privacidad</a></li><li><a href="https://keyflint.dev/dpa.html">Encargo de tratamiento</a></li><li><a href="{SITE['contact']}">{e(CONTACT)}</a></li></ul></div>
 </div>
 <div class="foot-base">
 <p class="muted small">© {dt.date.today().year} KeyFlint · Los servidores se ejecutan en tu equipo y no guardan tus datos.</p>
@@ -353,7 +356,7 @@ def page(path: str, title: str, desc: str, body: str, ld: list | None = None, no
 <meta property="og:title" content="{e(title)}">
 <meta property="og:description" content="{e(desc)}">
 <meta property="og:url" content="{url}">
-<meta property="og:image" content="{SITE['url']}/assets/og.png">
+<meta property="og:image" content="{SITE['url']}/assets/og-flint.png">
 <meta property="og:locale" content="{T['locale']}">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#0B0D17" media="(prefers-color-scheme: dark)">
@@ -368,7 +371,7 @@ def page(path: str, title: str, desc: str, body: str, ld: list | None = None, no
 <link rel="preload" href="/assets/fonts/interdisplay-600.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/assets/style.css?v={VERSION}">
 <script defer src="/assets/app.js?v={VERSION}"></script>
-{lds}
+{analytics}{lds}
 </head>
 <body>
 <a class="skip" href="#main">{T['skip']}</a>
@@ -576,7 +579,7 @@ def home() -> str:
         {"@context": "https://schema.org", "@type": "WebSite", "name": SITE["name"], "url": SITE["url"] + "/",
          "description": SITE["description"], "inLanguage": "es"},
         {"@context": "https://schema.org", "@type": "Organization", "name": "KeyFlint", "url": "https://keyflint.dev",
-         "logo": SITE["url"] + "/assets/icon.svg", "email": CONTACT},
+         "logo": SITE["url"] + "/assets/flint-icon.svg", "email": CONTACT},
         {"@context": "https://schema.org", "@type": "ItemList", "itemListElement": [
             {"@type": "ListItem", "position": i + 1, "url": f"{SITE['url']}/{m['slug']}/", "name": m["name"]}
             for i, m in enumerate(MCPS)]},
@@ -1059,7 +1062,7 @@ def foot_en() -> str:
 <div class="foot-brand"><a class="brand" href="/en/">{flint()}<span>Flint</span><span class="brand-tag">by KeyFlint</span></a>
 <p class="muted small">Deterministic MCP tools for AI agents, with signed licenses and pay-per-use credits. Built in Spain.</p></div>
 <div><h3>Tools</h3><ul>{tools}</ul></div>
-<div><h3>Resources</h3><ul><li><a href="/en/try/">Free trial</a></li><li><a href="/en/#pricing">Pricing</a></li><li><a href="/saldo/">Check balance (ES)</a></li><li><a href="https://github.com/ArceeDev" rel="noopener">GitHub</a></li></ul></div>
+<div><h3>Resources</h3><ul><li><a href="/en/try/">Free trial</a></li><li><a href="/en/#pricing">Pricing</a></li><li><a href="/saldo/">Check balance (ES)</a></li><li><a href="https://github.com/ArceeDev" rel="noopener">GitHub</a></li><li><a href="/estado/">Status</a></li></ul></div>
 <div><h3>Legal &amp; support</h3><ul><li><a href="/terminos/">Terms (ES)</a></li><li><a href="/reembolsos/">Refunds (ES)</a></li><li><a href="/aviso-legal/">Legal notice (ES)</a></li><li><a href="https://keyflint.dev/privacy.html">Privacy</a></li><li><a href="{SITE['contact']}">{e(CONTACT)}</a></li></ul></div>
 </div>
 <div class="foot-base">
@@ -1072,6 +1075,23 @@ def foot_en() -> str:
 
 
 ALT_LANG = {"/": "/en/", "/probar/": "/en/try/"}
+
+
+def status_page() -> str:
+    rows = [("licenses", "Licencias y créditos", "licenses.keyflint.dev")] + [(t[1], t[2], f"/{t[1]}/mcp") for t in EN_TOOLS]
+    lis = "".join(f'<li class="st-row"><div><b>{e(n)}</b><span class="muted small"> · <code>{e(d)}</code></span></div>'
+                  f'<span class="st" data-st="{k}">Comprobando…</span></li>' for k, n, d in rows)
+    body = f"""
+<section class="hero hero-sm"><div class="glow" aria-hidden="true"></div><div class="wrap narrow">
+<nav class="crumbs" aria-label="Ruta"><a href="/">Inicio</a>{icon("chevron-right")}<span aria-current="page">Estado</span></nav>
+<h1>Estado del servicio</h1>
+<p class="lead">Comprobamos en directo el servidor de licencias y las cinco herramientas en modo remoto. <span lang="en">Live status of licensing and the five remote tools.</span></p>
+</div></section>
+<section class="section tight"><div class="wrap narrow">
+<ul class="st-list glass" data-status>{lis}</ul>
+<p class="muted small">Última comprobación: <span data-st-time>…</span>. Los servidores locales (<code>uvx</code>) solo dependen de las licencias. ¿Algo raro? Escribe a <a href="{SITE['contact']}">{e(CONTACT)}</a>.</p>
+</div></section>"""
+    return page("/estado/", "Estado del servicio · Flint", "Estado en directo de las licencias y de las herramientas remotas de Flint.", body)
 
 
 # ---------------------------------------------------------------- legal
@@ -1242,6 +1262,7 @@ def main() -> None:
     write("404.html", not_found())
     write("terminos/index.html", terms_page())
     write("en/index.html", en_home())
+    write("estado/index.html", status_page())
     write("en/try/index.html", en_try())
     write("reembolsos/index.html", refunds_page())
     write("aviso-legal/index.html", notice_page())
@@ -1249,7 +1270,7 @@ def main() -> None:
         print("AVISO: faltan datos del titular en data/catalog.json -> site.legal:", ", ".join(legal_missing()))
     for m in MCPS:
         write(f"{m['slug']}/index.html", mcp_page(m))
-    paths = ["/", "/probar/", "/empezar/", "/precios/", "/terminos/", "/reembolsos/", "/aviso-legal/", "/en/", "/en/try/"] + [f"/{m['slug']}/" for m in MCPS]
+    paths = ["/", "/probar/", "/empezar/", "/precios/", "/terminos/", "/reembolsos/", "/aviso-legal/", "/en/", "/en/try/", "/estado/"] + [f"/{m['slug']}/" for m in MCPS]
     write("sitemap.xml", '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
           + "".join(f"<url><loc>{SITE['url']}{p}</loc><lastmod>{TODAY}</lastmod></url>\n" for p in paths) + "</urlset>\n")
     write("robots.txt", f"User-agent: *\nAllow: /\nDisallow: /gracias/\nDisallow: /saldo/\nDisallow: /api/\n\nSitemap: {SITE['url']}/sitemap.xml\n")
