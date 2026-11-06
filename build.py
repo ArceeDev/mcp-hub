@@ -103,7 +103,10 @@ def server_env(m: dict) -> dict:
 
 
 def uvx_args(m: dict) -> list[str]:
-    return [m["package"]] if m.get("pypi") else ["--from", f"git+{m['repo']}", m["package"]]
+    cmd = m.get("command", m["package"])
+    if m.get("pypi"):
+        return [cmd] if cmd == m["package"] else ["--from", m["package"], cmd]
+    return ["--from", f"git+{m['repo']}", cmd]
 
 
 def server_cfg(m: dict) -> dict:
