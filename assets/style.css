@@ -502,3 +502,5 @@ td code{color:var(--ink)}
 .legal-toc ol{margin:0;padding-left:1.25rem;columns:2;column-gap:2rem;font-size:.9375rem}
 @media (max-width:640px){.legal-toc ol{columns:1}}
 mark.todo{background:#FFE08A;color:#3A2A00;border-radius:4px;padding:0 4px}
+svg.logo{width:30px;height:30px;flex:none;filter:drop-shadow(0 1px 6px rgba(204,255,0,.18))}
+.brand-tag{text-transform:none}

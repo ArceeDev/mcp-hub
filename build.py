@@ -63,6 +63,14 @@ def icon(name: str, cls: str = "i") -> str:
             f'{ICONS[name]}</svg>')
 
 
+FLINT = '<polygon points="20,5 44,3 36,16 4,29" fill="#E0FF4D"/><polygon points="44,3 59,19 49,24 36,16" fill="#CCFF00"/><polygon points="59,19 57,42 49,24" fill="#9FCC00"/><polygon points="57,42 38,61 30,46 49,24" fill="#8DB300"/><polygon points="38,61 13,55 30,46" fill="#9FCC00"/><polygon points="13,55 4,29 18,34 30,46" fill="#C2F000"/><polygon points="4,29 36,16 49,24 30,46 18,34" fill="#B5E300"/><polygon points="15,34 22,27 29,34 43,17 50,24 29,45" fill="#0B0D17"/>'
+
+
+def flint(cls: str = "logo") -> str:
+    """Símbolo Flint: pedernal facetado con un ✓ grabado."""
+    return f'<svg class="{cls}" viewBox="0 0 64 64" aria-hidden="true" focusable="false">{FLINT}</svg>'
+
+
 def brand(name: str, cls: str = "b") -> str:
     vb, inner, hexc = BRANDS[name]
     return (f'<svg class="{cls} b-{name}" viewBox="{vb}" role="img" aria-hidden="true" focusable="false" '
@@ -340,7 +348,7 @@ def page(path: str, title: str, desc: str, body: str, ld: list | None = None, no
 <body>
 <a class="skip" href="#main">Saltar al contenido</a>
 <header class="top"><div class="wrap top-in">
-<a class="brand" href="/" aria-label="KeyFlint MCP, inicio">{icon("logo", "logo")}<span>KeyFlint</span><span class="brand-tag">MCP</span></a>
+<a class="brand" href="/" aria-label="Flint by KeyFlint, inicio">{flint()}<span>Flint</span><span class="brand-tag">by KeyFlint</span></a>
 <nav class="nav" aria-label="Principal">{navh}</nav>
 <a class="btn btn-primary btn-sm top-cta" href="/probar/">Probar gratis</a>
 </div></header>
@@ -349,7 +357,7 @@ def page(path: str, title: str, desc: str, body: str, ld: list | None = None, no
 </main>
 <footer class="foot"><div class="wrap">
 <div class="foot-grid">
-<div class="foot-brand"><a class="brand" href="/">{icon("logo", "logo")}<span>KeyFlint</span><span class="brand-tag">MCP</span></a>
+<div class="foot-brand"><a class="brand" href="/">{flint()}<span>Flint</span><span class="brand-tag">by KeyFlint</span></a>
 <p class="muted small">Servidores MCP deterministas para agentes de IA, con licencias criptográficas y pago por uso.</p></div>
 <div><h3>Servidores</h3><ul>{''.join(f'<li><a href="/{m["slug"]}/">{e(m["name"])}</a></li>' for m in MCPS)}</ul></div>
 <div><h3>Recursos</h3><ul><li><a href="/empezar/">Guía de instalación</a></li><li><a href="/saldo/">Consultar saldo</a></li><li><a href="/precios/">Precios</a></li><li><a href="https://keyflint.dev">KeyFlint</a></li></ul></div>
@@ -473,7 +481,7 @@ def trial_page() -> str:
 <p class="lead-sm">Claude Desktop (extensión .mcpb), Claude Code, Cursor, VS Code y más. Elige servidor y copia.</p></div>
 <div class="install-card glass"><div class="picker" role="group" aria-label="Elige servidor">{picker}</div>{installers}</div>
 </div></section>"""
-    return page("/probar/", f"Prueba gratis los servidores MCP: {SITE['free_credits']} créditos · KeyFlint MCP",
+    return page("/probar/", f"Prueba gratis los servidores MCP: {SITE['free_credits']} créditos · Flint",
                 f"Licencia gratis al momento con {SITE['free_credits']} créditos para todos los servidores MCP de KeyFlint. Sin tarjeta.", body)
 
 
@@ -532,7 +540,7 @@ def home() -> str:
 </div></section>
 
 <section class="section alt"><div class="wrap">
-<div class="section-head"><p class="eyebrow">Por qué KeyFlint MCP</p><h2>Pensados para producción, no para demos</h2></div>
+<div class="section-head"><p class="eyebrow">Por qué Flint</p><h2>Pensados para producción, no para demos</h2></div>
 <div class="feat-grid">{feat_html}</div>
 </div></section>
 
@@ -697,7 +705,7 @@ def pricing() -> str:
                      + [{"@type": "Offer", "name": "Recarga libre", "price": SITE["topup"]["min"], "priceCurrency": "EUR",
                          "url": f"{SITE['url']}/saldo/", "availability": "https://schema.org/InStock"}]},
           faq_ld(faq)]
-    return page("/precios/", "Precios de los servidores MCP · KeyFlint MCP",
+    return page("/precios/", "Precios de los servidores MCP · Flint",
                 f"Un saldo de créditos para todos los servidores MCP de KeyFlint. Recargas desde {SITE['topup']['min']} € sin suscripción o gratis con {SITE['free_credits']} créditos.",
                 body, ld)
 
@@ -747,7 +755,7 @@ def start() -> str:
            "totalTime": "PT2M",
            "step": [{"@type": "HowToStep", "name": n} for n in
                     ["Consigue tu licencia", "Instala uv", "Añade el servidor a tu cliente MCP", "Compruébalo con tu agente"]]}]
-    return page("/empezar/", "Cómo instalar un servidor MCP en Claude, Cursor o VS Code · KeyFlint MCP",
+    return page("/empezar/", "Cómo instalar un servidor MCP en Claude, Cursor o VS Code · Flint",
                 "Guía paso a paso para instalar servidores MCP en Claude Desktop, Claude Code, Cursor, VS Code, Codex, Antigravity y Windsurf con una licencia gratuita.",
                 body, ld)
 
@@ -807,7 +815,7 @@ def balance_page() -> str:
         ("¿Y si me arrepiento?", "Si no has usado los créditos de una recarga, escríbenos en los 14 días siguientes y te devolvemos el importe. Al devolverla se retiran esos créditos."),
     ])}</div>
 </div></section>"""
-    return page("/saldo/", "Consulta tu saldo de créditos · KeyFlint MCP",
+    return page("/saldo/", "Consulta tu saldo de créditos · Flint",
                 "Consulta los créditos que te quedan en tu licencia de KeyFlint MCP.", body, noindex=True)
 
 
@@ -840,11 +848,11 @@ def thanks() -> str:
 </form>
 <p class="muted small center">¿Sigue sin llegar? Escribe a <a href="{SITE['contact']}">{e(CONTACT)}</a>.</p>
 </div></section>"""
-    return page("/gracias/", "Pago completado · KeyFlint MCP", "Tu licencia está de camino.", body, noindex=True)
+    return page("/gracias/", "Pago completado · Flint", "Tu licencia está de camino.", body, noindex=True)
 
 
 def not_found() -> str:
-    return page("/404", "Página no encontrada · KeyFlint MCP", "Página no encontrada.",
+    return page("/404", "Página no encontrada · Flint", "Página no encontrada.",
                 f'<section class="hero hero-sm center"><div class="glow" aria-hidden="true"></div><div class="wrap narrow"><p class="eyebrow">Error 404</p>'
                 f'<h1>Esta página no existe</h1><p class="lead">Puede que el enlace haya cambiado.</p>'
                 f'<div class="cta-row center"><a class="btn btn-primary btn-lg" href="/">Ir al inicio</a>'
@@ -880,7 +888,7 @@ def legal_page(path: str, crumb: str, title: str, lead: str, sections: list[tupl
 <nav class="legal-toc" aria-label="En esta página"><ol>{toc}</ol></nav>
 {secs}
 </div></section>"""
-    return page(path, f"{title} · KeyFlint MCP", re.sub(r"<[^>]+>", "", lead)[:158], body)
+    return page(path, f"{title} · Flint", re.sub(r"<[^>]+>", "", lead)[:158], body)
 
 
 def terms_page() -> str:
@@ -888,7 +896,7 @@ def terms_page() -> str:
     support = e(CONTACT)
     s = [
         ("Quién presta el servicio",
-         f'<p>KeyFlint MCP (mcp.keyflint.dev) es un servicio de {_ld("holder", "nombre y apellidos")}, NIF {_ld("nif", "NIF")}, '
+         f'<p>Flint (mcp.keyflint.dev) es un servicio de {_ld("holder", "nombre y apellidos")}, NIF {_ld("nif", "NIF")}, '
          f'con domicilio en {_ld("address", "domicilio")}. Contacto: <a href="mailto:{support}">{support}</a>. Más datos en el <a href="/aviso-legal/">aviso legal</a>.</p>'),
         ("Qué contratas",
          "<p>Acceso a los servidores MCP del catálogo (Flint Web, Data, Bank, Ledger y Fiscal), en tu equipo o en modo remoto, mediante una "
