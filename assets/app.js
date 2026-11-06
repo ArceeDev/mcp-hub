@@ -291,6 +291,11 @@
   var tf = document.querySelector("[data-trial-form]");
   if (tf) {
     var tmsg = tf.querySelector("[data-trial-msg]"), tout = document.querySelector("[data-trial-out]");
+    var EN = document.documentElement.lang === "en";
+    var M = EN ? { bad: "Enter a valid email.", wait: "Creating your license…", mailed: "Done. It will reach your inbox in a few minutes; check spam.",
+      used: "That email already has a trial license.", off: "The free trial is not available right now.", fail: "Could not create the license. Try again in a minute.", net: "Could not connect. Try again in a minute.", rec: "Recover it" }
+      : { bad: "Escribe un correo válido.", wait: "Creando tu licencia…", mailed: "Listo. Te llega por correo en unos minutos. Revisa spam.",
+      used: null, off: null, fail: "No se pudo crear la licencia.", net: "No se pudo conectar. Inténtalo en un minuto.", rec: "Recuperarla" };
     var say = function (cls, text, link) {
       tmsg.className = "lic-help" + (cls ? " " + cls : ""); tmsg.textContent = text;
       if (link) { var a = document.createElement("a"); a.href = link[0]; a.textContent = link[1]; tmsg.appendChild(document.createTextNode(" ")); tmsg.appendChild(a); }
@@ -298,8 +303,8 @@
     tf.addEventListener("submit", function (ev) {
       ev.preventDefault();
       var btn = tf.querySelector("button"), email = tf.email.value.trim();
-      if (!tf.email.checkValidity() || !email) { say("warn", "Escribe un correo válido."); return; }
-      btn.disabled = true; btn.setAttribute("aria-busy", "true"); say("", "Creando tu licencia…");
+      if (!tf.email.checkValidity() || !email) { say("warn", M.bad); return; }
+      btn.disabled = true; btn.setAttribute("aria-busy", "true"); say("", M.wait);
       fetch("/api/prueba", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ email: email }) })
         .then(function (r) { return r.json(); })
         .then(function (d) {
@@ -308,11 +313,12 @@
             store(KEY, d.license); apply(d.license);
             tout.hidden = false; tf.hidden = true;
             setTimeout(function () { tout.scrollIntoView({ behavior: "smooth", block: "center" }); }, 50);
-          } else if (d.ok && d.emailed) { say("good", "Listo. Te llega por correo en unos minutos. Revisa spam."); }
-          else if (d.used) { say("warn", d.error, ["/gracias/", "Recuperarla"]); }
-          else { say("warn", d.error || "No se pudo crear la licencia."); }
+          } else if (d.ok && d.emailed) { say("good", M.mailed); }
+          else if (d.used) { say("warn", M.used || d.error, ["/gracias/", M.rec]); }
+          else if (d.unavailable && M.off) { say("warn", M.off); }
+          else { say("warn", (EN ? "" : d.error) || M.fail); }
         })
-        .catch(function () { say("warn", "No se pudo conectar. Inténtalo en un minuto."); })
+        .catch(function () { say("warn", M.net); })
         .then(function () { btn.disabled = false; btn.removeAttribute("aria-busy"); });
     });
   }

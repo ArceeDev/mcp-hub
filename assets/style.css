@@ -504,3 +504,8 @@ td code{color:var(--ink)}
 mark.todo{background:#FFE08A;color:#3A2A00;border-radius:4px;padding:0 4px}
 svg.logo{width:30px;height:30px;flex:none;filter:drop-shadow(0 1px 6px rgba(204,255,0,.18))}
 .brand-tag{text-transform:none}
+.en-video{padding:0;overflow:hidden}
+.en-video video{display:block;width:100%;height:auto;aspect-ratio:16/9;background:#0B0D17}
+.flint-glyph{width:44px;height:44px;flex:none}
+.en-tool .card-foot{gap:18px;justify-content:flex-start}
+.install-card > p.muted{margin:10px 4px 14px}
