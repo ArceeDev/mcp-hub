@@ -494,3 +494,11 @@ td code{color:var(--ink)}
 .topup .btn{align-self:flex-start}
 .ok-note{margin-top:16px}
 @media (max-width:640px){.topup-amt{flex-direction:column;align-items:stretch}.topup-num{align-self:flex-end}}
+.legal h2{font-size:1.25rem;margin:2.25rem 0 .75rem;scroll-margin-top:90px}
+.legal p,.legal li{line-height:1.65;color:var(--ink-2)}
+.legal ul{padding-left:1.25rem;display:grid;gap:.4rem}
+.legal a{color:var(--link)}
+.legal-toc{border:1px solid var(--line);border-radius:12px;padding:14px 18px;background:var(--surface-2)}
+.legal-toc ol{margin:0;padding-left:1.25rem;columns:2;column-gap:2rem;font-size:.9375rem}
+@media (max-width:640px){.legal-toc ol{columns:1}}
+mark.todo{background:#FFE08A;color:#3A2A00;border-radius:4px;padding:0 4px}

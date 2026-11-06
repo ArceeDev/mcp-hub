@@ -353,7 +353,7 @@ def page(path: str, title: str, desc: str, body: str, ld: list | None = None, no
 <p class="muted small">Servidores MCP deterministas para agentes de IA, con licencias criptográficas y pago por uso.</p></div>
 <div><h3>Servidores</h3><ul>{''.join(f'<li><a href="/{m["slug"]}/">{e(m["name"])}</a></li>' for m in MCPS)}</ul></div>
 <div><h3>Recursos</h3><ul><li><a href="/empezar/">Guía de instalación</a></li><li><a href="/saldo/">Consultar saldo</a></li><li><a href="/precios/">Precios</a></li><li><a href="https://keyflint.dev">KeyFlint</a></li></ul></div>
-<div><h3>Legal y soporte</h3><ul><li><a href="https://keyflint.dev/privacy.html">Privacidad</a></li><li><a href="https://keyflint.dev/dpa.html">Encargo de tratamiento</a></li><li><a href="{SITE['contact']}">{e(CONTACT)}</a></li></ul></div>
+<div><h3>Legal y soporte</h3><ul><li><a href="/terminos/">Términos de uso</a></li><li><a href="/reembolsos/">Reembolsos</a></li><li><a href="/aviso-legal/">Aviso legal</a></li><li><a href="https://keyflint.dev/privacy.html">Privacidad</a></li><li><a href="https://keyflint.dev/dpa.html">Encargo de tratamiento</a></li><li><a href="{SITE['contact']}">{e(CONTACT)}</a></li></ul></div>
 </div>
 <div class="foot-base">
 <p class="muted small">© {dt.date.today().year} KeyFlint · Los servidores se ejecutan en tu equipo y no guardan tus datos.</p>
@@ -679,7 +679,7 @@ def pricing() -> str:
 </div></section>
 <section class="section tight"><div class="wrap">
 <div class="plans">{''.join(cards)}</div>
-<p class="muted small center fine">{icon("lock")}Pago seguro con Stripe. Recargas en euros con IVA incluido; Pro en USD más impuestos según tu país. Recibes factura y puedes añadir tu NIF/VAT.</p>
+<p class="muted small center fine">{icon("lock")}Pago seguro con Stripe. Recargas en euros con IVA incluido; Pro en USD más impuestos según tu país. Recibes factura y puedes añadir tu NIF/VAT. Al comprar aceptas los <a href="/terminos/">términos</a> y la <a href="/reembolsos/">política de reembolso</a>.</p>
 </div></section>
 <section class="section alt"><div class="wrap usage-grid">
 <div class="section-head left"><p class="eyebrow">Cuánto da de sí</p><h2>Coste de las tareas más habituales</h2>
@@ -851,6 +851,149 @@ def not_found() -> str:
                 f'<a class="btn btn-ghost btn-lg" href="/#catalogo">Ver catálogo</a></div></div></section>', noindex=True)
 
 
+# ---------------------------------------------------------------- legal
+
+LEGAL = SITE["legal"]
+
+
+def _ld(key: str, label: str) -> str:
+    """Holder data from catalog.json; a visible placeholder until it is filled in."""
+    v = LEGAL.get(key, "").strip()
+    return e(v) if v else f'<mark class="todo">[PENDIENTE: {e(label)}]</mark>'
+
+
+def legal_missing() -> list[str]:
+    return [k for k in ("holder", "nif", "address") if not LEGAL.get(k, "").strip()]
+
+
+def legal_page(path: str, crumb: str, title: str, lead: str, sections: list[tuple[str, str]]) -> str:
+    toc = "".join(f'<li><a href="#s{i}">{e(h)}</a></li>' for i, (h, _) in enumerate(sections, 1))
+    secs = "".join(f'<h2 id="s{i}">{e(h)}</h2>{b}' for i, (h, b) in enumerate(sections, 1))
+    body = f"""
+<section class="hero hero-sm"><div class="glow" aria-hidden="true"></div><div class="wrap narrow">
+<nav class="crumbs" aria-label="Ruta"><a href="/">Inicio</a>{icon("chevron-right")}<span aria-current="page">{e(crumb)}</span></nav>
+<h1>{e(title)}</h1>
+<p class="lead">{lead}</p>
+<p class="muted small">Última actualización: {e(LEGAL.get("updated", TODAY))}</p>
+</div></section>
+<section class="section tight"><div class="wrap narrow legal">
+<nav class="legal-toc" aria-label="En esta página"><ol>{toc}</ol></nav>
+{secs}
+</div></section>"""
+    return page(path, f"{title} · KeyFlint MCP", re.sub(r"<[^>]+>", "", lead)[:158], body)
+
+
+def terms_page() -> str:
+    mail = e(LEGAL["email"])
+    support = e(CONTACT)
+    s = [
+        ("Quién presta el servicio",
+         f'<p>KeyFlint MCP (mcp.keyflint.dev) es un servicio de {_ld("holder", "nombre y apellidos")}, NIF {_ld("nif", "NIF")}, '
+         f'con domicilio en {_ld("address", "domicilio")}. Contacto: <a href="mailto:{support}">{support}</a>. Más datos en el <a href="/aviso-legal/">aviso legal</a>.</p>'),
+        ("Qué contratas",
+         "<p>Acceso a los servidores MCP del catálogo (Flint Web, Data, Bank, Ledger y Fiscal), en tu equipo o en modo remoto, mediante una "
+         "licencia con un saldo de créditos. Cada llamada correcta descuenta los créditos que indica la página de <a href=\"/precios/\">precios</a>; "
+         "las llamadas que fallan no descuentan nada.</p>"),
+        ("Tu licencia",
+         "<ul><li>La licencia es una clave personal. Quien la tenga puede gastar sus créditos: guárdala como una contraseña.</li>"
+         "<li>Cada plan permite un número de equipos (1 en la prueba gratis, 3 en Pro e Indie, 25 en Agency).</li>"
+         "<li>Si la pierdes, puedes recuperarla con un enlace a tu email desde <a href=\"/saldo/\">Mi saldo</a>.</li>"
+         "<li>No puedes revender, alquilar ni compartir públicamente licencias o créditos.</li></ul>"),
+        ("Planes, créditos y vigencia",
+         "<ul><li><b>Prueba gratis:</b> 25 créditos, una por persona, sin tarjeta. Válida 12 meses.</li>"
+         "<li><b>Pro:</b> suscripción mensual. El saldo se recarga cada mes y los créditos no usados no se acumulan. Puedes cancelar cuando quieras y no se te cobrará el mes siguiente.</li>"
+         "<li><b>Indie y Agency:</b> pago único. Los créditos no caducan mientras el servicio exista.</li>"
+         "<li>Cada compra genera su propia licencia.</li></ul>"),
+        ("Precio y pago",
+         "<p>Los precios están en la página de <a href=\"/precios/\">precios</a>, en dólares (USD). El pago lo procesa Stripe, que te muestra el importe final "
+         "con los impuestos de tu país y te envía la factura, en la que puedes añadir tu NIF o número de IVA. Si en tu compra aparece Stripe como vendedor, "
+         "Stripe gestiona el cobro y los impuestos; el uso de las herramientas se rige por estos términos.</p>"),
+        ("Desistimiento y reembolsos",
+         "<p>Tienes 14 días para pedir el reembolso completo y, en muchos casos, también después de usar créditos. Lo explicamos en la "
+         "<a href=\"/reembolsos/\">política de reembolso</a>.</p>"),
+        ("Qué hacen y qué no hacen las herramientas",
+         "<ul><li>Son deterministas: el mismo fichero da el mismo resultado. Aun así, revisa siempre el resultado antes de usarlo en tu contabilidad, en tus impuestos o ante terceros.</li>"
+         "<li>No son asesoramiento contable, fiscal ni legal.</li>"
+         "<li>Flint Fiscal revisa ficheros VeriFactu y Facturae, pero no es un sistema informático de facturación (SIF), no envía nada a la Agencia Tributaria y no certifica el cumplimiento.</li>"
+         "<li>Lo que la herramienta no puede casar o validar con seguridad se marca para que lo revises, en lugar de adivinarlo.</li></ul>"),
+        ("Tus datos y tus ficheros",
+         "<p>En modo local, los servidores se ejecutan en tu equipo y tus ficheros no salen de él. En modo remoto, los ficheros se procesan para responder a la llamada y no se guardan. "
+         "Solo registramos la licencia, el email asociado y el consumo de créditos. Más detalle en la <a href=\"https://keyflint.dev/privacy.html\">política de privacidad</a> "
+         "y, si eres empresa, en el <a href=\"https://keyflint.dev/dpa.html\">encargo de tratamiento</a>.</p>"),
+        ("Uso aceptable",
+         "<p>No puedes usar el servicio para actividades ilegales, para atacar o sobrecargar la infraestructura, ni para saltarte los límites de la licencia o de la prueba gratis. "
+         "Si lo haces, podemos suspender la licencia; si es de pago y no hubo abuso, te devolveremos la parte no usada.</p>"),
+        ("Código y propiedad intelectual",
+         "<p>El código de los servidores está publicado en GitHub con licencia Business Source License 1.1, que permite leerlo y usarlo según sus condiciones. "
+         "Las marcas KeyFlint y Flint, la web y sus textos no se ceden.</p>"),
+        ("Disponibilidad y responsabilidad",
+         "<p>Trabajamos para que el servicio esté siempre disponible, pero no garantizamos un tiempo de actividad concreto. Responderemos de los daños causados por dolo o culpa grave "
+         "y de lo que la ley no permita limitar. En lo demás, nuestra responsabilidad se limita al importe que hayas pagado en los 12 meses anteriores. "
+         "Si eres consumidor, conservas todos los derechos que te reconoce la ley.</p>"),
+        ("Cambios en estos términos",
+         "<p>Si cambiamos algo importante, lo avisaremos por email con 15 días de antelación. Los cambios no afectan a los créditos que ya hayas comprado.</p>"),
+        ("Ley aplicable y reclamaciones",
+         f"<p>Se aplica la ley española. Escríbenos primero a <a href=\"mailto:{support}\">{support}</a> o a <a href=\"mailto:{mail}\">{mail}</a>; respondemos en menos de 48 horas laborables. "
+         "Si eres consumidor, puedes reclamar ante los juzgados de tu domicilio.</p>"),
+    ]
+    return legal_page("/terminos/", "Términos", "Términos de uso",
+                      "Las condiciones para usar los servidores MCP y comprar créditos, en lenguaje claro.", s)
+
+
+def refunds_page() -> str:
+    support = e(CONTACT)
+    s = [
+        ("Resumen",
+         "<ul><li><b>Las llamadas que fallan no se cobran:</b> no tienes que pedir nada.</li>"
+         "<li><b>14 días de garantía:</b> si no te convence, te devolvemos todo si has usado menos del 20 % de los créditos de la compra.</li>"
+         "<li><b>Pro:</b> cancelas cuando quieras y no se te vuelve a cobrar.</li></ul>"),
+        ("Cómo pedir un reembolso",
+         f"<p>Escribe a <a href=\"mailto:{support}\">{support}</a> desde el email de la compra, en los 14 días siguientes al pago. "
+         "No hace falta que expliques el motivo. Lo tramitamos en un máximo de 3 días laborables y Stripe lo devuelve al mismo medio de pago, normalmente en 5 a 10 días.</p>"),
+        ("Qué pasa con la licencia",
+         "<p>Cuando se aprueba el reembolso, la licencia de esa compra se desactiva. Si tenías otras licencias, siguen funcionando.</p>"),
+        ("Derecho de desistimiento",
+         "<p>Si eres consumidor, la ley te da 14 días para desistir de la compra. Como los créditos son contenido digital que se entrega al momento, "
+         "ese derecho se pierde cuando empiezas a usarlos con tu consentimiento. Nuestra garantía va más allá: mientras hayas usado menos del 20 % de los créditos, te devolvemos todo igualmente.</p>"),
+        ("Suscripción Pro",
+         "<p>Puedes cancelar en cualquier momento desde el enlace de gestión del correo de Stripe o escribiéndonos. Conservas los créditos hasta el final del mes pagado y no se te cobra el siguiente. "
+         "Si cancelas en los 14 días siguientes a un cobro y has usado menos del 20 % de los créditos de ese mes, te devolvemos ese mes.</p>"),
+        ("Errores de cobro",
+         "<p>Si te hemos cobrado dos veces o algo no cuadra, lo devolvemos siempre, sin plazo.</p>"),
+    ]
+    return legal_page("/reembolsos/", "Reembolsos", "Política de reembolso",
+                      "Si algo no funciona, no pagas. Y si no te convence, te devolvemos el dinero.", s)
+
+
+def notice_page() -> str:
+    mail = e(LEGAL["email"])
+    support = e(CONTACT)
+    s = [
+        ("Titular",
+         f'<ul><li><b>Titular:</b> {_ld("holder", "nombre y apellidos")}</li>'
+         f'<li><b>NIF:</b> {_ld("nif", "NIF")}</li>'
+         f'<li><b>Domicilio:</b> {_ld("address", "domicilio")}</li>'
+         f'<li><b>Email:</b> <a href="mailto:{support}">{support}</a> y <a href="mailto:{mail}">{mail}</a></li>'
+         "<li><b>Actividad:</b> desarrollo y venta de software (servidores MCP) con licencia de uso por créditos.</li></ul>"
+         "<p>Este aviso cumple el artículo 10 de la Ley 34/2002 de servicios de la sociedad de la información (LSSI).</p>"),
+        ("Condiciones de uso de la web",
+         "<p>Puedes navegar por esta web libremente. Las condiciones de compra y uso de los servidores están en los <a href=\"/terminos/\">términos de uso</a> "
+         "y en la <a href=\"/reembolsos/\">política de reembolso</a>.</p>"),
+        ("Cookies y almacenamiento",
+         "<p>Esta web no usa cookies de publicidad ni de seguimiento. Si compras o pides la prueba gratis, tu navegador guarda tu licencia (localStorage) para mostrártela; "
+         "puedes borrarla cuando quieras desde el navegador. Las estadísticas de visitas, si las hay, son anónimas y sin cookies.</p>"),
+        ("Propiedad intelectual",
+         "<p>Los textos, el diseño y las marcas KeyFlint y Flint pertenecen al titular. El código de los servidores se publica en GitHub con licencia Business Source License 1.1. "
+         "Los logotipos de terceros (Claude, ChatGPT, Cursor, VS Code, Stripe y otros) pertenecen a sus dueños y solo indican compatibilidad.</p>"),
+        ("Enlaces",
+         "<p>No respondemos del contenido de las webs de terceros a las que enlazamos.</p>"),
+        ("Ley aplicable",
+         "<p>Se aplica la ley española.</p>"),
+    ]
+    return legal_page("/aviso-legal/", "Aviso legal", "Aviso legal",
+                      "Quién está detrás de mcp.keyflint.dev y cómo contactar.", s)
+
+
 # ---------------------------------------------------------------- output
 
 def write(rel: str, text: str) -> None:
@@ -874,9 +1017,14 @@ def main() -> None:
     write("saldo/index.html", balance_page())
     write("probar/index.html", trial_page())
     write("404.html", not_found())
+    write("terminos/index.html", terms_page())
+    write("reembolsos/index.html", refunds_page())
+    write("aviso-legal/index.html", notice_page())
+    if legal_missing():
+        print("AVISO: faltan datos del titular en data/catalog.json -> site.legal:", ", ".join(legal_missing()))
     for m in MCPS:
         write(f"{m['slug']}/index.html", mcp_page(m))
-    paths = ["/", "/probar/", "/empezar/", "/precios/"] + [f"/{m['slug']}/" for m in MCPS]
+    paths = ["/", "/probar/", "/empezar/", "/precios/", "/terminos/", "/reembolsos/", "/aviso-legal/"] + [f"/{m['slug']}/" for m in MCPS]
     write("sitemap.xml", '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
           + "".join(f"<url><loc>{SITE['url']}{p}</loc><lastmod>{TODAY}</lastmod></url>\n" for p in paths) + "</urlset>\n")
     write("robots.txt", f"User-agent: *\nAllow: /\nDisallow: /gracias/\nDisallow: /saldo/\nDisallow: /api/\n\nSitemap: {SITE['url']}/sitemap.xml\n")

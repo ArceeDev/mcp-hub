@@ -8,6 +8,13 @@
     "keyflint_url": "https://licenses.keyflint.dev",
     "public_keys": "<issuer-public-hex>",
     "contact": "mailto:support@keyflint.dev",
+    "legal": {
+      "holder": "",
+      "nif": "",
+      "address": "",
+      "email": "legal@keyflint.dev",
+      "updated": "2026-11-07"
+    },
     "free_credits": 25,
     "packs": [
       {
