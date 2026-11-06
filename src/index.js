@@ -23,7 +23,7 @@ export const SLUGS = ["web-intel", "norma43", "contabridge", "verifactu", "datac
 const NAMES = { "web-intel": "Web Intel", norma43: "Norma 43", contabridge: "ContaBridge", verifactu: "VeriFactu",
   dataclean: "DataClean" };
 const SCOPE = "mcp";
-const LICENSE_RE = /^LIC-[A-Za-z0-9._~+\/=-]{6,400}$/;
+const LICENSE_RE = /^LIC-[A-Za-z0-9._~+\/=-]{6,1024}$/;
 const INSTANCES = 3; // contenedores entre los que se reparte la carga
 const QUIET = new Set(["credits_balance", "pricing"]); // gratis y frecuentes: no ensucian el historial
 

@@ -1,7 +1,7 @@
 /* KeyFlint MCP: copiar, pestañas, selector de servidor, licencia en vivo y enlaces de 1 clic. */
 (function () {
   "use strict";
-  var PH = "LIC-tu-licencia", KEY = "kf-mcp-license", SAFE = /^[A-Za-z0-9._~+\/=-]{6,400}$/;
+  var PH = "LIC-tu-licencia", KEY = "kf-mcp-license", SAFE = /^[A-Za-z0-9._~+\/=-]{6,1024}$/;
   var CHECK = '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>';
 
   function store(k, v) {

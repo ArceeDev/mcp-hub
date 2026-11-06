@@ -4,7 +4,7 @@
 
 import { clientIp, giveBack, hash, num, take, today } from "./limits.js";
 
-const LICENSE_RE = /^[A-Za-z0-9._~+\/=-]{6,400}$/;
+const LICENSE_RE = /^[A-Za-z0-9._~+\/=-]{6,1024}$/;
 const SESSION_RE = /^cs_[A-Za-z0-9_]{10,250}$/;
 const EMAIL_RE = /^[^\s@]{1,64}@[^\s@]{1,255}\.[^\s@]{2,}$/;
 
