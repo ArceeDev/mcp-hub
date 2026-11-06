@@ -58,29 +58,16 @@ Explorador y agregador automático de servidores MCP en tiempo real.
 
 ---
 
-## 5. Awesome MCP Servers (GitHub)
+## 5. Awesome MCP Servers (GitHub) - ¡PR ENVIADO Y EN VERDE!
 El repositorio de referencia con más de 10.000 estrellas donde la comunidad de desarrolladores busca servidores MCP.
 
 - **Repositorio:** https://github.com/punkpeye/awesome-mcp-servers
-- **Pasos:**
-  1. Haz un Fork del repositorio.
-  2. En el archivo `README.md`, añade una línea en cada sección correspondiente:
-     - En la sección **Finance & Banking**:
-       ```markdown
-       - [Norma 43](https://github.com/ArceeDev/norma43-mcp) - Parse Spanish AEB43 bank statements and reconcile with invoices.
-       - [ContaBridge](https://github.com/ArceeDev/contabridge-mcp) - Convert journal entries between A3, Sage ContaPlus, QuickBooks, Xero, and CSV.
-       - [Veri*Factu](https://github.com/ArceeDev/verifactu-mcp) - Spanish invoicing compliance: audit fingerprint chains, generate AEAT QR, and validate Facturae 3.2.2.
-       ```
-     - En la sección **Browser Automation & Web Scraping**:
-       ```markdown
-       - [Web Intel](https://github.com/ArceeDev/web-intel-mcp) - Extract clean Markdown, tech stack, metadata, and audit SEO for AI agents.
-       ```
-     - En la sección **Data & Developer Tools**:
-       ```markdown
-       - [DataClean](https://github.com/ArceeDev/dataclean-mcp) - Deterministic cleaning and type inference for messy CSV, Excel, and JSON data.
-       ```
-  3. Abre un Pull Request con el título: `feat: add Flint MCP suite by ArceeDev`.
-
+- **Pull Request Creado:** [PR #18793](https://github.com/punkpeye/awesome-mcp-servers/pull/18793)
+- **Estado:** OPEN / En cola rápida 🤖🤖🤖 con todas las comprobaciones en verde (has-emoji, alid-name, has-glama).
+- **Secciones añadidas:**
+  - Browser Automation: ArceeDev/web-intel-mcp
+  - Finance & Fintech: ArceeDev/contabridge-mcp, ArceeDev/norma43-mcp, ArceeDev/verifactu-mcp
+  - Data Science Tools: ArceeDev/dataclean-mcp
 ---
 
 ## Fichas y Textos Rápidos para Copiar y Pegar
