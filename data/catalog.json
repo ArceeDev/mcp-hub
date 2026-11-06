@@ -394,6 +394,100 @@
       ],
       "pypi": true,
       "mcpb": true
+    },
+    {
+      "slug": "verifactu",
+      "name": "VeriFactu",
+      "package": "verifactu-keyflint-mcp",
+      "command": "verifactu-mcp",
+      "repo": "https://github.com/ArceeDev/verifactu-mcp",
+      "category": "Fiscal España",
+      "audience": "Asesorías, despachos contables, desarrolladores de software de facturación",
+      "status": "disponible",
+      "headline": "Audita cadenas VERI*FACTU y genera Facturae sin salir del chat",
+      "summary": "Comprueba la huella SHA-256 y el encadenamiento de los registros VERI*FACTU que exporta cualquier programa de facturación, valida el XML contra el XSD de la AEAT, genera el QR tributario con sus reglas de impresión y crea o valida facturas Facturae 3.2.2. No es un SIF: no emite registros ni los envía a la AEAT, solo audita y prepara.",
+      "keywords": [
+        "verifactu mcp",
+        "auditar huella verifactu",
+        "qr tributario aeat",
+        "facturae 3.2.2",
+        "validar facturae",
+        "factura electrónica ia"
+      ],
+      "env_prefix": "VERIFACTU",
+      "tools": [
+        [
+          "validate_invoice_chain",
+          "3",
+          "Audita una cadena de hasta 20.000 registros: huellas, enlaces, duplicados, anulaciones y formatos"
+        ],
+        [
+          "validate_verifactu_xml",
+          "3",
+          "La misma auditoría sobre el XML exportado, más validación contra el XSD de la AEAT"
+        ],
+        [
+          "verifactu_hash",
+          "1",
+          "Huella de un registro, con la cadena exacta que se firma"
+        ],
+        [
+          "generate_verifactu_qr",
+          "1",
+          "URL e imagen del QR tributario y reglas de impresión"
+        ],
+        [
+          "build_facturae",
+          "3",
+          "Factura Facturae 3.2.2 (sin firmar) a partir de datos sencillos, validada contra el XSD"
+        ],
+        [
+          "validate_facturae",
+          "2",
+          "XSD, cuadre de importes, NIF, DIR3 y firma de un fichero Facturae"
+        ],
+        [
+          "verifactu_calendar, check_qr_url, validate_nif, pricing, credits_balance",
+          "0",
+          "Plazos en vigor, QR, NIF, precios y saldo"
+        ]
+      ],
+      "faq": [
+        [
+          "¿Sustituye a mi programa de facturación?",
+          "No. No es un Sistema Informático de Facturación: no genera ni envía registros a la AEAT. Audita lo que exporta tu programa y te ayuda a preparar Facturae."
+        ],
+        [
+          "¿Cómo sé que la huella es correcta?",
+          "El cálculo está comprobado contra los ejemplos oficiales publicados por la AEAT."
+        ],
+        [
+          "¿Firma las Facturae?",
+          "Todavía no. Genera el XML 3.2.2 validado; la firma XAdES se hace con tu certificado en tu herramienta habitual."
+        ]
+      ],
+      "icon": "shield",
+      "prompts": [
+        "Audita esta exportación VERI*FACTU y dime si alguna huella o enlace está roto.",
+        "Genera el QR tributario de esta factura y dime dónde imprimirlo.",
+        "Crea una Facturae 3.2.2 para esta factura a la Administración con su código DIR3."
+      ],
+      "facts": [
+        [
+          "20.000",
+          "registros por auditoría"
+        ],
+        [
+          "0",
+          "envíos a la AEAT"
+        ],
+        [
+          "3.2.2",
+          "Facturae validada por XSD"
+        ]
+      ],
+      "pypi": true,
+      "mcpb": true
     }
   ]
 }
