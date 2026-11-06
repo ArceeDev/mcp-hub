@@ -81,3 +81,21 @@ npx wrangler dev --enable-containers=false --test-scheduled  # cron: /cdn-cgi/ha
 ## Pagos
 
 Los enlaces de Stripe llevan `metadata.tier` (`pro`, `indie`, `agency`) y `source=mcp-hub`. El webhook del gateway (`/api/v1/webhooks/stripe`) emite la licencia y la envía por correo. Tras pagar, Stripe redirige a `/gracias/`.
+
+## Prueba gratis y demos web
+
+- `/probar/`: el visitante pone su correo y recibe al momento una licencia Community (25 créditos), ya puesta en los
+  fragmentos de instalación. El Worker la emite con `POST /api/v1/licenses/issue` usando el secreto `KEYFLINT_ADMIN_KEY`.
+  Sin ese secreto, cae a `POST /api/v1/billing/trial` (KeyFlint la envía por correo).
+- Demos sin instalar en las fichas de Web Intel, Norma 43 y ContaBridge (`POST /api/demo/<slug>`): llaman al MCP real con
+  la licencia interna `HUB_DEMO_LICENSE`; el visitante no paga nada.
+- Límites en D1 (`hub_limits`, solo hashes): 1 licencia de prueba por correo para siempre, `TRIAL_PER_IP_DAY` (2) por IP y
+  día, `DEMO_PER_IP_DAY` (5) demos por IP y día y `DEMO_DAILY_CAP` (300) en total al día. Un fallo no gasta cupo.
+
+```sh
+npx wrangler d1 migrations apply mcp-usage --remote   # crea hub_limits
+npx wrangler secret put KEYFLINT_ADMIN_KEY             # clave X-Admin-Key del gateway
+npx wrangler secret put HUB_DEMO_LICENSE               # licencia LIC-… con créditos para las demos
+npx wrangler secret put LIMITS_SALT                    # cualquier texto aleatorio (sal de los hashes)
+npm test && npm run deploy
+```

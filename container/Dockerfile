@@ -6,7 +6,7 @@ RUN pip install --no-cache-dir "uvicorn>=0.30" \
     "web-intel-mcp @ git+https://github.com/ArceeDev/web-intel-mcp@${REF}" \
     "norma43-mcp @ git+https://github.com/ArceeDev/norma43-mcp@${REF}" \
     "contabridge-mcp @ git+https://github.com/ArceeDev/contabridge-mcp@${REF}" \
-    "verifactu-mcp @ git+https://github.com/ArceeDev/verifactu-mcp@${REF}" \
+    "verifactu-keyflint-mcp @ git+https://github.com/ArceeDev/verifactu-mcp@${REF}" \
     "dataclean-mcp @ git+https://github.com/ArceeDev/dataclean-mcp@${REF}"
 WORKDIR /srv
 COPY app.py .

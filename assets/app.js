@@ -212,4 +212,112 @@
         .then(function () { btn.disabled = false; });
     });
   }
+
+  /* licencia gratis de prueba (/probar/) */
+  var tf = document.querySelector("[data-trial-form]");
+  if (tf) {
+    var tmsg = tf.querySelector("[data-trial-msg]"), tout = document.querySelector("[data-trial-out]");
+    var say = function (cls, text, link) {
+      tmsg.className = "lic-help" + (cls ? " " + cls : ""); tmsg.textContent = text;
+      if (link) { var a = document.createElement("a"); a.href = link[0]; a.textContent = link[1]; tmsg.appendChild(document.createTextNode(" ")); tmsg.appendChild(a); }
+    };
+    tf.addEventListener("submit", function (ev) {
+      ev.preventDefault();
+      var btn = tf.querySelector("button"), email = tf.email.value.trim();
+      if (!tf.email.checkValidity() || !email) { say("warn", "Escribe un correo válido."); return; }
+      btn.disabled = true; btn.setAttribute("aria-busy", "true"); say("", "Creando tu licencia…");
+      fetch("/api/prueba", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ email: email }) })
+        .then(function (r) { return r.json(); })
+        .then(function (d) {
+          if (d.ok && d.license && SAFE.test(d.license)) {
+            document.getElementById("lic-trial").firstChild.textContent = d.license;
+            store(KEY, d.license); apply(d.license);
+            tout.hidden = false; tf.hidden = true;
+            setTimeout(function () { tout.scrollIntoView({ behavior: "smooth", block: "center" }); }, 50);
+          } else if (d.ok && d.emailed) { say("good", "Listo. Te llega por correo en unos minutos. Revisa spam."); }
+          else if (d.used) { say("warn", d.error, ["/gracias/", "Recuperarla"]); }
+          else { say("warn", d.error || "No se pudo crear la licencia."); }
+        })
+        .catch(function () { say("warn", "No se pudo conectar. Inténtalo en un minuto."); })
+        .then(function () { btn.disabled = false; btn.removeAttribute("aria-busy"); });
+    });
+  }
+
+  /* demos sin instalación en las fichas */
+  function el(tag, cls, text) { var x = document.createElement(tag); if (cls) x.className = cls; if (text != null) x.textContent = text; return x; }
+  function kv(box, pairs) {
+    var dl = el("dl", "demo-kv");
+    pairs.forEach(function (p) {
+      if (p[1] == null || p[1] === "") return;
+      var d = el("div"); d.appendChild(el("dt", "", p[0])); d.appendChild(el("dd", "tabnum", String(p[1]))); dl.appendChild(d);
+    });
+    box.appendChild(dl);
+  }
+  function issueList(box, list) {
+    if (!list || !list.length) return;
+    var ul = el("ul", "demo-issues");
+    list.forEach(function (i) { ul.appendChild(el("li", i.severity === "error" ? "err" : "", String(i.message || i.detail || JSON.stringify(i)).slice(0, 200))); });
+    box.appendChild(ul);
+  }
+  function codeOut(box, text, label) {
+    var wrap = el("div", "code"), head = el("div", "code-head");
+    head.appendChild(el("span", "code-label", label || "")); wrap.appendChild(head);
+    var p = el("pre"); p.tabIndex = 0; p.appendChild(el("code", "", text)); wrap.appendChild(p); box.appendChild(wrap);
+  }
+  var RENDER = {
+    "web-intel": function (box, r) {
+      kv(box, [["Título", r.title], ["Palabras", r.word_count], ["URL final", r.url]]);
+      codeOut(box, (r.markdown || "") + (r.truncated ? "\n\n[…recortado en la demo]" : ""), "Markdown");
+    },
+    norma43: function (box, r) {
+      var sm = r.summary || {};
+      box.appendChild(el("p", "status " + (r.valid ? "ok" : "warn"), r.valid ? "Fichero válido" : "Fichero con errores"));
+      kv(box, [["Cuentas", sm.accounts], ["Movimientos", sm.movements], ["Errores", sm.errors], ["Avisos", sm.warnings]]);
+      issueList(box, r.issues);
+      (r.accounts || []).forEach(function (a) {
+        kv(box, [["Cuenta", a.iban], ["Banco", a.bank], ["Titular", a.holder], ["Saldo inicial", a.opening_balance], ["Saldo final", a.closing_balance]]);
+        if (!a.movements || !a.movements.length) return;
+        var tw = el("div", "tw"), t = el("table", "uso-t"), th = el("thead"), tr = el("tr"), tb = el("tbody");
+        ["Fecha", "Concepto", "Importe"].forEach(function (h, i) { tr.appendChild(el("th", i === 2 ? "num" : "", h)); });
+        th.appendChild(tr); t.appendChild(th);
+        a.movements.forEach(function (m) {
+          var row = el("tr");
+          row.appendChild(el("td", "", m.date || ""));
+          row.appendChild(el("td", "", m.description || m.concept || ""));
+          row.appendChild(el("td", "num tabnum", (m.direction === "cargo" ? "−" : "+") + String(m.amount).replace(/^-/, "")));
+          tb.appendChild(row);
+        });
+        t.appendChild(tb); tw.appendChild(t); box.appendChild(tw);
+      });
+    },
+    contabridge: function (box, r) {
+      var sm = r.summary || {};
+      kv(box, [["Asientos", sm.entries], ["Líneas", sm.lines], ["Debe", sm.total_debit], ["Haber", sm.total_credit], ["Cuadra", sm.balanced ? "Sí" : "No"]]);
+      issueList(box, r.issues);
+      codeOut(box, r.content || "", r.filename);
+    },
+  };
+  $$("[data-demo]").forEach(function (f) {
+    var slug = f.getAttribute("data-demo"), msg = f.querySelector("[data-demo-msg]"), out = f.querySelector("[data-demo-out]");
+    f.addEventListener("submit", function (ev) {
+      ev.preventDefault();
+      var btn = f.querySelector("button[type=submit]"), body = {};
+      $$("input, textarea, select", f).forEach(function (x) { if (x.name) body[x.name] = x.value; });
+      btn.disabled = true; btn.setAttribute("aria-busy", "true");
+      msg.className = "lic-help"; msg.textContent = "Ejecutando el servidor…"; out.hidden = true;
+      fetch("/api/demo/" + slug, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) })
+        .then(function (r) { return r.json(); })
+        .then(function (d) {
+          if (!d.ok) {
+            msg.className = "lic-help warn"; msg.textContent = d.error || "No se pudo ejecutar la demo.";
+            if (d.limit) { var a = el("a", "", "Licencia gratis"); a.href = "/probar/"; msg.appendChild(document.createTextNode(" ")); msg.appendChild(a); }
+            return;
+          }
+          out.textContent = ""; RENDER[slug](out, d.result || {}); out.hidden = false;
+          msg.className = "lic-help good"; msg.textContent = "Hecho con " + d.tool + ": es lo mismo que recibe tu agente.";
+        })
+        .catch(function () { msg.className = "lic-help warn"; msg.textContent = "No se pudo conectar. Inténtalo en un minuto."; })
+        .then(function () { btn.disabled = false; btn.removeAttribute("aria-busy"); });
+    });
+  });
 })();

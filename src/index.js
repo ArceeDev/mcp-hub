@@ -17,6 +17,7 @@ import {
   OAuthResourceServer,
 } from "@cloudflare/workers-oauth-provider";
 import api from "./worker.js";
+import { demo } from "./demo.js";
 
 export const SLUGS = ["web-intel", "norma43", "contabridge", "verifactu", "dataclean"];
 const NAMES = { "web-intel": "Web Intel", norma43: "Norma 43", contabridge: "ContaBridge", verifactu: "VeriFactu",
@@ -101,6 +102,18 @@ async function upstreamFetch(env, url, upstream) {
   return container.fetch(upstream);
 }
 
+// Llamada directa de las demos web: JSON-RPC tools/call al contenedor con la licencia interna del hub.
+async function demoCall(env, url, slug, name, args, license) {
+  const target = new URL(`/${slug}/mcp`, url);
+  const upstream = new Request(`http://mcp/${slug}/mcp`, {
+    method: "POST",
+    headers: { "content-type": "application/json", accept: "application/json, text/event-stream", "x-license-key": license },
+    body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "tools/call", params: { name, arguments: args } }),
+  });
+  const res = await upstreamFetch(env, target, upstream);
+  return res.text();
+}
+
 function toolCall(body) {
   if (!body || body.length > 50_000_000) return null;
   try {
@@ -152,6 +165,9 @@ async function daily(env) {
   if (env.USAGE_DB) {
     const cutoff = Math.floor(Date.now() / 1000) - 180 * 86400;
     await env.USAGE_DB.prepare("DELETE FROM usage WHERE ts < ?1").bind(cutoff).run();
+    // Contadores diarios de prueba gratis y demos: basta con los de los 2 últimos días (day = 0 son permanentes).
+    await env.USAGE_DB.prepare("DELETE FROM hub_limits WHERE day > 0 AND day < ?1")
+      .bind(Math.floor(Date.now() / 86_400_000) - 2).run();
   }
   const res = await upstreamFetch(env, new URL("http://mcp/healthz"), new Request("http://mcp/healthz"));
   const data = await res.json().catch(() => ({}));
@@ -279,6 +295,8 @@ export default {
     const { as, resources } = servers(env);
     if (path === "/authorize") return authorize(request, env);
     if (path === "/api/uso" && request.method === "GET") return usage(request, env, url);
+    const dm = path.match(/^\/api\/demo\/([a-z0-9-]+)$/);
+    if (dm && request.method === "POST") return demo(request, env, url, dm[1], (slug, name, args, lic) => demoCall(env, url, slug, name, args, lic));
     const m = path.match(/^\/([a-z0-9-]+)\/mcp(\/.*)?$/) || path.match(/^\/\.well-known\/oauth-protected-resource\/([a-z0-9-]+)\/mcp$/);
     if (m && resources[m[1]]) return resources[m[1]].fetch(request, env, ctx);
     if (path.startsWith("/oauth/") || path.startsWith("/.well-known/oauth-")) return as.fetch(request, env, ctx);

@@ -6,7 +6,7 @@
     "build": "python3 build.py",
     "dev": "wrangler dev",
     "deploy": "python3 build.py && wrangler deploy",
-    "test": "node --test test/"
+    "test": "node --test --no-warnings test/*.test.js"
   },
   "dependencies": {
     "@cloudflare/containers": "0.3.7",
