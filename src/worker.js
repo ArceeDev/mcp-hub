@@ -2,6 +2,8 @@
 // Hace de puente con el gateway de KeyFlint para que el navegador no necesite CORS
 // y para devolver solo los campos imprescindibles (la licencia solo en /api/licencia, a quien trae el cs_ del pago).
 
+import { clientIp, giveBack, hash, num, take, today } from "./limits.js";
+
 const LICENSE_RE = /^[A-Za-z0-9._~+\/=-]{6,400}$/;
 const SESSION_RE = /^cs_[A-Za-z0-9_]{10,250}$/;
 const EMAIL_RE = /^[^\s@]{1,64}@[^\s@]{1,255}\.[^\s@]{2,}$/;
@@ -27,7 +29,7 @@ async function gateway(env, path, init) {
   const base = (env.GATEWAY_URL || "https://licenses.keyflint.dev").replace(/\/$/, "");
   const res = await fetch(base + path, {
     ...init,
-    headers: { accept: "application/json", "content-type": "application/json", "user-agent": "mcp-hub-worker" },
+    headers: { accept: "application/json", "content-type": "application/json", "user-agent": "mcp-hub-worker", ...(init.headers || {}) },
     signal: AbortSignal.timeout(10000),
   });
   let data = null;
@@ -89,26 +91,54 @@ async function recover(request, env, url) {
   return json({ ok: true });
 }
 
+// Prueba gratis: licencia Community (25 créditos) en pantalla. Una por correo (para siempre) y TRIAL_PER_IP_DAY por IP y día.
+// Con KEYFLINT_ADMIN_KEY la emite el Worker (POST /api/v1/licenses/issue) y la devuelve; sin ella, KeyFlint la envía por correo.
 async function trial(request, env, url) {
   if (!sameOrigin(request, url)) return json({ ok: false }, 403);
+  const ip = clientIp(request);
   if (env.TRIAL_LIMIT) {
-    const ip = request.headers.get("cf-connecting-ip") || "unknown";
     const { success } = await env.TRIAL_LIMIT.limit({ key: "trial:" + ip });
     if (!success) return json({ ok: false, error: "Demasiados intentos. Espera un minuto." }, 429);
   }
   let email = "";
   try { email = String((await request.json()).email || "").trim(); } catch (e) { /* cuerpo no válido */ }
-  if (!EMAIL_RE.test(email)) return json({ ok: false, error: "Escribe un correo válido." }, 400);
+  if (!EMAIL_RE.test(email) || email.length > 254) return json({ ok: false, error: "Escribe un correo válido." }, 400);
+  const db = env.USAGE_DB;
+  if (!db) return json({ ok: false, unavailable: true, error: "La prueba gratis no está activa ahora mismo." }, 503);
+
+  const salt = env.LIMITS_SALT || "kf-hub";
+  const day = today(), ipKey = await hash(ip, salt), mailKey = await hash(email, salt);
+  if (!(await take(db, "trial_ip", ipKey, day, num(env.TRIAL_PER_IP_DAY, 2))))
+    return json({ ok: false, error: "Ya se han pedido varias licencias de prueba desde tu conexión hoy. Vuelve mañana." }, 429);
+  if (!(await take(db, "trial_email", mailKey, 0, 1))) {
+    await giveBack(db, "trial_ip", ipKey, day);
+    return json({ ok: false, used: true, error: "Ese correo ya tiene su licencia de prueba. Si la perdiste, recupérala por correo." }, 409);
+  }
+  const undo = async () => { await giveBack(db, "trial_email", mailKey, 0); await giveBack(db, "trial_ip", ipKey, day); };
+
   try {
+    if (env.KEYFLINT_ADMIN_KEY) {
+      const r = await gateway(env, "/api/v1/licenses/issue", {
+        method: "POST",
+        headers: { "x-admin-key": env.KEYFLINT_ADMIN_KEY },
+        body: JSON.stringify({ customer_email: email, tier: "community", metadata: { trial: true, source: "mcp-hub" } }),
+      });
+      const d = r.data && r.data.data;
+      if (!r.ok || !d || !LICENSE_RE.test(String(d.license_key || ""))) {
+        await undo();
+        console.error("trial issue failed", r.status);
+        return json({ ok: false, error: "KeyFlint no responde ahora mismo. Inténtalo en un minuto." }, 502);
+      }
+      return json({ ok: true, license: String(d.license_key), tier: "community", credits: 25 });
+    }
     const r = await gateway(env, "/api/v1/billing/trial", { method: "POST", body: JSON.stringify({ email, source: "mcp-hub" }) });
-    if (r.status === 503) return json({ ok: false, unavailable: true, error: "La prueba gratis no está activa ahora mismo." }, 503);
-    if (r.status === 422) return json({ ok: false, error: "Escribe un correo válido." }, 400);
-    if (!r.ok) return json({ ok: false, error: "KeyFlint no responde ahora mismo. Inténtalo en un minuto." }, 502);
+    if (r.status === 503) { await undo(); return json({ ok: false, unavailable: true, error: "La prueba gratis no está activa ahora mismo." }, 503); }
+    if (!r.ok) { await undo(); return json({ ok: false, error: "KeyFlint no responde ahora mismo. Inténtalo en un minuto." }, 502); }
+    return json({ ok: true, emailed: true });
   } catch (e) {
+    await undo();
     return json({ ok: false, error: "KeyFlint no responde ahora mismo. Inténtalo en un minuto." }, 502);
   }
-  // Misma respuesta si ya tenía licencia: no revela quién es cliente. La licencia solo va al correo.
-  return json({ ok: true });
 }
 
 export default {

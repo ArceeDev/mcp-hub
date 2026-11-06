@@ -335,7 +335,7 @@ def page(path: str, title: str, desc: str, body: str, ld: list | None = None, no
 <header class="top"><div class="wrap top-in">
 <a class="brand" href="/" aria-label="KeyFlint MCP, inicio">{icon("logo", "logo")}<span>KeyFlint</span><span class="brand-tag">MCP</span></a>
 <nav class="nav" aria-label="Principal">{navh}</nav>
-<a class="btn btn-primary btn-sm top-cta" href="/precios/">Conseguir licencia</a>
+<a class="btn btn-primary btn-sm top-cta" href="/probar/">Probar gratis</a>
 </div></header>
 <main id="main">
 {body}
@@ -389,6 +389,87 @@ def hero_demo() -> str:
 </figure>"""
 
 
+def install_picker() -> tuple[str, str]:
+    """Selector de servidor + instalador de cada uno (inicio y /probar/)."""
+    opts = MCPS + [ALL]
+    picker = "".join(
+        f'<button type="button" class="pick" aria-pressed="{"true" if i == 0 else "false"}" data-pick="{m["slug"]}">'
+        f'{icon(m["icon"])}<span>{e(m["name"])}</span></button>' for i, m in enumerate(opts))
+    installers = "".join(f'<div class="pick-panel" data-pick-panel="{m["slug"]}"{"" if i == 0 else " data-hidden"}>'
+                         f'<h3 class="panel-title">{e(m["name"])}</h3>{installer(m)}</div>'
+                         for i, m in enumerate(opts))
+    return picker, installers
+
+
+DEMO_N43 = "112100041802000513322610012610312000000001500009783ACME SOLUCIONES SL           \n22    0418261003261003020002000000001250000000000000000000000000                \n2301CLIENTE DEMO SL                                                             \n2303        FACTURA 2026-104                                                    \n22    0418261015261015030001000000000042350000012345000000000000                \n3321000418020005133200001000000000042350000100000000125000200000000270765978    \n88999999999999999999000006                                                      \n"
+DEMO_CSV = ("Asiento;Fecha;Cuenta;Concepto;Debe;Haber\n"
+            "1;02/11/2026;4300001;Factura 104 Cliente Demo;1.210,00;\n1;02/11/2026;7000001;Factura 104 Cliente Demo;;1.000,00\n"
+            "1;02/11/2026;4770001;IVA 21% factura 104;;210,00\n"
+            "2;05/11/2026;5720001;Cobro factura 104;1.210,00;\n2;05/11/2026;4300001;Cobro factura 104;;1.210,00\n")
+
+
+def demo_block(m: dict) -> str:
+    """Prueba sin instalar en la ficha (usa créditos del hub, no del visitante). Solo para los servidores con demo."""
+    s = m["slug"]
+    if s == "web-intel":
+        field = ('<label class="demo-field"><span>URL</span><input type="url" name="url" inputmode="url" '
+                 'placeholder="https://tu-web.com" value="https://keyflint.dev" required></label>')
+        btn, tool = "Ver Markdown limpio", "read_url"
+    elif s == "norma43":
+        field = (f'<label class="demo-field"><span>Extracto Norma 43 (ejemplo)</span><textarea name="content" rows="7" '
+                 f'spellcheck="false" required>{e(DEMO_N43)}</textarea></label>')
+        btn, tool = "Validar y leer", "parse_norma43"
+    elif s == "contabridge":
+        opts = "".join(f'<option value="{v}">{t}</option>' for v, t in
+                       [("a3", "A3 (SUENLACE.DAT)"), ("contaplus_csv", "ContaPlus / Sage 50"), ("xero_csv", "Xero"), ("quickbooks_csv", "QuickBooks Online")])
+        field = (f'<label class="demo-field"><span>Dos asientos de ejemplo (CSV)</span><textarea name="content" rows="6" '
+                 f'spellcheck="false" required>{e(DEMO_CSV)}</textarea></label>'
+                 f'<label class="demo-field demo-inline"><span>Convertir a</span><select name="target">{opts}</select></label>')
+        btn, tool = "Convertir", "convert_journal"
+    else:
+        return ""
+    return f"""<div class="block demo-try" id="probar-aqui"><h2>Pruébalo aquí, sin instalar</h2>
+<p class="muted">Es el servidor real (<code>{tool}</code>). La demo corre de nuestra cuenta: no gastas créditos ni necesitas licencia.</p>
+<form class="glass demo-form" data-demo="{s}" novalidate>{field}
+<div class="demo-actions"><button class="btn btn-primary" type="submit">{icon("arrow-right")}{btn}</button>
+<span class="muted small">5 pruebas al día. Para tus propios ficheros, <a href="/probar/">licencia gratis</a>.</span></div>
+<p class="lic-help" data-demo-msg aria-live="polite"></p>
+<div class="demo-out" data-demo-out hidden></div>
+</form></div>
+"""
+
+
+def trial_page() -> str:
+    picker, installers = install_picker()
+    body = f"""
+<section class="hero hero-sm"><div class="glow" aria-hidden="true"></div><div class="wrap narrow">
+<nav class="crumbs" aria-label="Ruta"><a href="/">Inicio</a>{icon("chevron-right")}<span aria-current="page">Probar gratis</span></nav>
+<h1>{SITE['free_credits']} créditos gratis, sin tarjeta</h1>
+<p class="lead">Escribe tu correo y te damos una licencia al momento. Sirve para todos los servidores; si luego compras un plan con el mismo correo, se amplía la misma.</p>
+</div></section>
+<section class="section tight"><div class="wrap narrow">
+<form class="recover glass" data-trial-form novalidate>
+<div><h2 class="h3">Tu licencia de prueba</h2>
+<p class="muted small">Una por correo. No te suscribimos a nada.</p></div>
+<div class="recover-row"><input type="email" name="email" autocomplete="email" placeholder="tu@correo.com" required aria-label="Correo electrónico">
+<button class="btn btn-primary" type="submit">{icon("key")}Darme la licencia</button></div>
+<p class="lic-help" data-trial-msg aria-live="polite"></p>
+</form>
+<div class="reveal glass" data-trial-out hidden>
+<div class="reveal-head"><span class="tile tile-sm">{icon("check")}</span><div><h2 class="h3">Lista: {SITE['free_credits']} créditos</h2>
+<p class="muted small">Guardada en este navegador: los fragmentos de abajo ya la llevan puesta.</p></div></div>
+{code_block("lic-trial", "LIC-…", "KEYFLINT_LICENSE")}
+</div>
+</div></section>
+<section class="section" id="instalar"><div class="wrap install-grid">
+<div class="section-head left"><p class="eyebrow">Siguiente paso</p><h2>Instálalo en tu cliente</h2>
+<p class="lead-sm">Claude Desktop (extensión .mcpb), Claude Code, Cursor, VS Code y más. Elige servidor y copia.</p></div>
+<div class="install-card glass"><div class="picker" role="group" aria-label="Elige servidor">{picker}</div>{installers}</div>
+</div></section>"""
+    return page("/probar/", f"Prueba gratis los servidores MCP: {SITE['free_credits']} créditos · KeyFlint MCP",
+                f"Licencia gratis al momento con {SITE['free_credits']} créditos para todos los servidores MCP de KeyFlint. Sin tarjeta.", body)
+
+
 def home() -> str:
     cards = "\n".join(mcp_card(m) for m in MCPS)
     clients = "".join(f'<li>{brand(ic)}<span>{e(n)}</span></li>' for _, n, ic in CLIENTS) + \
@@ -411,13 +492,7 @@ def home() -> str:
     steps_html = "".join(f'<li class="step"><span class="tile tile-sm">{icon(i)}</span>'
                          f'<div><h3><span class="step-n">{n}</span>{t}</h3><p>{d}</p></div></li>'
                          for n, (i, t, d) in enumerate(steps, 1))
-    opts = MCPS + [ALL]
-    picker = "".join(
-        f'<button type="button" class="pick" aria-pressed="{"true" if i == 0 else "false"}" data-pick="{m["slug"]}">'
-        f'{icon(m["icon"])}<span>{e(m["name"])}</span></button>' for i, m in enumerate(opts))
-    installers = "".join(f'<div class="pick-panel" data-pick-panel="{m["slug"]}"{"" if i == 0 else " data-hidden"}>'
-                         f'<h3 class="panel-title">{e(m["name"])}</h3>{installer(m)}</div>'
-                         for i, m in enumerate(opts))
+    picker, installers = install_picker()
     faq = [
         ("¿Qué es un servidor MCP?", "MCP (Model Context Protocol) es el estándar abierto con el que agentes de IA como Claude o Cursor usan herramientas externas. Un servidor MCP le da a tu agente capacidades nuevas: leer extractos bancarios, convertir ficheros contables o auditar webs."),
         ("¿Necesito saber programar?", "No. Pulsas un botón en Claude Desktop, Cursor o VS Code, o copias un bloque en Codex, Antigravity o Windsurf. Solo hay que instalar uv una vez, con un comando que te damos."),
@@ -513,7 +588,7 @@ def mcp_page(m: dict) -> str:
 
 <section class="section"><div class="wrap detail-grid">
 <div class="detail-main">
-<div class="block"><h2>Pídeselo así a tu agente</h2>
+{demo_block(m)}<div class="block"><h2>Pídeselo así a tu agente</h2>
 <p class="muted">Copia un ejemplo y pégalo en el chat de tu cliente.</p>
 <ul class="prompts">{prompts}</ul></div>
 
@@ -526,7 +601,7 @@ def mcp_page(m: dict) -> str:
 </div>
 <aside class="detail-side" id="instalar" aria-label="Instalar {e(m['name'])}">
 <div class="install-card glass sticky"><h2 class="h3">Instalar {e(m['name'])}</h2>{installer(m)}
-<p class="muted small side-foot">¿Sin licencia? <a href="/empezar/#licencia">{SITE['free_credits']} créditos gratis</a> o <a href="/precios/">elige un plan</a>.</p></div>
+<p class="muted small side-foot">¿Sin licencia? <a href="/probar/">{SITE['free_credits']} créditos gratis</a> o <a href="/precios/">elige un plan</a>.</p></div>
 </aside>
 </div></section>
 
@@ -553,7 +628,7 @@ def pricing() -> str:
     cards = [f"""<div class="plan">
 <div class="plan-head"><h2 class="h3">Gratis</h2><p class="muted small">Para probar sin compromiso</p></div>
 <p class="price">0 $</p><p class="credits">{SITE['free_credits']} créditos</p>
-<a class="btn btn-ghost btn-block" href="/empezar/#licencia">Pedir licencia gratis</a>
+<a class="btn btn-ghost btn-block" href="/probar/">Pedir licencia gratis</a>
 <ul class="checks"><li>{icon("check")}1 equipo</li><li>{icon("check")}Todos los servidores</li><li>{icon("check")}Sin tarjeta</li></ul></div>"""]
     for p in SITE["packs"]:
         per100 = money(round(p["price"] / p["credits"] * 100, 2))
@@ -624,14 +699,8 @@ def start() -> str:
 <li class="g-step" id="licencia"><span class="g-n">1</span><div class="g-body">
 <h2>Consigue tu licencia</h2>
 <p>Tu licencia tiene la forma <code>LIC-…</code>, llega por correo y sirve para todos los servidores.</p>
-<form class="recover glass" data-trial-form data-fallback="{e(mail)}" novalidate>
-<div><h3 class="h3">Gratis · {SITE['free_credits']} créditos</h3>
-<p class="muted small">Sin tarjeta. Una licencia por correo; si luego compras, se amplía la misma.</p></div>
-<div class="recover-row"><input type="email" name="email" autocomplete="email" placeholder="tu@correo.com" required aria-label="Correo electrónico">
-<button class="btn btn-primary" type="submit">{icon("mail")}Enviarme la licencia</button></div>
-<p class="lic-help" data-trial-msg aria-live="polite"></p>
-</form>
 <div class="choice">
+<a class="choice-card" href="/probar/"><span class="tile tile-sm">{icon("key")}</span><span class="cc-text"><b>Gratis · {SITE['free_credits']} créditos</b><span class="muted small">Al momento, sin tarjeta.</span></span>{icon("arrow-right")}</a>
 <a class="choice-card" href="/precios/"><span class="tile tile-sm">{icon("card")}</span><span class="cc-text"><b>Plan de pago</b><span class="muted small">Licencia inmediata tras el pago.</span></span>{icon("arrow-right")}</a>
 </div></div></li>
 <li class="g-step" id="uv"><span class="g-n">2</span><div class="g-body">
@@ -667,6 +736,11 @@ def start() -> str:
 
 
 def balance_page() -> str:
+    recharge = "".join(
+        f'<a class="btn {"btn-primary" if p.get("featured") else "btn-ghost"}" href="{e(p["checkout"])}" rel="noopener" data-checkout>'
+        f'<b>{e(p["name"])}</b><span class="tabnum">{p["credits"]:,} cr · {money(p["price"])} ${e(p.get("period", ""))}</span></a>'
+        .replace(f'{p["credits"]:,} cr', f'{p["credits"]:,}'.replace(",", ".") + " cr")
+        for p in SITE["packs"])
     body = f"""
 <section class="hero hero-sm"><div class="glow" aria-hidden="true"></div><div class="wrap narrow">
 <nav class="crumbs" aria-label="Ruta"><a href="/">Inicio</a>{icon("chevron-right")}<span aria-current="page">Mi saldo</span></nav>
@@ -686,7 +760,10 @@ def balance_page() -> str:
 <p class="saldo-num"><b class="tabnum" data-f="balance"></b><span class="muted"> créditos disponibles</span></p>
 <div class="meter" role="meter" aria-valuemin="0" data-meter><span></span></div>
 <dl class="saldo-dl"><div><dt>Usados</dt><dd class="tabnum" data-f="consumed"></dd></div><div><dt>Total del plan</dt><dd class="tabnum" data-f="allowance"></dd></div></dl>
-<div class="cta-row"><a class="btn btn-primary" href="/precios/">{icon("card")}Comprar más créditos</a><a class="btn btn-ghost" href="/#instalar">Instalar servidores</a></div>
+<div class="recharge"><h3 class="h4">{icon("card")}Recargar créditos</h3>
+<div class="recharge-row">{recharge}</div>
+<p class="muted small" data-recharge-note>Pago seguro con Stripe. Si tienes la licencia gratis y pagas con el mismo correo, se amplía la misma clave. Con un plan de pago recibes una licencia nueva con su saldo.</p></div>
+<div class="cta-row"><a class="btn btn-ghost" href="/precios/">Comparar planes</a><a class="btn btn-quiet" href="/#instalar">Instalar servidores</a></div>
 </div>
 <div class="saldo-card uso" data-usage hidden><h3>Uso en los últimos 30 días</h3>
 <div class="tw"><table class="uso-t"><thead><tr><th>Servidor</th><th>Herramienta</th><th class="num">Llamadas</th><th class="num">Créditos</th><th class="num">Errores</th></tr></thead><tbody data-usage-tools></tbody></table></div>
@@ -762,10 +839,11 @@ def main() -> None:
     write("empezar/index.html", start())
     write("gracias/index.html", thanks())
     write("saldo/index.html", balance_page())
+    write("probar/index.html", trial_page())
     write("404.html", not_found())
     for m in MCPS:
         write(f"{m['slug']}/index.html", mcp_page(m))
-    paths = ["/", "/empezar/", "/precios/"] + [f"/{m['slug']}/" for m in MCPS]
+    paths = ["/", "/probar/", "/empezar/", "/precios/"] + [f"/{m['slug']}/" for m in MCPS]
     write("sitemap.xml", '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
           + "".join(f"<url><loc>{SITE['url']}{p}</loc><lastmod>{TODAY}</lastmod></url>\n" for p in paths) + "</urlset>\n")
     write("robots.txt", f"User-agent: *\nAllow: /\nDisallow: /gracias/\nDisallow: /saldo/\nDisallow: /api/\n\nSitemap: {SITE['url']}/sitemap.xml\n")
