@@ -134,7 +134,7 @@
           "IA intermedia"
         ]
       ],
-      "pypi": false,
+      "pypi": true,
       "mcpb": false
     },
     {
@@ -217,7 +217,7 @@
           "datos guardados"
         ]
       ],
-      "pypi": false,
+      "pypi": true,
       "mcpb": false
     },
     {
@@ -309,7 +309,7 @@
           "cobro si A3 lo rechazaría"
         ]
       ],
-      "pypi": false,
+      "pypi": true,
       "mcpb": false
     },
     {
