@@ -229,7 +229,7 @@ ${details.redirectIsLoopback ? '<p class="warn">Esto envía el acceso a una apli
 <label for="lic"><b>Tu licencia</b></label>
 <input id="lic" name="license" autocomplete="off" spellcheck="false" placeholder="LIC-…" required>
 ${error ? `<p class="err">${esc(error)}</p>` : ""}
-<p class="muted">¿No tienes? <a href="/precios/" target="_blank" rel="noopener">Consigue una</a> (incluye créditos gratis) o <a href="/recuperar/" target="_blank" rel="noopener">recupérala por correo</a>.</p>
+<p class="muted">¿No tienes? <a href="/probar/" target="_blank" rel="noopener">Consigue una gratis</a> (25 créditos al instante) o <a href="/saldo/#recuperar" target="_blank" rel="noopener">recupérala por correo</a>.</p>
 <div class="row"><button class="btn" name="decision" value="deny" formnovalidate>Cancelar</button>
 <button class="btn btn-primary" name="decision" value="approve">Conectar</button></div>
 </form>`;

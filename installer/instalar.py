@@ -1,4 +1,4 @@
-"""Flint: instala los servidores MCP de KeyFlint en Claude Desktop, Cursor, VS Code, Windsurf y Claude Code.
+"""Flint: instala los servidores MCP de KeyFlint en Claude Desktop, Cursor, VS Code, Antigravity, Windsurf y Claude Code.
 
 Uso (lo lanzan instalar.sh / instalar.ps1 con uv):
     uv run --no-project instalar.py [LIC-...] [--solo norma43,contabridge] [--sin-claude-code] [--prueba]
@@ -27,20 +27,27 @@ def config_dirs() -> dict[str, Path]:
     system = platform.system()
     if system == "Darwin":
         app = HOME / "Library" / "Application Support"
+        claude_dir = app / "Claude"
     elif system == "Windows":
         app = Path(os.environ.get("APPDATA") or HOME / "AppData" / "Roaming")
+        local = Path(os.environ.get("LOCALAPPDATA") or HOME / "AppData" / "Local")
+        msix = sorted((local / "Packages").glob("Claude_*/LocalCache/Roaming/Claude")) if (local / "Packages").exists() else []
+        claude_dir = msix[0] if msix and not (app / "Claude").exists() else (app / "Claude")
     else:
         app = Path(os.environ.get("XDG_CONFIG_HOME") or HOME / ".config")
+        claude_dir = app / "Claude"
     return {
-        "Claude Desktop": app / "Claude",
+        "Claude Desktop": claude_dir,
         "Cursor": HOME / ".cursor",
         "VS Code": app / "Code" / "User",
+        "Antigravity": HOME / ".gemini" / "antigravity",
         "Windsurf": HOME / ".codeium" / "windsurf",
     }
 
 
 FILES = {"Claude Desktop": ("claude_desktop_config.json", "mcpServers"), "Cursor": ("mcp.json", "mcpServers"),
-         "VS Code": ("mcp.json", "servers"), "Windsurf": ("mcp_config.json", "mcpServers")}
+         "VS Code": ("mcp.json", "servers"), "Antigravity": ("mcp_config.json", "mcpServers"),
+         "Windsurf": ("mcp_config.json", "mcpServers")}
 
 
 def ask_license(argv: list[str]) -> str:
@@ -54,6 +61,12 @@ def ask_license(argv: list[str]) -> str:
             lic = input("Pega tu licencia de Flint (o pídela gratis en https://mcp.keyflint.dev/probar/): ").strip().strip("\"'")
         except EOFError:
             sys.exit("Sin licencia. Vuelve a lanzarlo con: ... instalar.sh | sh -s -- LIC-tu-licencia")
+    try:
+        lic_file = HOME / ".keyflint" / "license"
+        lic_file.parent.mkdir(parents=True, exist_ok=True)
+        lic_file.write_text(lic + "\n", encoding="utf-8")
+    except OSError:
+        pass
     return lic
 
 
@@ -130,7 +143,7 @@ def main(argv: list[str]) -> int:
     if "--sin-claude-code" not in argv:
         done += claude_code(server_entries(lic, only, uvx, vscode=False), dry)
     if not done:
-        print("No he encontrado Claude Desktop, Cursor, VS Code, Windsurf ni Claude Code en este equipo.")
+        print("No he encontrado Claude Desktop, Cursor, VS Code, Antigravity, Windsurf ni Claude Code en este equipo.")
         print("Instala uno y vuelve a lanzar el comando, o sigue la guía: https://mcp.keyflint.dev/empezar/")
         return 1
     print("\n".join("  · " + x for x in done))

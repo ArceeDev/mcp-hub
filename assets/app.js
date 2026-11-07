@@ -140,6 +140,9 @@
       setTimeout(function () { bf.dispatchEvent(new Event("submit")); }, 50);
     } else if (!bf.license.value) {
       bf.license.value = cleanLicense(store(KEY) || "");
+      if (bf.license.value && (location.hash === "#recargar" || HASH.get("importe"))) {
+        setTimeout(function () { bf.dispatchEvent(new Event("submit")); }, 50);
+      }
     }
 
     bf.addEventListener("submit", function (ev) {
@@ -148,7 +151,7 @@
       bf.license.value = lic;
       out.hidden = true; err.hidden = true;
       if (!lic) {
-        err.querySelector("span").textContent = "Introduce o pega tu clave de licencia (empieza por LIC-).";
+        err.querySelector("span").textContent = T("Introduce o pega tu clave de licencia (empieza por LIC-).", "Enter or paste your license key (starts with LIC-).");
         err.hidden = false;
         return;
       }
@@ -161,7 +164,7 @@
       fetch("/api/saldo?license=" + encodeURIComponent(lic), { headers: { accept: "application/json" } })
         .then(function (r) { return r.json(); })
         .then(function (d) {
-          if (!d.ok) throw new Error(d.error || T("No se pudo consultar el saldo.", "Could not check the balance."));
+          if (!d.ok) throw new Error((EN ? "License not found or unavailable. Check that you pasted the full key." : d.error) || T("No se pudo consultar el saldo.", "Could not check the balance."));
           f("tier", T("Plan ", "") + (TIERS[d.tier] || d.tier) + T("", " plan")); f("status", STATUS[d.status] || d.status);
           out.querySelector('[data-f="status"]').className = "status" + (d.status === "active" ? " ok" : " warn");
           f("balance", nf.format(d.balance)); f("consumed", nf.format(d.consumed)); f("allowance", nf.format(d.allowance));
@@ -172,7 +175,7 @@
           out.hidden = false;
           store(KEY, lic);
           topupLicense = d.status === "active" || d.status === "grace_period" ? lic : "";
-          syncTopup();
+          syncTopup(); if (location.hash === "#recargar" || HASH.get("importe")) { var rEl = document.getElementById("recargar"); if (rEl) setTimeout(function () { rEl.scrollIntoView({ behavior: "smooth", block: "start" }); }, 60); }
           loadUsage(lic);
         })
         .catch(function (e) { err.querySelector("span").textContent = e.message || T("No se pudo consultar el saldo.", "Could not check the balance."); err.hidden = false; })
@@ -319,15 +322,15 @@
     rf.addEventListener("submit", function (ev) {
       ev.preventDefault();
       var btn = rf.querySelector("button"), email = rf.email.value.trim();
-      if (!rf.email.checkValidity() || !email) { msg.className = "lic-help warn"; msg.textContent = "Escribe un correo válido."; return; }
+      if (!rf.email.checkValidity() || !email) { msg.className = "lic-help warn"; msg.textContent = T("Escribe un correo válido.", "Enter a valid email."); return; }
       btn.disabled = true;
       fetch("/api/recuperar", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ email: email }) })
         .then(function (r) { return r.json(); })
         .then(function (d) {
           msg.className = "lic-help" + (d.ok ? " good" : " warn");
-          msg.textContent = d.ok ? "Si ese correo tiene licencias, te llegará un enlace en unos minutos. Revisa spam." : (d.error || "No se pudo enviar.");
+          msg.textContent = d.ok ? T("Si ese correo tiene licencias, te llegará un enlace en unos minutos. Revisa spam.", "If that email has licenses, a one-time link will arrive in a few minutes. Check spam.") : ((EN ? "" : d.error) || T("No se pudo enviar.", "Could not send the link."));
         })
-        .catch(function () { msg.className = "lic-help warn"; msg.textContent = "No se pudo enviar. Inténtalo en un minuto."; })
+        .catch(function () { msg.className = "lic-help warn"; msg.textContent = T("No se pudo enviar. Inténtalo en un minuto.", "Could not send. Try again in a minute."); })
         .then(function () { btn.disabled = false; });
     });
   }
@@ -375,7 +378,7 @@
             tout.hidden = false; tf.hidden = true;
             setTimeout(function () { tout.scrollIntoView({ behavior: "smooth", block: "center" }); }, 50);
           } else if (d.ok && d.emailed) { say("good", M.mailed); }
-          else if (d.used) { say("warn", M.used || d.error, ["/gracias/", M.rec]); }
+          else if (d.used) { say("warn", M.used || d.error, [T("/saldo/#recuperar", "/en/balance/#recuperar"), M.rec]); }
           else if (d.unavailable && M.off) { say("warn", M.off); }
           else { say("warn", (EN ? "" : d.error) || M.fail); }
         })

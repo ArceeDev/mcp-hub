@@ -311,7 +311,7 @@ def remote_panels(m: dict, local_desktop: str, cards: str) -> dict[str, str]:
 {oauth}{cards}<details class="manual"><summary><span>{L("Instalación local (.mcpb o configuración)", "Local install (.mcpb or config)")}</span>{icon("chevron")}</summary>{local_desktop}</details>""",
         "chatgpt": f"""<ol class="mini-steps"><li>{L("ChatGPT › <b>Ajustes</b> › <b>Apps y conectores</b> › <b>Avanzado</b>: activa el <b>modo desarrollador</b>.", "ChatGPT › <b>Settings</b> › <b>Apps &amp; Connectors</b> › <b>Advanced</b>: turn on <b>developer mode</b>.")}</li>
 <li>{L(f"<b>Crear</b> conector: pega la URL{pl}, autenticación <b>OAuth</b>.", f"<b>Create</b> a connector: paste the URL{pl}, authentication <b>OAuth</b>.")}</li><li>{L("Conecta e inicia sesión con tu licencia.", "Connect and sign in with your license.")}</li></ol>
-{url_block}{oauth}""",
+{code_block(f"sn-{s}-gpt-url", sn["url"], "URL" + ("s" if multi else ""))}{oauth}""",
         "code": f"""<ol class="mini-steps"><li>{L(f'Ejecuta {"los comandos" if multi else "el comando"} en tu terminal.', "Run it in your terminal.")}</li>
 <li>{L("Abre Claude Code, escribe <code>/mcp</code> y elige <b>Authenticate</b> para pegar tu licencia.", "Open Claude Code, type <code>/mcp</code> and choose <b>Authenticate</b> to paste your license.")}</li></ol>
 {code_block(f"sn-{s}-code", sn["code"], "Terminal")}{oauth}""",
@@ -963,7 +963,7 @@ def start() -> str:
 <div class="faq">{faq_html([
         ("No aparecen las herramientas", "Reinicia el cliente por completo (en Windows, ciérralo también desde la bandeja del sistema). Comprueba que uvx --version funciona en una terminal nueva."),
         ("Dice que la licencia no es válida", f"Revisa que copiaste la licencia completa, sin espacios, en KEYFLINT_LICENSE. Si sigue fallando, escríbenos a {CONTACT}."),
-        ("Me he quedado sin créditos", "La herramienta te devuelve el enlace de compra. Al comprar recibes una licencia nueva: sustitúyela en la configuración."),
+        ("Me he quedado sin créditos", "La herramienta te devuelve un enlace de recarga. Los créditos se suman a tu misma licencia, así que no tienes que cambiar nada en la configuración."),
     ])}</div>
 </div></li>
 </ol>
@@ -995,7 +995,7 @@ def balance_page() -> str:
 <form class="saldo-form glass" data-balance-form novalidate>
 <label class="lic"><span class="lic-label">{icon("key")}{L("Tu licencia", "Your license")}</span>
 <span class="lic-field"><input type="text" name="license" autocomplete="off" spellcheck="false" placeholder="LIC-…" required aria-describedby="saldo-help"></span>
-<span id="saldo-help" class="lic-help">{L("Se consulta a KeyFlint en el momento. Solo se recuerda en este navegador.", "Checked live with KeyFlint. Only remembered in this browser.")}</span></label>
+<span id="saldo-help" class="lic-help">{L('Se consulta a KeyFlint en el momento. ¿Aún sin licencia? <a href="/probar/">Pide 25 créditos gratis</a>.', 'Checked live with KeyFlint. No license yet? <a href="/en/try/">Get 25 free credits</a>.')}</span></label>
 <button class="btn btn-primary btn-lg" type="submit">{icon("gauge")}{L("Consultar saldo", "Check balance")}</button>
 </form>
 <div class="note ok-note" data-topup-done aria-live="polite" hidden>{icon("check")}<span></span></div>
@@ -1028,9 +1028,16 @@ def balance_page() -> str:
 <p class="muted small">{L("Se registra servidor, herramienta, resultado y créditos de cada llamada por URL. Nunca el contenido. Se borra a los 180 días.", "We log server, tool, result and credits for each remote call. Never the content. Deleted after 180 days.")}</p>
 </div></div>
 <p class="saldo-err note" data-balance-err hidden>{icon("info")}<span></span></p>
+<form class="recover glass" id="recuperar" data-recover-form novalidate style="margin-top:28px">
+<div><h2 class="h3">{L("¿Perdiste tu licencia?", "Lost your license?")}</h2>
+<p class="muted small">{L("Escribe tu correo y te enviaremos un enlace de acceso de un solo uso con tus licencias activas.", "Enter your email and we will send you a one-time access link with your active licenses.")}</p></div>
+<div class="recover-row"><input type="email" name="email" autocomplete="email" placeholder="{L("tu@correo.com", "you@company.com")}" required aria-label="{L("Correo electrónico", "Email address")}">
+<button class="btn btn-ghost" type="submit">{L("Enviar enlace", "Send link")}</button></div>
+<p class="lic-help" data-recover-msg aria-live="polite"></p>
+</form>
 <div class="faq saldo-faq">{faq_html(L([
         ("¿Perdiste tu licencia?", "Escribe tu correo en la página de confirmación del pago o en el portal de KeyFlint y te enviamos un enlace de acceso de un solo uso."),
-        ("¿Por qué no veo el detalle por servidor?", "KeyFlint registra el saldo de la licencia, no el uso por herramienta. Cada servidor te dice lo que cuesta antes de usarlo."),
+        ("¿Por qué no veo el detalle por servidor?", "Las llamadas remotas por URL aparecen arriba en la tabla de uso. En instalación local tus ficheros no pasan por nuestros servidores, así que solo registramos el saldo."),
         ("¿Cómo añado créditos?", "Consulta tu saldo, elige el importe en Recargar créditos y paga con Stripe. En unos segundos se suman a la misma licencia, sin cambiar nada en tu configuración."),
         ("¿Hay descuento por volumen?", "Sí: desde 20 € recibes un 10 % más de créditos, desde 50 € un 25 % y desde 100 € un 40 %."),
         ("¿Y si me arrepiento?", "Si no has usado los créditos de una recarga, escríbenos en los 14 días siguientes y te devolvemos el importe. Al devolverla se retiran esos créditos."),

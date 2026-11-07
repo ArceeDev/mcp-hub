@@ -1,7 +1,10 @@
-/assets/instalar.*
+/instalar.*
   Content-Type: text/plain; charset=utf-8
   Cache-Control: public, max-age=300
-/*
+/lote.*
+  Content-Type: text/plain; charset=utf-8
+  Cache-Control: public, max-age=300
+/assets/*
   Cache-Control: public, max-age=31536000, immutable
 /favicon.*
   Cache-Control: public, max-age=86400, must-revalidate
@@ -10,6 +13,7 @@
 /icon-*.png
   Cache-Control: public, max-age=86400, must-revalidate
 /*
+  Cache-Control: public, max-age=0, must-revalidate
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
   X-Frame-Options: DENY
