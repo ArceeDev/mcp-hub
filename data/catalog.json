@@ -9,9 +9,9 @@
     "public_keys": "<issuer-public-hex>",
     "contact": "mailto:support@keyflint.dev",
     "legal": {
-      "holder": "",
-      "nif": "",
-      "address": "",
+      "holder": "José Antonio Arce Prieto",
+      "nif": "10189591Q",
+      "address": "Avenida de Abrantes, 28025, Madrid, España",
       "email": "legal@keyflint.dev",
       "updated": "2026-11-07"
     },
@@ -36,7 +36,28 @@
       "slider_max": 200,
       "default": 20,
       "rate": 20,
-      "tiers": [[5, 0, "Starter"], [20, 10, "Plus"], [50, 25, "Business"], [100, 40, "Enterprise"]]
+      "tiers": [
+        [
+          5,
+          0,
+          "Starter"
+        ],
+        [
+          20,
+          10,
+          "Plus"
+        ],
+        [
+          50,
+          25,
+          "Business"
+        ],
+        [
+          100,
+          40,
+          "Enterprise"
+        ]
+      ]
     },
     "currency_symbol": "$",
     "remote": true
