@@ -31,7 +31,7 @@ Pasada de estrés: slowloris, DNS rebinding, ReDoS, OOM en conciliación, charse
 ## 6. Hub `mcp.keyflint.dev`
 - Generador estático (`data/catalog.json` → `build.py` → `public/`) en Cloudflare Workers (Vercel Hobby no permite uso comercial).
 - Pestañas de instalación: Claude, ChatGPT, Cursor, VS Code, Codex, Antigravity.
-- Stripe Payment Links (Pro 29 $/mes, Indie 149 $, Agency 349 $) → `/gracias/` muestra la licencia (requiere keyflint #50 desplegado).
+- Stripe: Pro 29 $/mes por Payment Link y recarga libre (5-500 €) por Checkout dinámico del gateway; `/gracias/` muestra la licencia y `/saldo/?recarga=` el saldo nuevo. (Los packs Indie 149 $ y Agency 349 $ se retiraron el 2026-11-07.)
 - `/api/saldo`, `/api/recuperar`, `/api/licencia`, `/api/uso` en el Worker.
 
 ## 7. Modo remoto (en producción desde 2026-11-05)

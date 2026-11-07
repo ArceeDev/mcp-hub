@@ -1,81 +1,104 @@
 # MCP + KeyFlint: proceso, comparación y estimaciones a 12 meses
 
-2026-11-05. Cifras orientativas en USD. Los ingresos son supuestos, no datos reales: aún no hay ventas medidas. Los precios de terceros (Cloudflare, Stripe, Fly) hay que verificarlos.
+Actualizado el 2026-11-07 con la recarga libre y los precios nuevos (antes: 2026-11-05). Cifras orientativas en USD; las recargas se cobran en euros y se pasan a dólares a 1 € ≈ 1,1 $. Los ingresos son supuestos, no datos reales: aún no hay ventas medidas. Los precios de terceros (Cloudflare, Stripe, Fly) hay que verificarlos.
 
 ## 1. Resumen
 
-- **Hoy** hay 5 MCP de pago (web-intel, norma43, contabridge, dataclean y verifactu), un hub en mcp.keyflint.dev con modo remoto OAuth, y KeyFlint como gateway de licencias y créditos (self-hosted, BSL).
-- **La versión Ultra** es un único hub remoto con prueba gratis, créditos universales, alcance global y KeyFlint Cloud: una plataforma donde cualquier dev publica su MCP y cobra.
-- **A 12 meses, escenario base:** la versión actual suma ~18.000 $ acumulados y la Ultra ~66.000 $. La Ultra pide ~150 h de trabajo extra.
+- **Hoy** hay 5 MCP de pago (web-intel, norma43, contabridge, dataclean y verifactu), un hub en mcp.keyflint.dev con modo remoto OAuth y prueba gratis de 25 créditos, y KeyFlint como gateway de licencias y créditos (self-hosted, BSL).
+- **Cambio del 2026-11-07:** los créditos de los MCP ya no se venden en packs cerrados de pago único. Se compran con **recarga libre desde 5 €** sobre la misma licencia, o con **Pro a 29 $/mes con 1.000 créditos**. Las licencias Lifetime quedan solo para el Gateway self-hosted: **Indie 249 $, Agency 499 $ y Founder 299 $ (50 unidades)**.
+- **A 12 meses, escenario base:** la versión actual sube de ~18.000 $ a ~33.000 $ acumulados. El salto viene de cobrar a usuarios ocasionales que antes no compraban (recargas) y de no regalar créditos a 0,007-0,015 $.
+- **La versión Ultra** (un hub remoto, créditos universales, KeyFlint Cloud) sigue en ~66.000 $ en el escenario base, y ya tiene hecha una de sus piezas: las recargas.
 
 ## 2. Proceso seguido
 
 1. **Base:** KeyFlint emite licencias Ed25519 y descuenta créditos por llamada (`keyflint-verify`). Cada MCP va en su propio repo.
-2. **Nichos:** se descartaron los saturados (BORME, sanciones, TARIC, Verifactu, e-factura, SEPA/camt). El elegido son herramientas **deterministas y sin estado** (coste por llamada ~0) para gestorías multi-cliente y, en global, para datos sucios.
+2. **Nichos:** herramientas **deterministas y sin estado** (coste por llamada ~0) para gestorías multi-cliente y, en global, para datos sucios.
 3. **5 MCP en Python**, con tests que usan un gateway falso y licencias firmadas en local.
 4. **Estrés:** se corrigieron slowloris, DNS rebinding, ReDoS, OOM y charset. El cobro sale exacto con 100 llamadas concurrentes.
-5. **Distribución:** PyPI con Trusted Publishing, bundles `.mcpb` y tarjetas en el chat (MCP Apps).
-6. **Hub:** Cloudflare Workers, Stripe Payment Links (Pro 29 $/mes, Indie 149 $, Agency 349 $), `/gracias/`, `/saldo/`.
-7. **Remoto (en vivo desde 2026-11-05):** OAuth 2.1, Containers, KV, D1 de uso, límite de 120 llamadas/min y cron diario.
-8. **Pendiente (Arcee):** PRs #1/#2 de 3 MCP, publishers en PyPI, contabridge #3, keyflint #50 + deploy en Fly, una compra real de prueba y arreglar Workers Builds en Cloudflare.
+5. **Distribución:** PyPI con Trusted Publishing, bundles `.mcpb`, MCP Registry, Smithery y Awesome MCP Servers.
+6. **Hub:** Cloudflare Workers, `/probar/` (25 créditos gratis), `/saldo/` con **recarga libre**, Pro por Payment Link, `/gracias/`.
+7. **Remoto:** OAuth 2.1, Containers, KV, D1 de uso, límite de 120 llamadas/min y cron diario.
+8. **Recarga libre (2026-11-07, keyflint #52 y mcp-hub #9):** sesión dinámica de Stripe Checkout creada por el gateway, créditos calculados en el servidor y sumados a la misma clave; reembolsos y disputas solo tocan esa recarga.
 
-## 3. Comparación: versión actual vs Ultra
+## 3. Modelo de precios nuevo
 
-| Dimensión | Actual | Ultra (simplificada, global, innovada) |
+### 3.1 MCP (mcp.keyflint.dev): solo por uso
+
+| Producto | Precio | Créditos | Precio por crédito |
+|---|---|---|---|
+| Prueba | 0 € | 25 (una vez) | — |
+| Recarga Starter | 5-19 € | 20 por € | 0,050 € |
+| Recarga Plus | 20-49 € | 22 por € (+10 %) | 0,045 € |
+| Recarga Business | 50-99 € | 25 por € (+25 %) | 0,040 € |
+| Recarga Enterprise | 100-500 € | 28 por € (+40 %) | 0,036 € |
+| Pro | 29 $/mes | 1.000 al mes | 0,029 $ |
+
+- Las recargas llevan IVA incluido y no caducan. Pro es lo más barato por crédito porque exige recurrencia y los créditos del mes no se acumulan. Si sobran créditos de recarga, se conservan al renovar Pro.
+- **Ya no se vende** ningún pack a 0,007-0,015 $ por crédito (antiguos Indie 149 $ / Agency 349 $ del hub).
+
+**Margen de una recarga** (comisión Stripe con Managed Payments estimada en 1,5 % + 0,25 € + 3,5 %, tarjeta EEE):
+
+| Pagas | Créditos | Comisión | % | Neto sin IVA por crédito |
+|---|---|---|---|---|
+| 5 € | 100 | 0,50 € | 10 % | 0,036 € |
+| 19 € | 380 | 1,20 € | 6,3 % | 0,038 € |
+| 37 € | 814 | 2,10 € | 5,7 % | 0,035 € |
+| 50 € | 1.250 | 2,75 € | 5,5 % | 0,031 € |
+| 100 € | 2.800 | 5,25 € | 5,2 % | 0,028 € |
+
+El coste marginal por llamada es ~0, así que el margen bruto supera el 85 % incluso a 5 €.
+
+### 3.2 KeyFlint Gateway (keyflint.dev): software self-hosted
+
+| Licencia | Antes | Ahora | Qué incluye |
+|---|---|---|---|
+| Indie | 149 $ | **249 $** | Perpetua, 3 nodos, 10.000 créditos iniciales, actualizaciones v1.x |
+| Agency | 349 $ | **499 $** | Perpetua, 25 nodos, 50.000 créditos iniciales, v1.x, soporte ≤ 1 día |
+| Founder | 199 $ (100 uds.) | **299 $ (50 uds.)** | Indie + todas las actualizaciones v1.x y v2.x |
+| Pro | 29 $/mes, 500 cr | 29 $/mes, **1.000 cr** | Uso comercial y actualizaciones mientras esté suscrito |
+
+Founder cuesta 50 $ más que Indie porque incluye la v2; el límite de 50 lo aplica Stripe (Payment Link con tope).
+
+## 4. Comparación: versión actual vs Ultra
+
+| Dimensión | Actual (2026-11-07) | Ultra |
 |---|---|---|
-| Entrada | Una URL por MCP, licencia `LIC-` | **Una sola URL** (`mcp.keyflint.dev/mcp`) con todas las herramientas; login con Google o GitHub |
-| Prueba | No hay licencia gratis autoservicio | **100 créditos/mes gratis** sin tarjeta |
-| Precios | 3 packs fijos en USD, sin recargas | **Gratis / Pro 19 $/mes / Team 99 $/mes + recargas de 10 $** y auto-recarga; precio local con Adaptive Pricing |
-| Créditos | Por licencia, sin top-ups | Universales entre MCP, con alertas al 80 % |
-| Idioma y mercado | ES (+ EN en dataclean) | ES, EN, FR, DE, PT; **packs por país**: ES (N43, 19/34, 347, A3/ContaPlus), FR (FEC), PT/PL (SAF-T), DE (DATEV), global (DataClean, WebIntel, WebWatch) |
-| Instalación | Pestañas por cliente, `.mcpb`, PyPI | 1 clic desde el directorio de conectores de Claude, apps de ChatGPT y enlace profundo de Cursor/VS Code |
-| Descubrimiento | Solo el hub | Registro oficial MCP, Smithery, Glama, mcp.so, PulseMCP y landings SEO por caso de uso |
-| Web | HTML estático | Igual de simple, más un playground para probar herramientas en el navegador sin instalar nada |
-| Web Intel | HTML estático | + `render_url`, `screenshot` y `pdf` con Browser Rendering |
-| Pago | Payment Links + email | Lo mismo, más **pagos agénticos** (el agente compra créditos con aprobación del usuario) como experimento |
-| Fiabilidad | Tests con datos sintéticos | Ficheros reales de 5 bancos, página de estado y SLA en Team |
-| Uso | D1 por herramienta en `/saldo/` | Panel con gráficos, exportación CSV y facturas descargables |
-
-## 4. KeyFlint como plataforma
-
-| | Actual | Ultra: **KeyFlint Cloud** |
-|---|---|---|
-| Qué es | Gateway self-hosted (Docker) de licencias y créditos para MCP, CLI y apps | SaaS gestionado: **sube tu MCP (Python o TS) y cobra en 5 minutos** |
-| Quién paga | Devs que se lo instalan: Indie 149 $, Agency 349 $, Founder 199 $, Pro 29 $/mes | Devs que publican: gratis hasta 1.000 $/mes facturados, luego **5 % de comisión** o planes de 29 o 99 $/mes |
-| Qué incluye | Firma Ed25519, créditos, webhooks de Stripe y Lemon Squeezy | Hosting en Containers, OAuth remoto, licencias, créditos, Stripe Connect, panel de uso y listado en el marketplace |
-| Distribución | GitHub, keyflint.dev | El hub pasa a ser **marketplace** de MCP de terceros; tus 5 MCP son el escaparate |
-| Fricción | Desplegar, configurar claves, integrar el SDK | `keyflint deploy` o conectar el repo; cero servidores |
-| Foso | Licencias offline verificables | Red de MCP más pagos más datos de uso; los devs se quedan por la base de compradores |
+| Entrada | Una URL por MCP, licencia `LIC-` | **Una sola URL** (`mcp.keyflint.dev/mcp`) con login Google o GitHub |
+| Prueba | 25 créditos gratis en pantalla (`/probar/`) | 100 créditos/mes gratis |
+| Precios | **Recarga libre desde 5 € con bonus + Pro 29 $/mes** | + Team 99 $/mes, auto-recarga y precio local |
+| Créditos | Universales entre los 5 MCP, sobre la misma clave, sin caducidad | + alertas al 80 % y auto-recarga |
+| Idioma y mercado | ES (+ EN en dataclean) | ES, EN, FR, DE, PT con packs por país |
+| Instalación | Pestañas por cliente, `.mcpb`, PyPI | 1 clic desde directorios de conectores |
+| Descubrimiento | Hub, MCP Registry, Smithery, Awesome MCP Servers | + landings SEO por caso de uso |
+| Pago | Checkout dinámico (recargas) + Payment Link (Pro) | + pagos agénticos (experimento) |
+| Uso | D1 por herramienta en `/saldo/` | Panel con gráficos, CSV y facturas |
 
 ## 5. Estimaciones a 12 meses
 
 Supuestos:
-- **Actual:** crecimiento lineal desde 0. El acumulado es ~6,5 veces el mes 12.
-- **Ultra:** 2-3 meses de construcción y luego rampa. El acumulado es ~5,5 veces el mes 12.
-- **Conversión Ultra:** entre el 3 % y el 4 % de los usuarios gratis pasan a pago, con un ARPU de ~25 $.
-- **Ojo:** Indie y Agency son pagos únicos, así que no son MRR.
+- **Actual:** crecimiento lineal desde 0; el acumulado es ~6,5 veces el mes 12. Founder se suma aparte porque se agota (10, 30 o 50 unidades según el escenario).
+- **Recargas:** ticket medio de 15, 18 o 20 € y ingreso neto de IVA (÷ 1,21). Sustituyen a las ventas de Indie/Agency del hub y captan a quien antes no compraba nada por 149 $.
+- **Gateway:** con la subida se asume un 25-40 % menos de unidades que en la versión del 2026-11-05, compensado por el precio.
 
 ### 5.1 Ingreso del mes 12
 
-| Escenario | Actual: MCP | Actual: KeyFlint | **Actual total** | Ultra: MCP | Ultra: KeyFlint Cloud | **Ultra total** |
+| Escenario | MCP: Pro | MCP: recargas | KeyFlint | **Actual total** | Antes (2026-11-05) | Ultra total |
 |---|---|---|---|---|---|---|
-| Conservador | 381 $ (8 Pro + 1 Indie) | 200 $ | **581 $** | 1.200 $ (1.500 gratis → 45 de pago) | 800 $ (20 devs) | **2.000 $** |
-| Base | 1.819 $ (25 Pro + 5 Indie + 1 Agency) | 941 $ | **2.760 $** | 6.000 $ (6.000 gratis → 240 de pago) | 6.000 $ (100 devs + 5 % de 40.000 $) | **12.000 $** |
-| Optimista | 6.300 $ (80 Pro + 15 Indie + 5 Agency) | 3.117 $ | **9.417 $** | 20.000 $ (20.000 gratis → 800 de pago) | 23.500 $ (300 devs + 5 % de 200.000 $) | **43.500 $** |
+| Conservador | 232 $ (8) | 341 $ (25 × 15 €) | 249 $ (1 Indie) | **822 $** | 581 $ | 2.000 $ |
+| Base | 725 $ (25) | 1.964 $ (120 × 18 €) | 1.055 $ (2 Indie + 1 Agency + 2 Pro) | **3.744 $** | 2.760 $ | 12.000 $ |
+| Optimista | 2.320 $ (80) | 7.273 $ (400 × 20 €) | 3.281 $ (6 Indie + 3 Agency + 10 Pro) | **12.874 $** | 9.417 $ | 43.500 $ |
 
 ### 5.2 Acumulado de 12 meses
 
-| Escenario | Actual: ingreso | Actual: costes | **Actual neto** | Ultra: ingreso | Ultra: costes | **Ultra neto** |
-|---|---|---|---|---|---|---|
-| Conservador | 3.777 $ | ~500 $ | **~3.270 $** | 11.000 $ | ~1.370 $ | **~9.630 $** |
-| Base | 17.924 $ | ~1.500 $ | **~16.430 $** | 66.000 $ | ~8.220 $ | **~57.780 $** |
-| Optimista | 61.250 $ | ~4.900 $ | **~56.360 $** | 239.250 $ | ~34.750 $ | **~204.500 $** |
+| Escenario | Ingreso (incl. Founder) | Costes | **Neto** | Antes: neto | Ultra: neto |
+|---|---|---|---|---|---|
+| Conservador | ~8.330 $ | ~820 $ | **~7.500 $** | ~3.270 $ | ~9.630 $ |
+| Base | ~33.300 $ | ~2.570 $ | **~30.700 $** | ~16.430 $ | ~57.780 $ |
+| Optimista | ~98.600 $ | ~7.500 $ | **~91.100 $** | ~56.360 $ | ~204.500 $ |
 
-Costes = infraestructura más ~7 % de Stripe (Managed Payments incluido).
-- **Infraestructura Actual:** ~20 $/mes (50 $ en el escenario optimista).
-- **Infraestructura Ultra:** 50, 300 o 1.500 $/mes según el escenario (Containers, Browser Rendering, Fly escalado y email).
+Costes = ~7 % de Stripe con Managed Payments (más en recargas pequeñas) más infraestructura (~20 $/mes; 50 $ en el optimista). El IVA ya está descontado de las recargas y no cuenta como coste.
 
-### 5.3 Costes fijos mensuales (Actual)
+### 5.3 Costes fijos mensuales
 
 | Concepto | $/mes |
 |---|---|
@@ -85,36 +108,38 @@ Costes = infraestructura más ~7 % de Stripe (Managed Payments incluido).
 | Dominio (prorrateado) | ~1 |
 | **Total** | **~10-25** |
 
-Con 1 Pro se cubren. El margen bruto supera el 90 % porque las herramientas son deterministas.
+Con 1 Pro o 3 recargas de 20 € se cubren.
 
 ## 6. Esfuerzo para llegar a Ultra
 
 | Bloque | Claude | Arcee |
 |---|---|---|
-| Pendientes actuales | 0 | 1-2 h |
-| Licencia gratis + login Google/GitHub | 5-8 h | 0,5 h |
-| Créditos universales, recargas y auto-recarga (gateway) | 10-15 h | 1 h (Stripe) |
-| Planes nuevos + precio local | 2 h | 0,5 h |
+| Licencia gratis autoservicio | Hecho | — |
+| **Recargas sobre la misma licencia + reembolsos** | **Hecho (2026-11-07)** | 0,5 h (secret de Stripe, eventos del webhook, deploy) |
+| Login Google/GitHub | 4-6 h | 0,5 h |
+| Auto-recarga y alertas al 80 % | 5-8 h | 0,5 h |
+| Team 99 $/mes + precio local | 2 h | 0,5 h |
 | Hub remoto de una sola URL | 6-10 h | 0,5 h |
-| Directorios + landings SEO + i18n (5 idiomas) | 10-15 h | 1-2 h (cuentas) |
+| Landings SEO + i18n (5 idiomas) | 10-15 h | 1-2 h |
 | Browser Rendering en web-intel | 4-6 h | 0,5 h |
 | 4 MCP de país (19/34, 347, FEC/SAF-T, DATEV) | 30-40 h | 2 h |
 | WebWatch | 10-15 h | 1 h |
-| **KeyFlint Cloud** (multi-tenant, Connect, deploy de terceros, marketplace) | 60-80 h | 5-10 h (legal, Connect, soporte) |
-| **Total** | **~140-190 h** | **~15-20 h** |
+| **KeyFlint Cloud** | 60-80 h | 5-10 h |
+| **Total pendiente** | **~130-180 h** | **~12-18 h** |
 
 ## 7. Orden recomendado
 
-1. Cerrar los pendientes. Sin eso no hay compra real verificada.
-2. Licencia gratis y directorios. Es lo que más mueve el escenario.
-3. Créditos universales, recargas y planes nuevos.
-4. Hub de una sola URL y Browser Rendering.
-5. MCP de país (primero Norma 19/34, que es el mismo cliente que norma43).
-6. KeyFlint Cloud, cuando haya ≥ 50 clientes de pago propios que demuestren el modelo.
+1. Desplegar keyflint #52 y mcp-hub #9 y hacer una recarga real de 5 €: es la prueba de que el cobro funciona de punta a punta.
+2. Venta en España (lun 2026-11-09) con recargas en euros; Día D global (jue 2026-11-12).
+3. Medir con D1 y Stripe: ticket medio, % que repite recarga y % que pasa a Pro. Revisar estas cifras al mes 3.
+4. Auto-recarga y alertas, luego hub de una sola URL.
+5. MCP de país (primero Norma 19/34).
+6. KeyFlint Cloud cuando haya ≥ 50 clientes de pago propios.
 
 ## 8. Riesgos
 
-- **Estimaciones sin datos:** hay que revisarlas al mes 3 con ventas reales del D1 y de Stripe.
-- **Marketplace (KeyFlint Cloud):** exige soporte, revisión de MCP de terceros y responsabilidad por su código.
-- **Competencia:** la de Smithery, Apify y otros hosts de MCP con cobro. El foso son los nichos regulados por país y las licencias offline.
-- **Legal:** VeriFactu y AEAT cambian de plazos, así que las herramientas quedan como de auditoría o generación de ficheros, nunca como SIF.
+- **Estimaciones sin datos:** revisarlas al mes 3 con ventas reales.
+- **Recargas pequeñas:** a 5 € la comisión es ~10 %. Si la mayoría compra 5 €, subir el mínimo a 10 €.
+- **Fraude con tarjetas robadas:** mitigado con 500 € máximos por pago, 3 recargas por licencia y día, 10 intentos por IP y día y suspensión si se devuelve una recarga ya gastada.
+- **Subida de Lifetime:** puede bajar las unidades vendidas; Founder a 299 $ hace de ancla durante el lanzamiento.
+- **Legal:** casilla de renuncia al desistimiento en cada recarga; VeriFactu solo como herramienta de auditoría, nunca como SIF.
