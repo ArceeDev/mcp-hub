@@ -116,13 +116,38 @@
     var nf = new Intl.NumberFormat("es-ES");
     var TIERS = { community: "Gratis", pro: "Pro", indie: "Indie", agency: "Agency", studio: "Studio", lifetime: "Founder" };
     var STATUS = { active: "Activa", grace_period: "En periodo de gracia", expired: "Caducada", suspended: "Suspendida", revoked: "Revocada" };
-    if (!bf.license.value) bf.license.value = store(KEY) || "";
+    function cleanLicense(raw) {
+      if (!raw) return "";
+      var str = String(raw).trim();
+      var m = str.match(/LIC-[A-Za-z0-9._~+\/=-]{10,}/);
+      if (m) return m[0];
+      return str.replace(/[\s"'`]/g, "");
+    }
     function f(name, v) { var el = out.querySelector('[data-f="' + name + '"]'); if (el) el.textContent = v; }
+
+    var qLic = new URLSearchParams(window.location.search).get("licencia") || new URLSearchParams(window.location.search).get("license");
+    if (qLic) {
+      bf.license.value = cleanLicense(qLic);
+      setTimeout(function () { bf.dispatchEvent(new Event("submit")); }, 50);
+    } else if (!bf.license.value) {
+      bf.license.value = cleanLicense(store(KEY) || "");
+    }
+
     bf.addEventListener("submit", function (ev) {
       ev.preventDefault();
-      var lic = bf.license.value.trim(), btn = bf.querySelector("button");
+      var lic = cleanLicense(bf.license.value), btn = bf.querySelector("button");
+      bf.license.value = lic;
       out.hidden = true; err.hidden = true;
-      if (!SAFE.test(lic)) { err.querySelector("span").textContent = "Pega la licencia completa, tal como aparece en el correo."; err.hidden = false; return; }
+      if (!lic) {
+        err.querySelector("span").textContent = "Introduce o pega tu clave de licencia (empieza por LIC-).";
+        err.hidden = false;
+        return;
+      }
+      if (!SAFE.test(lic)) {
+        err.querySelector("span").textContent = "Pega la licencia completa, tal como aparece en el correo.";
+        err.hidden = false;
+        return;
+      }
       btn.disabled = true; btn.setAttribute("aria-busy", "true");
       fetch("/api/saldo?license=" + encodeURIComponent(lic), { headers: { accept: "application/json" } })
         .then(function (r) { return r.json(); })
@@ -162,13 +187,18 @@
       var eur = Number(amt.value), ok = valid(eur), b = bonusOf(eur), c = creditsOf(eur);
       tb.querySelector("[data-topup-credits]").textContent = ok ? nfT.format(c) : "—";
       var bonus = tb.querySelector("[data-topup-bonus]"); bonus.hidden = !ok || !b; bonus.textContent = "+" + b + " %";
-      tb.querySelector("[data-topup-eq]").textContent = ok ? "≈ " + nfT.format(Math.floor(c / 4)) + " extractos Norma 43 leídos y conciliados" : "Entre " + cfg.min + " € y " + cfg.max + " €, sin decimales";
+      var eqMsg = tb.querySelector("[data-topup-eq]"); eqMsg.hidden = ok; eqMsg.textContent = "Entre " + cfg.min + " € y " + cfg.max + " €, sin decimales";
+      tb.querySelector("[data-topup-eqs]").hidden = !ok;
+      tb.querySelectorAll("[data-eq]").forEach(function (el) { el.textContent = "≈ " + nfT.format(Math.floor(c / Number(el.getAttribute("data-eq")))); });
+      if (bonus.getAttribute("data-b") !== String(b)) { bonus.setAttribute("data-b", b); bonus.classList.remove("pop"); void bonus.offsetWidth; bonus.classList.add("pop"); }
+      rng.style.setProperty("--p", Math.max(0, Math.min(100, (Number(rng.value) - Number(rng.min)) / (Number(rng.max) - Number(rng.min)) * 100)) + "%");
       var next = cfg.tiers.filter(function (t) { return t[0] > eur; })[0];
       tb.querySelector("[data-topup-next]").textContent = ok && next
         ? "Con " + next[0] + " € (" + (next[0] - eur) + " € más) recibes " + nfT.format(creditsOf(next[0])) + " créditos: +" + next[1] + " %." : "";
       tb.querySelectorAll("[data-tier-min]").forEach(function (li) {
         var m = Number(li.getAttribute("data-tier-min")), nx = cfg.tiers.filter(function (t) { return t[0] > m; })[0];
         li.classList.toggle("on", ok && eur >= m && (!nx || eur < nx[0]));
+        li.setAttribute("aria-pressed", String(ok && eur === m));
       });
       tb.querySelector("[data-topup-label]").textContent = ok ? "Recargar " + eur + " €" : "Recargar";
       go.disabled = !(ok && waiver.checked && topupLicense);
@@ -176,6 +206,9 @@
     rng.addEventListener("input", function () { amt.value = rng.value; syncTopup(); });
     amt.addEventListener("input", function () { var v = Number(amt.value); if (v >= cfg.min && v <= Number(rng.max)) rng.value = v; syncTopup(); });
     waiver.addEventListener("change", syncTopup);
+    tb.querySelectorAll("[data-preset]").forEach(function (btn) {
+      btn.addEventListener("click", function () { var v = btn.getAttribute("data-preset"); amt.value = v; rng.value = v; syncTopup(); });
+    });
     go.addEventListener("click", function () {
       var eur = Number(amt.value);
       if (!valid(eur) || !waiver.checked || !topupLicense) return;
