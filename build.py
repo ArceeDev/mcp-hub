@@ -920,7 +920,7 @@ def en_tool_card(t) -> str:
 def en_plans() -> str:
     free = f"""<div class="plan">
 <div class="plan-head"><h3 class="h3">Free</h3><p class="muted small">Try it on your own files</p></div>
-<p class="price">$0</p><p class="credits">{SITE['free_credits']} credits</p>
+<p class="price">€0</p><p class="credits">{SITE['free_credits']} credits</p>
 <a class="btn btn-ghost btn-block" href="/en/try/">Get a free license</a>
 <ul class="checks"><li>{icon("check")}All 5 tools</li><li>{icon("check")}No card</li><li>{icon("check")}1 device</li></ul></div>"""
     tp = SITE["topup"]
