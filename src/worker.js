@@ -170,7 +170,7 @@ async function topup(request, env, url) {
     if (!(await take(db, "topup_ip", ipKey, day, num(env.TOPUP_PER_IP_DAY, 10))))
       return json({ ok: false, error: "Demasiados intentos de pago desde tu conexión. Inténtalo mañana." }, 429);
   }
-  const back = (env.PUBLIC_URL || "https://mcp.keyflint.dev").replace(/\/$/, "") + "/saldo/";
+  const back = (env.PUBLIC_URL || "https://mcp.keyflint.dev").replace(/\/$/, "") + (body.lang === "en" ? "/en/balance/" : "/saldo/");
   try {
     const r = await gateway(env, "/api/v1/billing/topup", {
       method: "POST",

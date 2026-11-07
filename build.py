@@ -32,6 +32,26 @@ VERSION = dt.datetime.now(dt.timezone.utc).strftime("%Y%m%d%H%M")
 KEY_RE = r"[0-9a-f]{64}(,[0-9a-f]{64})*|[\w.-]+=[0-9a-f]{64}(,[\w.-]+=[0-9a-f]{64})*"
 e = html.escape
 
+# Idioma de render: las secciones compartidas (instalador, demos, sello, calculadora, saldo) salen en ES o EN
+# según el contexto activo. L(es, en) elige el texto; U(clave) la ruta equivalente.
+_LANG = ["es"]
+
+
+def L(es: str, en: str) -> str:
+    return en if _LANG[-1] == "en" else es
+
+
+def U(key: str) -> str:
+    return {"try": ("/probar/", "/en/try/"), "balance": ("/saldo/", "/en/balance/"), "start": ("/empezar/", "/en/start/"),
+            "pricing": ("/precios/", "/en/#pricing"), "home": ("/", "/en/"), "install": ("/#instalar", "/en/#install"),
+            "catalog": ("/#catalogo", "/en/#tools")}[key][_LANG[-1] == "en"]
+
+
+class lang_ctx:
+    def __init__(self, lang: str): self.lang = lang
+    def __enter__(self): _LANG.append(self.lang)
+    def __exit__(self, *a): _LANG.pop()
+
 
 def _gateway_keyring() -> str:
     """Lee la clave pública actual del gateway (sigue las rotaciones de clave en cada build)."""
@@ -88,7 +108,7 @@ def jsonld(obj) -> str:
 def code_block(id_: str, text: str, label: str = "") -> str:
     head = f'<span class="code-label">{e(label)}</span>' if label else "<span></span>"
     return (f'<div class="code"><div class="code-head">{head}'
-            f'<button type="button" class="copy" data-copy="{id_}">{icon("copy")}<span>Copiar</span></button></div>'
+            f'<button type="button" class="copy" data-copy="{id_}">{icon("copy")}<span>{L("Copiar", "Copy")}</span></button></div>'
             f'<pre id="{id_}" tabindex="0"><code>{e(text)}</code></pre></div>')
 
 
@@ -201,50 +221,52 @@ def installer(m: dict) -> str:
         f'{brand(ic)}<span>{e(name)}</span></button>'
         for i, (cid, name, ic) in enumerate(CLIENTS))
     multi = bool(m.get("all"))
-    key_line = ("Si ya tienes servidores, copia solo los bloques de dentro de <code>mcpServers</code>." if multi
-                else f'Si ya tienes servidores, añade solo <code>"{s}"</code> dentro de <code>mcpServers</code>.')
-    uv_note = (f'<p class="note">{icon("info")}<span>Necesita <a href="/empezar/#uv">uv</a> instalado: '
-               'un comando, una sola vez.</span></p>')
-    cards = (f'<p class="note">{icon("card")}<span>Los resultados se ven como <b>tarjetas visuales</b> en el chat: '
-             'saldo de créditos, cifras clave e incidencias.</span></p>')
+    key_line = (L("Si ya tienes servidores, copia solo los bloques de dentro de <code>mcpServers</code>.",
+                  "Already have servers? Copy only the blocks inside <code>mcpServers</code>.") if multi
+                else L(f'Si ya tienes servidores, añade solo <code>"{s}"</code> dentro de <code>mcpServers</code>.',
+                       f'Already have servers? Add only <code>"{s}"</code> inside <code>mcpServers</code>.'))
+    uv_note = (f'<p class="note">{icon("info")}<span>' + L(f'Necesita <a href="{U("start")}#uv">uv</a> instalado: un comando, una sola vez.',
+                                                           f'Needs <a href="{U("start")}#uv">uv</a> installed: one command, once.') + '</span></p>')
+    cards = (f'<p class="note">{icon("card")}<span>' + L('Los resultados se ven como <b>tarjetas visuales</b> en el chat: saldo de créditos, cifras clave e incidencias.',
+                                                         'Results show up as <b>visual cards</b> in the chat: credit balance, key figures and issues.') + '</span></p>')
     panels = {
-        "desktop": (f"""<a class="btn btn-primary btn-block" href="{m['repo']}/releases/latest" rel="noopener">{brand("claude")}Descargar extensión para Claude Desktop</a>
-<p class="muted small center gap">Abre el archivo <code>.mcpb</code> descargado, pulsa <b>Instalar</b> y pega tu licencia. Sin terminal.</p>
-<details class="manual"><summary><span>Instalación manual</span>{icon("chevron")}</summary>""" if m.get("mcpb") else "") + f"""<ol class="mini-steps">
-<li>Abre Claude Desktop › <b>Ajustes</b> › <b>Desarrollador</b> › <b>Editar configuración</b>.</li>
-<li>Pega el bloque en <code>claude_desktop_config.json</code>. {key_line}</li>
-<li>Guarda y reinicia Claude Desktop por completo.</li></ol>
+        "desktop": (f"""<a class="btn btn-primary btn-block" href="{m['repo']}/releases/latest" rel="noopener">{brand("claude")}{L("Descargar extensión para Claude Desktop", "Download the Claude Desktop extension")}</a>
+<p class="muted small center gap">{L("Abre el archivo <code>.mcpb</code> descargado, pulsa <b>Instalar</b> y pega tu licencia. Sin terminal.", "Open the downloaded <code>.mcpb</code> file, click <b>Install</b> and paste your license. No terminal.")}</p>
+<details class="manual"><summary><span>{L("Instalación manual", "Manual install")}</span>{icon("chevron")}</summary>""" if m.get("mcpb") else "") + f"""<ol class="mini-steps">
+<li>{L("Abre Claude Desktop › <b>Ajustes</b> › <b>Desarrollador</b> › <b>Editar configuración</b>.", "Open Claude Desktop › <b>Settings</b> › <b>Developer</b> › <b>Edit Config</b>.")}</li>
+<li>{L("Pega el bloque en", "Paste the block into")} <code>claude_desktop_config.json</code>. {key_line}</li>
+<li>{L("Guarda y reinicia Claude Desktop por completo.", "Save and fully restart Claude Desktop.")}</li></ol>
 {code_block(f"sn-{s}-desktop", sn["desktop"], "claude_desktop_config.json")}
 <p class="path">macOS <code>~/Library/Application Support/Claude/</code><br>Windows <code>%APPDATA%\\Claude\\</code></p>""" + ("</details>" if m.get("mcpb") else "") + cards + uv_note,
-        "code": f"""<ol class="mini-steps"><li>Ejecuta {"los comandos" if multi else "el comando"} en tu terminal. Queda{"n" if multi else ""} disponible{"s" if multi else ""} en todos tus proyectos.</li>
-<li>Compruébalo con <code>claude mcp list</code>.</li></ol>
+        "code": f"""<ol class="mini-steps"><li>{L(f'Ejecuta {"los comandos" if multi else "el comando"} en tu terminal. Queda{"n" if multi else ""} disponible{"s" if multi else ""} en todos tus proyectos.', f'Run the command{"s" if multi else ""} in your terminal. Available in all your projects.')}</li>
+<li>{L("Compruébalo con", "Check it with")} <code>claude mcp list</code>.</li></ol>
 {code_block(f"sn-{s}-code", sn["code"], "Terminal")}{uv_note}""",
-        "cursor": (f"""<p class="muted small">Pega el bloque en <code>~/.cursor/mcp.json</code>. Para instalar con un clic, elige un solo servidor.</p>
+        "cursor": (f"""<p class="muted small">{L("Pega el bloque en <code>~/.cursor/mcp.json</code>. Para instalar con un clic, elige un solo servidor.", "Paste the block into <code>~/.cursor/mcp.json</code>. For one-click install, pick a single server.")}</p>
 {code_block(f"sn-{s}-cursor", sn["cursor"], "mcp.json")}{uv_note}""" if multi else
-                   f"""<a class="btn btn-primary btn-block" data-deeplink="cursor" href="#">{brand("cursor")}Añadir a Cursor</a>
-<p class="muted small center gap">Cursor se abre y te pide confirmar la instalación.</p>
-<details class="manual"><summary><span>Instalación manual</span>{icon("chevron")}</summary>
-<p>Pega el bloque en <code>~/.cursor/mcp.json</code> (todos los proyectos) o en <code>.cursor/mcp.json</code> (solo este).</p>
+                   f"""<a class="btn btn-primary btn-block" data-deeplink="cursor" href="#">{brand("cursor")}{L("Añadir a Cursor", "Add to Cursor")}</a>
+<p class="muted small center gap">{L("Cursor se abre y te pide confirmar la instalación.", "Cursor opens and asks you to confirm.")}</p>
+<details class="manual"><summary><span>{L("Instalación manual", "Manual install")}</span>{icon("chevron")}</summary>
+<p>{L("Pega el bloque en <code>~/.cursor/mcp.json</code> (todos los proyectos) o en <code>.cursor/mcp.json</code> (solo este).", "Paste the block into <code>~/.cursor/mcp.json</code> (all projects) or <code>.cursor/mcp.json</code> (this one only).")}</p>
 {code_block(f"sn-{s}-cursor", sn["cursor"], "mcp.json")}</details>{uv_note}"""),
-        "vscode": (f"""<p class="muted small">Pega el bloque en <code>.vscode/mcp.json</code>. Para instalar con un clic, elige un solo servidor.</p>
+        "vscode": (f"""<p class="muted small">{L("Pega el bloque en <code>.vscode/mcp.json</code>. Para instalar con un clic, elige un solo servidor.", "Paste the block into <code>.vscode/mcp.json</code>. For one-click install, pick a single server.")}</p>
 {code_block(f"sn-{s}-vscode", sn["vscode"], ".vscode/mcp.json")}{uv_note}""" if multi else
-                   f"""<a class="btn btn-primary btn-block" data-deeplink="vscode" href="#">{brand("vscode")}Añadir a VS Code</a>
-<p class="muted small center gap">Para VS Code 1.102 o superior, con el chat de Copilot en modo agente.</p>
-<details class="manual"><summary><span>Instalación manual</span>{icon("chevron")}</summary>
-<p>Pega el bloque en <code>.vscode/mcp.json</code> de tu proyecto.</p>
+                   f"""<a class="btn btn-primary btn-block" data-deeplink="vscode" href="#">{brand("vscode")}{L("Añadir a VS Code", "Add to VS Code")}</a>
+<p class="muted small center gap">{L("Para VS Code 1.102 o superior, con el chat de Copilot en modo agente.", "VS Code 1.102 or later, with Copilot chat in agent mode.")}</p>
+<details class="manual"><summary><span>{L("Instalación manual", "Manual install")}</span>{icon("chevron")}</summary>
+<p>{L("Pega el bloque en <code>.vscode/mcp.json</code> de tu proyecto.", "Paste the block into your project's <code>.vscode/mcp.json</code>.")}</p>
 {code_block(f"sn-{s}-vscode", sn["vscode"], ".vscode/mcp.json")}</details>{cards}{uv_note}"""),
-        "codex": f"""<ol class="mini-steps"><li>Ejecuta {"los comandos" if multi else "el comando"} en tu terminal. Sirve{"n" if multi else ""} para la CLI, la app y la extensión de Codex, que comparten configuración.</li>
-<li>Compruébalo con <code>codex mcp list</code> o con <code>/mcp</code> dentro de Codex.</li></ol>
+        "codex": f"""<ol class="mini-steps"><li>{L(f'Ejecuta {"los comandos" if multi else "el comando"} en tu terminal. Sirve{"n" if multi else ""} para la CLI, la app y la extensión de Codex, que comparten configuración.', "Run it in your terminal. Works for the Codex CLI, app and extension, which share one config.")}</li>
+<li>{L("Compruébalo con <code>codex mcp list</code> o con <code>/mcp</code> dentro de Codex.", "Check it with <code>codex mcp list</code> or <code>/mcp</code> inside Codex.")}</li></ol>
 {code_block(f"sn-{s}-codex", sn["codex"], "Terminal")}
-<details class="manual"><summary><span>Instalación manual</span>{icon("chevron")}</summary>
-<p>Pega el bloque en <code>~/.codex/config.toml</code>.</p>
+<details class="manual"><summary><span>{L("Instalación manual", "Manual install")}</span>{icon("chevron")}</summary>
+<p>{L("Pega el bloque en", "Paste the block into")} <code>~/.codex/config.toml</code>.</p>
 {code_block(f"sn-{s}-codex-toml", sn["codex_toml"], "config.toml")}</details>{uv_note}""",
-        "antigravity": f"""<ol class="mini-steps"><li>Antigravity › panel del agente › menú <b>…</b> › <b>MCP Servers</b> › <b>Manage MCP Servers</b> › <b>View raw config</b>.</li>
-<li>Pega el bloque, guarda y pulsa <b>Refresh</b>. {key_line}</li></ol>
+        "antigravity": f"""<ol class="mini-steps"><li>{L("Antigravity › panel del agente › menú", "Antigravity › agent panel › menu")} <b>…</b> › <b>MCP Servers</b> › <b>Manage MCP Servers</b> › <b>View raw config</b>.</li>
+<li>{L("Pega el bloque, guarda y pulsa <b>Refresh</b>.", "Paste the block, save and click <b>Refresh</b>.")} {key_line}</li></ol>
 {code_block(f"sn-{s}-antigravity", sn["antigravity"], "mcp_config.json")}
 <p class="path"><code>~/.gemini/antigravity/mcp_config.json</code></p>{uv_note}""",
         "windsurf": f"""<ol class="mini-steps"><li>Windsurf › <b>Settings</b> › <b>Cascade</b> › <b>MCP Servers</b> › <b>View raw config</b>.</li>
-<li>Pega el bloque, guarda y pulsa <b>Refresh</b>.</li></ol>
+<li>{L("Pega el bloque, guarda y pulsa <b>Refresh</b>.", "Paste the block, save and click <b>Refresh</b>.")}</li></ol>
 {code_block(f"sn-{s}-windsurf", sn["windsurf"], "mcp_config.json")}
 <p class="path"><code>~/.codeium/windsurf/mcp_config.json</code></p>{uv_note}""",
     }
@@ -263,10 +285,10 @@ def installer(m: dict) -> str:
         for i, (cid, name, _) in enumerate(clients))
     cfg_json = e(json.dumps({"slug": s, "server": server}, ensure_ascii=False))
     return f"""<div class="installer" data-installer="{cfg_json}">
-<label class="lic"><span class="lic-label">{icon("key")}Tu licencia <span class="muted">· opcional</span></span>
-<span class="lic-field"><input type="text" autocomplete="off" spellcheck="false" placeholder="Pega aquí tu LIC-…" data-license aria-describedby="lic-help-{s}"><span class="lic-state" data-license-state aria-live="polite"></span></span>
-<span id="lic-help-{s}" class="lic-help">Se rellena en todos los fragmentos. No sale de tu navegador.</span></label>
-<div class="tabs" role="tablist" aria-label="Elige tu cliente">{tabs}</div>
+<label class="lic"><span class="lic-label">{icon("key")}{L("Tu licencia", "Your license")} <span class="muted">· {L("opcional", "optional")}</span></span>
+<span class="lic-field"><input type="text" autocomplete="off" spellcheck="false" placeholder="{L("Pega aquí tu LIC-…", "Paste your LIC-… here")}" data-license aria-describedby="lic-help-{s}"><span class="lic-state" data-license-state aria-live="polite"></span></span>
+<span id="lic-help-{s}" class="lic-help">{L("Se rellena en todos los fragmentos. No sale de tu navegador.", "Fills in every snippet. It never leaves your browser.")}</span></label>
+<div class="tabs" role="tablist" aria-label="{L("Elige tu cliente", "Choose your client")}">{tabs}</div>
 <div class="panels">{body}</div>
 </div>"""
 
@@ -274,39 +296,39 @@ def installer(m: dict) -> str:
 def remote_panels(m: dict, local_desktop: str, cards: str) -> dict[str, str]:
     s, sn, multi = m["slug"], remote_snippets(m), bool(m.get("all"))
     pl = "s" if multi else ""
-    oauth = ('<p class="note">' + icon("key") + '<span>La primera vez se abre una página de KeyFlint: pega tu licencia y '
-             'pulsa <b>Conectar</b>. No hay que instalar nada.</span></p>')
+    oauth = ('<p class="note">' + icon("key") + '<span>' + L('La primera vez se abre una página de KeyFlint: pega tu licencia y pulsa <b>Conectar</b>. No hay que instalar nada.',
+                                                             'The first time, a KeyFlint page opens: paste your license and click <b>Connect</b>. Nothing to install.') + '</span></p>')
     url_block = code_block(f"sn-{s}-url", sn["url"], "URL" + ("s" if multi else ""))
     one_click = lambda cid, label, note: (
-        f'<p class="muted small">Pega el bloque. Para instalar con un clic, elige un solo servidor.</p>' if multi else
+        f'<p class="muted small">{L("Pega el bloque. Para instalar con un clic, elige un solo servidor.", "Paste the block. For one-click install, pick a single server.")}</p>' if multi else
         f'<a class="btn btn-primary btn-block" data-deeplink="{cid}" href="#">{brand(cid)}{label}</a>'
-        f'<p class="muted small center gap">{note}</p><details class="manual"><summary><span>Instalación manual</span>{icon("chevron")}</summary>')
+        f'<p class="muted small center gap">{note}</p><details class="manual"><summary><span>{L("Instalación manual", "Manual install")}</span>{icon("chevron")}</summary>')
     end = "" if multi else "</details>"
     return {
-        "desktop": f"""<ol class="mini-steps"><li>En Claude (web, escritorio o móvil): <b>Ajustes</b> › <b>Conectores</b> › <b>Añadir conector personalizado</b>.</li>
-<li>Ponle nombre y pega la URL{pl}. {"Repite con cada una." if multi else ""}</li><li>Pulsa <b>Conectar</b> e inicia sesión con tu licencia.</li></ol>
-{url_block}<a class="btn btn-block" href="https://claude.ai/settings/connectors" target="_blank" rel="noopener">{brand("claude")}Abrir conectores de Claude</a>
-{oauth}{cards}<details class="manual"><summary><span>Instalación local (.mcpb o configuración)</span>{icon("chevron")}</summary>{local_desktop}</details>""",
-        "chatgpt": f"""<ol class="mini-steps"><li>ChatGPT › <b>Ajustes</b> › <b>Apps y conectores</b> › <b>Avanzado</b>: activa el <b>modo desarrollador</b>.</li>
-<li><b>Crear</b> conector: pega la URL{pl}, autenticación <b>OAuth</b>.</li><li>Conecta e inicia sesión con tu licencia.</li></ol>
+        "desktop": f"""<ol class="mini-steps"><li>{L("En Claude (web, escritorio o móvil): <b>Ajustes</b> › <b>Conectores</b> › <b>Añadir conector personalizado</b>.", "In Claude (web, desktop or mobile): <b>Settings</b> › <b>Connectors</b> › <b>Add custom connector</b>.")}</li>
+<li>{L(f'Ponle nombre y pega la URL{pl}. {"Repite con cada una." if multi else ""}', f'Name it and paste the URL{pl}. {"Repeat for each one." if multi else ""}')}</li><li>{L("Pulsa <b>Conectar</b> e inicia sesión con tu licencia.", "Click <b>Connect</b> and sign in with your license.")}</li></ol>
+{url_block}<a class="btn btn-block" href="https://claude.ai/settings/connectors" target="_blank" rel="noopener">{brand("claude")}{L("Abrir conectores de Claude", "Open Claude connectors")}</a>
+{oauth}{cards}<details class="manual"><summary><span>{L("Instalación local (.mcpb o configuración)", "Local install (.mcpb or config)")}</span>{icon("chevron")}</summary>{local_desktop}</details>""",
+        "chatgpt": f"""<ol class="mini-steps"><li>{L("ChatGPT › <b>Ajustes</b> › <b>Apps y conectores</b> › <b>Avanzado</b>: activa el <b>modo desarrollador</b>.", "ChatGPT › <b>Settings</b> › <b>Apps &amp; Connectors</b> › <b>Advanced</b>: turn on <b>developer mode</b>.")}</li>
+<li>{L(f"<b>Crear</b> conector: pega la URL{pl}, autenticación <b>OAuth</b>.", f"<b>Create</b> a connector: paste the URL{pl}, authentication <b>OAuth</b>.")}</li><li>{L("Conecta e inicia sesión con tu licencia.", "Connect and sign in with your license.")}</li></ol>
 {url_block}{oauth}""",
-        "code": f"""<ol class="mini-steps"><li>Ejecuta {"los comandos" if multi else "el comando"} en tu terminal.</li>
-<li>Abre Claude Code, escribe <code>/mcp</code> y elige <b>Authenticate</b> para pegar tu licencia.</li></ol>
+        "code": f"""<ol class="mini-steps"><li>{L(f'Ejecuta {"los comandos" if multi else "el comando"} en tu terminal.', "Run it in your terminal.")}</li>
+<li>{L("Abre Claude Code, escribe <code>/mcp</code> y elige <b>Authenticate</b> para pegar tu licencia.", "Open Claude Code, type <code>/mcp</code> and choose <b>Authenticate</b> to paste your license.")}</li></ol>
 {code_block(f"sn-{s}-code", sn["code"], "Terminal")}{oauth}""",
-        "cursor": one_click("cursor", "Añadir a Cursor", "Cursor se abre, confirma y pulsa <b>Connect</b> para pegar tu licencia.")
-        + f"""<p>Pega el bloque en <code>~/.cursor/mcp.json</code>.</p>{code_block(f"sn-{s}-cursor", sn["cursor"], "mcp.json")}{end}{oauth}""",
-        "vscode": one_click("vscode", "Añadir a VS Code", "VS Code 1.102 o superior. Te pedirá iniciar sesión con tu licencia.")
-        + f"""<p>Pega el bloque en <code>.vscode/mcp.json</code>.</p>{code_block(f"sn-{s}-vscode", sn["vscode"], ".vscode/mcp.json")}{end}{cards}{oauth}""",
-        "codex": f"""<ol class="mini-steps"><li>Ejecuta {"los comandos" if multi else "el comando"}: añade{"n" if multi else ""} el servidor{"es" if multi else ""} e inicia sesión con tu licencia.</li>
-<li>Sirve para la CLI, la app y la extensión de Codex.</li></ol>
+        "cursor": one_click("cursor", L("Añadir a Cursor", "Add to Cursor"), L("Cursor se abre, confirma y pulsa <b>Connect</b> para pegar tu licencia.", "Cursor opens: confirm and click <b>Connect</b> to paste your license."))
+        + f"""<p>{L("Pega el bloque en", "Paste the block into")} <code>~/.cursor/mcp.json</code>.</p>{code_block(f"sn-{s}-cursor", sn["cursor"], "mcp.json")}{end}{oauth}""",
+        "vscode": one_click("vscode", L("Añadir a VS Code", "Add to VS Code"), L("VS Code 1.102 o superior. Te pedirá iniciar sesión con tu licencia.", "VS Code 1.102 or later. It asks you to sign in with your license."))
+        + f"""<p>{L("Pega el bloque en", "Paste the block into")} <code>.vscode/mcp.json</code>.</p>{code_block(f"sn-{s}-vscode", sn["vscode"], ".vscode/mcp.json")}{end}{cards}{oauth}""",
+        "codex": f"""<ol class="mini-steps"><li>{L(f'Ejecuta {"los comandos" if multi else "el comando"}: añade{"n" if multi else ""} el servidor{"es" if multi else ""} e inicia sesión con tu licencia.', f'Run the command{"s" if multi else ""}: {"they add the servers" if multi else "it adds the server"} and sign you in with your license.')}</li>
+<li>{L("Sirve para la CLI, la app y la extensión de Codex.", "Works for the Codex CLI, app and extension.")}</li></ol>
 {code_block(f"sn-{s}-codex", sn["codex"], "Terminal")}
-<details class="manual"><summary><span>Sin OAuth: licencia en config.toml</span>{icon("chevron")}</summary>
-<p>Pega el bloque en <code>~/.codex/config.toml</code>.</p>{code_block(f"sn-{s}-codex-toml", sn["codex_toml"], "config.toml")}</details>""",
-        "antigravity": f"""<ol class="mini-steps"><li>Antigravity › panel del agente › <b>…</b> › <b>MCP Servers</b> › <b>Manage MCP Servers</b> › <b>View raw config</b>.</li>
-<li>Pega el bloque (lleva tu licencia), guarda y pulsa <b>Refresh</b>.</li></ol>
+<details class="manual"><summary><span>{L("Sin OAuth: licencia en config.toml", "No OAuth: license in config.toml")}</span>{icon("chevron")}</summary>
+<p>{L("Pega el bloque en", "Paste the block into")} <code>~/.codex/config.toml</code>.</p>{code_block(f"sn-{s}-codex-toml", sn["codex_toml"], "config.toml")}</details>""",
+        "antigravity": f"""<ol class="mini-steps"><li>{L("Antigravity › panel del agente", "Antigravity › agent panel")} › <b>…</b> › <b>MCP Servers</b> › <b>Manage MCP Servers</b> › <b>View raw config</b>.</li>
+<li>{L("Pega el bloque (lleva tu licencia), guarda y pulsa <b>Refresh</b>.", "Paste the block (it carries your license), save and click <b>Refresh</b>.")}</li></ol>
 {code_block(f"sn-{s}-antigravity", sn["headers"], "mcp_config.json")}<p class="path"><code>~/.gemini/antigravity/mcp_config.json</code></p>""",
         "windsurf": f"""<ol class="mini-steps"><li>Windsurf › <b>Settings</b> › <b>Cascade</b> › <b>MCP Servers</b> › <b>View raw config</b>.</li>
-<li>Pega el bloque (lleva tu licencia), guarda y pulsa <b>Refresh</b>.</li></ol>
+<li>{L("Pega el bloque (lleva tu licencia), guarda y pulsa <b>Refresh</b>.", "Paste the block (it carries your license), save and click <b>Refresh</b>.")}</li></ol>
 {code_block(f"sn-{s}-windsurf", sn["headers"], "mcp_config.json")}<p class="path"><code>~/.codeium/windsurf/mcp_config.json</code></p>""",
     }
 
@@ -318,9 +340,9 @@ def page(path: str, title: str, desc: str, body: str, ld: list | None = None, no
     lds = "".join(jsonld(x) for x in (ld or []))
     robots = '<meta name="robots" content="noindex">\n' if noindex else ""
     en = lang == "en"
-    nav = ([("/en/#tools", "Tools"), ("/en/#how", "How it works"), ("/en/#pricing", "Pricing"), ("/", "ES")] if en else
-           [("/#catalogo", "Catálogo"), ("/#instalar", "Instalar"), ("/precios/", "Precios"), ("/empezar/", "Guía"), ("/saldo/", "Mi saldo"), ("/en/", "EN")])
     pair = ALT_LANG.get(path) or {v: k for k, v in ALT_LANG.items()}.get(path)
+    nav = ([("/en/#tools", "Tools"), ("/en/#install", "Install"), ("/en/#pricing", "Pricing"), ("/en/start/", "Guide"), ("/en/balance/", "My balance"), (pair or "/", "ES")] if en else
+           [("/#catalogo", "Catálogo"), ("/#instalar", "Instalar"), ("/precios/", "Precios"), ("/empezar/", "Guía"), ("/saldo/", "Mi saldo"), (pair or "/en/", "EN")])
     alts = ""
     if pair:
         es_p, en_p = (pair, path) if en else (path, pair)
@@ -382,7 +404,7 @@ def page(path: str, title: str, desc: str, body: str, ld: list | None = None, no
 <header class="top"><div class="wrap top-in">
 <a class="brand" href="{T['home']}" aria-label="Flint by KeyFlint">{flint()}<span>Flint</span><span class="brand-tag">by KeyFlint</span></a>
 <nav class="nav" aria-label="{T['navl']}">{navh}</nav>
-{"" if en else f'<a class="top-saldo" href="/saldo/"{" aria-current=\"page\"" if path == "/saldo/" else ""}>{icon("key")}<span>Mi saldo</span></a>'}
+<a class="top-saldo" href="{"/en/balance/" if en else "/saldo/"}"{" aria-current=\"page\"" if path in ("/saldo/", "/en/balance/") else ""}>{icon("key")}<span>{"My balance" if en else "Mi saldo"}</span></a>
 <a class="btn btn-primary btn-sm top-cta" href="{T['cta'][0]}">{T['cta'][1]}</a>
 </div></header>
 <main id="main">
@@ -428,9 +450,9 @@ def install_picker() -> tuple[str, str]:
     opts = MCPS + [ALL]
     picker = "".join(
         f'<button type="button" class="pick" aria-pressed="{"true" if i == 0 else "false"}" data-pick="{m["slug"]}">'
-        f'{icon(m["icon"])}<span>{e(m["name"])}</span></button>' for i, m in enumerate(opts))
+        f'{icon(m["icon"])}<span>{e(L(m["name"], "All") if m.get("all") else m["name"])}</span></button>' for i, m in enumerate(opts))
     installers = "".join(f'<div class="pick-panel" data-pick-panel="{m["slug"]}"{"" if i == 0 else " data-hidden"}>'
-                         f'<h3 class="panel-title">{e(m["name"])}</h3>{installer(m)}</div>'
+                         f'<h3 class="panel-title">{e(L(m["name"], "All") if m.get("all") else m["name"])}</h3>{installer(m)}</div>'
                          for i, m in enumerate(opts))
     return picker, installers
 
@@ -440,12 +462,12 @@ def quick_install() -> str:
     sh = f"curl -LsSf {SITE['url']}/instalar.sh | sh -s -- {LIC_PLACEHOLDER}"
     ps = f"$env:KEYFLINT_LICENSE='{LIC_PLACEHOLDER}'; irm {SITE['url']}/instalar.ps1 | iex"
     return f"""<div class="quick" data-installer='{{"slug": "quick"}}'>
-<p class="quick-title">{icon("terminal")}<b>Un solo comando</b><span class="muted small">: instala los {len(MCPS)} servidores en Claude Desktop, Cursor, VS Code, Windsurf y Claude Code (los que tengas).</span></p>
-<span class="lic-field"><input type="text" autocomplete="off" spellcheck="false" placeholder="Pega aquí tu LIC-…" data-license aria-label="Tu licencia"><span class="lic-state" data-license-state aria-live="polite"></span></span>
+<p class="quick-title">{icon("terminal")}<b>{L("Un solo comando", "One command")}</b><span class="muted small">{L(f": instala los {len(MCPS)} servidores en Claude Desktop, Cursor, VS Code, Windsurf y Claude Code (los que tengas).", f": installs all {len(MCPS)} tools in Claude Desktop, Cursor, VS Code, Windsurf and Claude Code (whichever you have).")}</span></p>
+<span class="lic-field"><input type="text" autocomplete="off" spellcheck="false" placeholder="{L("Pega aquí tu LIC-…", "Paste your LIC-… here")}" data-license aria-label="{L("Tu licencia", "Your license")}"><span class="lic-state" data-license-state aria-live="polite"></span></span>
 <p class="lic-help"></p>
 {code_block("q-sh", sh, "macOS / Linux · Terminal")}
 {code_block("q-ps", ps, "Windows · PowerShell")}
-<p class="muted small">Instala <a href="/empezar/#uv">uv</a> si falta, guarda una copia de cada configuración antes de tocarla y no envía nada salvo la licencia a KeyFlint. <a href="/instalar.py">Ver el código</a>.</p>
+<p class="muted small">{L(f'Instala <a href="{U("start")}#uv">uv</a> si falta, guarda una copia de cada configuración antes de tocarla y no envía nada salvo la licencia a KeyFlint. <a href="/instalar.py">Ver el código</a>.', f'Installs <a href="{U("start")}#uv">uv</a> if missing, backs up every config before touching it and sends nothing but the license to KeyFlint. <a href="/instalar.py">Read the code</a>.')}</p>
 </div>"""
 
 
@@ -473,24 +495,24 @@ def demo_block(m: dict, head: bool = True) -> str:
     s = m["slug"]
     if s == "web-intel":
         field = ('<label class="demo-field"><span>URL</span><input type="url" name="url" inputmode="url" '
-                 'placeholder="https://tu-web.com" value="https://keyflint.dev" required></label>')
-        btn, tool = "Ver Markdown limpio", "read_url"
+                 f'placeholder="{L("https://tu-web.com", "https://your-site.com")}" value="https://keyflint.dev" required></label>')
+        btn, tool = L("Ver Markdown limpio", "Get clean Markdown"), "read_url"
     elif s == "norma43":
-        field = (f'<label class="demo-field"><span>Extracto Norma 43 (ejemplo)</span><textarea name="content" rows="7" '
+        field = (f'<label class="demo-field"><span>{L("Extracto Norma 43 (ejemplo)", "Norma 43 bank statement (sample)")}</span><textarea name="content" rows="7" '
                  f'spellcheck="false" required>{e(DEMO_N43)}</textarea></label>')
-        btn, tool = "Validar y leer", "parse_norma43"
+        btn, tool = L("Validar y leer", "Validate and parse"), "parse_norma43"
     elif s == "contabridge":
         opts = "".join(f'<option value="{v}">{t}</option>' for v, t in
                        [("a3", "A3 (SUENLACE.DAT)"), ("contaplus_csv", "ContaPlus / Sage 50"), ("xero_csv", "Xero"), ("quickbooks_csv", "QuickBooks Online")])
-        field = (f'<label class="demo-field"><span>Dos asientos de ejemplo (CSV)</span><textarea name="content" rows="6" '
+        field = (f'<label class="demo-field"><span>{L("Dos asientos de ejemplo (CSV)", "Two sample journal entries (CSV)")}</span><textarea name="content" rows="6" '
                  f'spellcheck="false" required>{e(DEMO_CSV)}</textarea></label>'
-                 f'<label class="demo-field demo-inline"><span>Convertir a</span><select name="target">{opts}</select></label>')
-        btn, tool = "Convertir", "convert_journal"
+                 f'<label class="demo-field demo-inline"><span>{L("Convertir a", "Convert to")}</span><select name="target">{opts}</select></label>')
+        btn, tool = L("Convertir", "Convert"), "convert_journal"
     else:
         return ""
     form = f"""<form class="glass demo-form" data-demo="{s}" novalidate>{field}
 <div class="demo-actions"><button class="btn btn-primary" type="submit">{icon("arrow-right")}{btn}</button>
-<span class="muted small">5 pruebas al día. Para tus propios ficheros, <a href="/probar/">licencia gratis</a>.</span></div>
+<span class="muted small">{L(f'5 pruebas al día. Para tus propios ficheros, <a href="{U("try")}">licencia gratis</a>.', f'5 runs a day. For your own files, get a <a href="{U("try")}">free license</a>.')}</span></div>
 <p class="lic-help" data-demo-msg aria-live="polite"></p>
 <div class="demo-out" data-demo-out hidden></div>
 </form>"""
@@ -502,32 +524,40 @@ def demo_block(m: dict, head: bool = True) -> str:
 """
 
 
-def live_demo(slugs=DEMO_SLUGS, title: str = "Pruébalo en vivo, sin instalar nada",
-              lead: str = "Elige un ejemplo y pulsa el botón: es el servidor real, el mismo resultado que recibe tu agente. Sin licencia, sin configurar nada.") -> str:
+def live_demo(slugs=DEMO_SLUGS, title: str = "", lead: str = "") -> str:
     """Playground de la portada: pestañas con las demos reales (/api/demo/<slug>)."""
+    title = title or L("Pruébalo en vivo, sin instalar nada", "Try it live, nothing to install")
+    lead = lead or L("Elige un ejemplo y pulsa el botón: es el servidor real, el mismo resultado que recibe tu agente. Sin licencia, sin configurar nada.",
+                     "Pick an example and press the button: it is the real server, the same result your agent gets. No license, no setup.")
     by = {m["slug"]: m for m in MCPS}
     ms = [by[x] for x in slugs if x in by]
     tabs = "".join(f'<button type="button" class="pick" role="tab" aria-selected="{"true" if i == 0 else "false"}" '
                    f'data-live="{m["slug"]}">{icon(m["icon"])}<span>{e(m["name"])}</span></button>' for i, m in enumerate(ms))
     panels = "".join(f'<div class="live-panel" role="tabpanel" data-live-panel="{m["slug"]}"{"" if i == 0 else " hidden"}>{demo_block(m, head=False)}</div>'
                      for i, m in enumerate(ms))
-    return f"""<section class="section alt" id="en-vivo"><div class="wrap narrow">
-<div class="section-head"><p class="eyebrow">Demo en vivo</p><h2>{title}</h2><p class="lead-sm">{lead}</p></div>
-<div class="picker live-tabs" role="tablist" aria-label="Elige una demo">{tabs}</div>
+    return f"""<section class="section alt" id="{L("en-vivo", "live")}"><div class="wrap narrow">
+<div class="section-head"><p class="eyebrow">{L("Demo en vivo", "Live demo")}</p><h2>{title}</h2><p class="lead-sm">{lead}</p></div>
+<div class="picker live-tabs" role="tablist" aria-label="{L("Elige una demo", "Pick a demo")}">{tabs}</div>
 {panels}
-<p class="muted small center">¿Te convence? <a href="/probar/">Pide tu licencia gratis</a> y úsalo con tus propios ficheros desde Claude, Cursor o VS Code.</p>
+<p class="muted small center">{L(f'¿Te convence? <a href="{U("try")}">Pide tu licencia gratis</a> y úsalo con tus propios ficheros desde Claude, Cursor o VS Code.', f'Convinced? <a href="{U("try")}">Get your free license</a> and use it on your own files from Claude, Cursor or VS Code.')}</p>
 </div></section>"""
 
 
 def seal(compact: bool = False) -> str:
     """Garantía de determinismo: solo lo que el producto hace de verdad (reconcile.py: «Never guess»; refunds automáticos)."""
-    items = [("target", "Misma entrada, mismo resultado", "Sin IA intermedia: dos ejecuciones dan el mismo fichero, byte a byte, y lo puedes comprobar con su hash."),
-             ("shield", "Nunca adivina", "Si un movimiento no se puede casar con certeza, sale marcado como ambiguo o pendiente para que lo revise una persona. No se inventan apuntes."),
-             ("refund", "Lo que falla no se cobra", "Los ficheros no válidos se rechazan antes de cobrar y, si una llamada falla después, el crédito vuelve solo a tu saldo.")]
+    items = [("target", L("Misma entrada, mismo resultado", "Same input, same output"),
+              L("Sin IA intermedia: dos ejecuciones dan el mismo fichero, byte a byte, y lo puedes comprobar con su hash.",
+                "No AI in the loop: two runs produce the same file, byte for byte, and you can check it by its hash.")),
+             ("shield", L("Nunca adivina", "Never guesses"),
+              L("Si un movimiento no se puede casar con certeza, sale marcado como ambiguo o pendiente para que lo revise una persona. No se inventan apuntes.",
+                "If a movement cannot be matched with certainty, it is flagged as ambiguous or pending for a person to review. No entries are invented.")),
+             ("refund", L("Lo que falla no se cobra", "Failures are free"),
+              L("Los ficheros no válidos se rechazan antes de cobrar y, si una llamada falla después, el crédito vuelve solo a tu saldo.",
+                "Invalid files are rejected before charging, and if a call fails afterwards the credit goes straight back to your balance."))]
     lis = "".join(f'<li><span class="tile tile-sm">{icon(i)}</span><div><h3>{t}</h3><p>{d}</p></div></li>' for i, t, d in items)
     return f"""<section class="section{' tight' if compact else ''}"><div class="wrap"><div class="seal glass">
-<div class="seal-badge" aria-hidden="true">{icon("check")}<span>Garantía<br>de determinismo</span></div>
-<div><h2>Cero inventos: o es exacto, o te lo marca</h2><ul class="seal-list">{lis}</ul></div>
+<div class="seal-badge" aria-hidden="true">{icon("check")}<span>{L("Garantía<br>de determinismo", "Determinism<br>guarantee")}</span></div>
+<div><h2>{L("Cero inventos: o es exacto, o te lo marca", "Nothing made up: exact, or flagged for you")}</h2><ul class="seal-list">{lis}</ul></div>
 </div></div></section>"""
 
 
@@ -718,10 +748,10 @@ def mcp_page(m: dict) -> str:
     return page(f"/{s}/", title, m["summary"][:158], body, ld)
 
 
-ROI_TASKS = [  # (clave, texto, créditos por unidad, unidades/mes, min a mano, min de revisión) · costes = tabla de uso
-    ("n43", "Conciliar extractos Norma 43 (leer + conciliar)", 4, 20, 30, 5),
-    ("diario", "Convertir diarios contables (validar + convertir)", 3, 10, 20, 3),
-    ("web", "Auditar webs (SEO completo)", 3, 10, 30, 5),
+ROI_TASKS = [  # (clave, (texto ES, texto EN), créditos por unidad, unidades/mes, min a mano, min de revisión) · costes = tabla de uso
+    ("n43", ("Conciliar extractos Norma 43 (leer + conciliar)", "Reconcile Norma 43 bank statements (parse + reconcile)"), 4, 20, 30, 5),
+    ("diario", ("Convertir diarios contables (validar + convertir)", "Convert accounting journals (validate + convert)"), 3, 10, 20, 3),
+    ("web", ("Auditar webs (SEO completo)", "Audit websites (full SEO)"), 3, 10, 30, 5),
 ]
 
 
@@ -729,29 +759,29 @@ def roi_calc() -> str:
     """Calculadora de ahorro con las cifras del visitante. Coste por crédito = recarga mínima (sin bonus)."""
     tp = SITE["topup"]
     cfg = {"eur_per_credit": round(1 / tp["rate"], 4), "tasks": {k: [c, n, a, r] for k, _, c, n, a, r in ROI_TASKS}}
-    opts = "".join(f'<option value="{k}">{e(t)}</option>' for k, t, *_ in ROI_TASKS)
+    opts = "".join(f'<option value="{k}">{e(L(*t))}</option>' for k, t, *_ in ROI_TASKS)
     k0, _, c0, n0, a0, r0 = ROI_TASKS[0]
     field = lambda name, label, val, suf, mx: (f'<label class="demo-field"><span>{label}</span><span class="roi-in">'
                                                f'<input type="number" name="{name}" value="{val}" min="0" max="{mx}" step="1" inputmode="numeric">'
                                                f'<em>{suf}</em></span></label>')
-    return f"""<section class="section" id="ahorro"><div class="wrap narrow">
-<div class="section-head"><p class="eyebrow">Calculadora de ahorro</p><h2>¿Cuánto te cuesta hoy hacerlo a mano?</h2>
-<p class="lead-sm">Pon tus cifras. Comparamos tu tiempo con el coste en créditos al precio de la recarga mínima ({money(1 / tp["rate"])} € por crédito).</p></div>
+    return f"""<section class="section" id="{L("ahorro", "savings")}"><div class="wrap narrow">
+<div class="section-head"><p class="eyebrow">{L("Calculadora de ahorro", "Savings calculator")}</p><h2>{L("¿Cuánto te cuesta hoy hacerlo a mano?", "What does doing it by hand cost you today?")}</h2>
+<p class="lead-sm">{L(f'Pon tus cifras. Comparamos tu tiempo con el coste en créditos al precio de la recarga mínima ({money(1 / tp["rate"])} € por crédito).', f'Enter your numbers. We compare your time with the credit cost at the minimum top-up price (€{1 / tp["rate"]:.2f} per credit).')}</p></div>
 <form class="glass roi" data-roi='{e(json.dumps(cfg))}' novalidate>
-<label class="demo-field"><span>Tarea</span><select name="task">{opts}</select></label>
+<label class="demo-field"><span>{L("Tarea", "Task")}</span><select name="task">{opts}</select></label>
 <div class="roi-grid">
-{field("n", "Cuántas al mes", n0, "/mes", 10000)}
-{field("manual", "Minutos a mano, cada una", a0, "min", 600)}
-{field("review", "Minutos de revisión con Flint", r0, "min", 600)}
-{field("rate", "Coste de una hora de trabajo", 20, "€/h", 500)}
+{field("n", L("Cuántas al mes", "How many per month"), n0, L("/mes", "/mo"), 10000)}
+{field("manual", L("Minutos a mano, cada una", "Minutes by hand, each"), a0, "min", 600)}
+{field("review", L("Minutos de revisión con Flint", "Minutes reviewing with Flint"), r0, "min", 600)}
+{field("rate", L("Coste de una hora de trabajo", "Cost of one hour of work"), 20, "€/h", 500)}
 </div>
 <div class="roi-out" aria-live="polite">
-<div><span class="muted small">Horas que recuperas</span><b data-roi-hours>—</b></div>
-<div><span class="muted small">A mano te cuesta</span><b data-roi-manual>—</b></div>
-<div><span class="muted small">Con Flint</span><b data-roi-flint>—</b><span class="muted small" data-roi-credits></span></div>
-<div class="roi-save"><span class="small">Ahorro al mes</span><b data-roi-save>—</b></div>
+<div><span class="muted small">{L("Horas que recuperas", "Hours you get back")}</span><b data-roi-hours>—</b></div>
+<div><span class="muted small">{L("A mano te cuesta", "By hand it costs")}</span><b data-roi-manual>—</b></div>
+<div><span class="muted small">{L("Con Flint", "With Flint")}</span><b data-roi-flint>—</b><span class="muted small" data-roi-credits></span></div>
+<div class="roi-save"><span class="small">{L("Ahorro al mes", "Monthly savings")}</span><b data-roi-save>—</b></div>
 </div>
-<p class="muted small">Estimación con tus datos: incluye el tiempo de revisión y el coste en créditos (<span data-roi-cpu>{c0}</span> por unidad), no el de instalar. <a href="/saldo/#recargar">Recarga desde {tp["min"]} €</a> o empieza con <a href="/probar/">{SITE['free_credits']} créditos gratis</a>.</p>
+<p class="muted small">{L(f'Estimación con tus datos: incluye el tiempo de revisión y el coste en créditos (<span data-roi-cpu>{c0}</span> por unidad), no el de instalar. <a href="{U("balance")}#recargar">Recarga desde {tp["min"]} €</a> o empieza con <a href="{U("try")}">{SITE["free_credits"]} créditos gratis</a>.', f'Estimate from your numbers: includes review time and credit cost (<span data-roi-cpu>{c0}</span> per unit), not setup. <a href="{U("balance")}#recargar">Top up from €{tp["min"]}</a> or start with <a href="{U("try")}">{SITE["free_credits"]} free credits</a>.')}</p>
 </form></div></section>"""
 
 
@@ -932,64 +962,71 @@ def start() -> str:
 def balance_page() -> str:
     tp = SITE["topup"]
     pro = SITE["packs"][0]
-    presets = "".join(f'<button type="button" class="preset" data-preset="{a}" data-tier-min="{a}" aria-pressed="false" title="{e(n)}: {tp["rate"] * (100 + b) // 100} créditos por euro">'
-                      f'<b class="tabnum">{a} €</b><span class="preset-bonus{" base" if not b else ""}">{f"+{b} %" if b else "base"}</span></button>'
+    presets = "".join(f'<button type="button" class="preset" data-preset="{a}" data-tier-min="{a}" aria-pressed="false" title="{e(n)}: {tp["rate"] * (100 + b) // 100} {L("créditos por euro", "credits per euro")}">'
+                      f'<b class="tabnum">{L(f"{a} €", f"€{a}")}</b><span class="preset-bonus{" base" if not b else ""}">{(L(f"+{b} %", f"+{b}%")) if b else "base"}</span></button>'
                       for a, b, n in tp["tiers"])
     topup_cfg = e(json.dumps({"min": tp["min"], "max": tp["max"], "rate": tp["rate"],
                               "tiers": [[a, b] for a, b, _ in tp["tiers"]]}))
     body = f"""
 <section class="hero hero-sm"><div class="glow" aria-hidden="true"></div><div class="wrap narrow">
-<nav class="crumbs" aria-label="Ruta"><a href="/">Inicio</a>{icon("chevron-right")}<span aria-current="page">Mi saldo</span></nav>
-<h1>Consulta tu saldo</h1>
-<p class="lead">Pega tu licencia para ver tu plan, los créditos que te quedan y los que has usado.</p>
+<nav class="crumbs" aria-label="{L("Ruta", "Breadcrumb")}"><a href="{U("home")}">{L("Inicio", "Home")}</a>{icon("chevron-right")}<span aria-current="page">{L("Mi saldo", "My balance")}</span></nav>
+<h1>{L("Consulta tu saldo", "Check your balance")}</h1>
+<p class="lead">{L("Pega tu licencia para ver tu plan, los créditos que te quedan y los que has usado.", "Paste your license to see your plan, the credits you have left and the ones you have used.")}</p>
 </div></section>
 <section class="section tight"><div class="wrap narrow">
 <form class="saldo-form glass" data-balance-form novalidate>
-<label class="lic"><span class="lic-label">{icon("key")}Tu licencia</span>
+<label class="lic"><span class="lic-label">{icon("key")}{L("Tu licencia", "Your license")}</span>
 <span class="lic-field"><input type="text" name="license" autocomplete="off" spellcheck="false" placeholder="LIC-…" required aria-describedby="saldo-help"></span>
-<span id="saldo-help" class="lic-help">Se consulta a KeyFlint en el momento. Solo se recuerda en este navegador.</span></label>
-<button class="btn btn-primary btn-lg" type="submit">{icon("gauge")}Consultar saldo</button>
+<span id="saldo-help" class="lic-help">{L("Se consulta a KeyFlint en el momento. Solo se recuerda en este navegador.", "Checked live with KeyFlint. Only remembered in this browser.")}</span></label>
+<button class="btn btn-primary btn-lg" type="submit">{icon("gauge")}{L("Consultar saldo", "Check balance")}</button>
 </form>
 <div class="note ok-note" data-topup-done aria-live="polite" hidden>{icon("check")}<span></span></div>
 <div class="saldo-out" data-balance-out aria-live="polite" hidden>
 <div class="saldo-card">
 <div class="saldo-head"><span class="eyebrow" data-f="tier"></span><span class="status" data-f="status"></span></div>
-<p class="saldo-num"><b class="tabnum" data-f="balance"></b><span class="muted"> créditos disponibles</span></p>
+<p class="saldo-num"><b class="tabnum" data-f="balance"></b><span class="muted"> {L("créditos disponibles", "credits available")}</span></p>
 <div class="meter" role="meter" aria-valuemin="0" data-meter><span></span></div>
-<dl class="saldo-dl"><div><dt>Usados</dt><dd class="tabnum" data-f="consumed"></dd></div><div><dt>Total del plan</dt><dd class="tabnum" data-f="allowance"></dd></div></dl>
-<div class="recharge topup" id="recargar" data-topup='{topup_cfg}'><h3 class="h4">{icon("card")}Recargar créditos</h3>
-<p class="muted small">Elige cuánto pagar. Los créditos se suman a <b>esta misma licencia</b>: no cambias nada en Claude, Cursor ni VS Code. No caducan.</p>
-<div class="topup-presets" role="group" aria-label="Importes rápidos">{presets}</div>
-<div class="topup-amt"><input type="range" min="{tp['min']}" max="{tp['slider_max']}" step="1" value="{tp['default']}" aria-label="Importe en euros" data-topup-range>
-<label class="topup-num"><span class="sr-only">Importe exacto</span><input type="number" inputmode="numeric" min="{tp['min']}" max="{tp['max']}" step="1" value="{tp['default']}" data-topup-amount><span>€</span></label></div>
+<dl class="saldo-dl"><div><dt>{L("Usados", "Used")}</dt><dd class="tabnum" data-f="consumed"></dd></div><div><dt>{L("Total del plan", "Plan total")}</dt><dd class="tabnum" data-f="allowance"></dd></div></dl>
+<div class="recharge topup" id="recargar" data-topup='{topup_cfg}'><h3 class="h4">{icon("card")}{L("Recargar créditos", "Top up credits")}</h3>
+<p class="muted small">{L("Elige cuánto pagar. Los créditos se suman a <b>esta misma licencia</b>: no cambias nada en Claude, Cursor ni VS Code. No caducan.", "Choose how much to pay. Credits are added to <b>this same license</b>: nothing changes in Claude, Cursor or VS Code. They never expire.")}</p>
+<div class="topup-presets" role="group" aria-label="{L("Importes rápidos", "Quick amounts")}">{presets}</div>
+<div class="topup-amt"><input type="range" min="{tp['min']}" max="{tp['slider_max']}" step="1" value="{tp['default']}" aria-label="{L("Importe en euros", "Amount in euros")}" data-topup-range>
+<label class="topup-num"><span class="sr-only">{L("Importe exacto", "Exact amount")}</span><input type="number" inputmode="numeric" min="{tp['min']}" max="{tp['max']}" step="1" value="{tp['default']}" data-topup-amount><span>€</span></label></div>
 <div class="topup-result" aria-live="polite">
-<div class="topup-sum"><span class="eyebrow">Recibes</span><p><b class="tabnum" data-topup-credits></b><span class="topup-unit">créditos</span><span class="topup-badge" data-topup-bonus hidden></span></p></div>
-<ul class="topup-eq" data-topup-eqs><li><b class="tabnum" data-eq="4"></b><span>extractos Norma 43 leídos y conciliados</span></li><li><b class="tabnum" data-eq="2"></b><span>diarios A3 convertidos a ContaPlus</span></li><li><b class="tabnum" data-eq="1"></b><span>webs leídas</span></li></ul>
+<div class="topup-sum"><span class="eyebrow">{L("Recibes", "You get")}</span><p><b class="tabnum" data-topup-credits></b><span class="topup-unit">{L("créditos", "credits")}</span><span class="topup-badge" data-topup-bonus hidden></span></p></div>
+<ul class="topup-eq" data-topup-eqs><li><b class="tabnum" data-eq="4"></b><span>{L("extractos Norma 43 leídos y conciliados", "Norma 43 statements parsed and reconciled")}</span></li><li><b class="tabnum" data-eq="2"></b><span>{L("diarios A3 convertidos a ContaPlus", "journals converted (e.g. A3 to Xero)")}</span></li><li><b class="tabnum" data-eq="1"></b><span>{L("webs leídas", "web pages read")}</span></li></ul>
 <p class="muted small" data-topup-eq hidden></p>
 <p class="topup-next small" data-topup-next></p></div>
-<label class="topup-waiver"><input type="checkbox" data-topup-waiver> <span>Quiero los créditos ya. Acepto que, al empezar a usarlos, pierdo el derecho de desistimiento de 14 días sobre la parte usada.</span></label>
-<button class="btn btn-primary" type="button" data-topup-go disabled>{icon("card")}<span data-topup-label>Recargar</span></button>
-<p class="muted small">Pago seguro con Stripe, IVA incluido. De {tp['min']} € a {tp['max']} € por pago. ¿Lo usas a diario? <a href="{e(pro['checkout'])}" rel="nofollow">Pro: {money(pro['credits'])} créditos al mes por {money(pro['price'])} $</a>.</p>
+<label class="topup-waiver"><input type="checkbox" data-topup-waiver> <span>{L("Quiero los créditos ya. Acepto que, al empezar a usarlos, pierdo el derecho de desistimiento de 14 días sobre la parte usada.", "I want the credits now. I accept that once I start using them I lose the 14-day right of withdrawal on the used part.")}</span></label>
+<button class="btn btn-primary" type="button" data-topup-go disabled>{icon("card")}<span data-topup-label>{L("Recargar", "Top up")}</span></button>
+<p class="muted small">{L(f"Pago seguro con Stripe, IVA incluido. De {tp['min']} € a {tp['max']} € por pago.", f"Secure payment with Stripe, VAT included. From €{tp['min']} to €{tp['max']} per payment.")} {L("¿Lo usas a diario?", "Use it daily?")} <a href="{e(pro['checkout'])}" rel="nofollow">{L(f"Pro: {money(pro['credits'])} créditos al mes por {money(pro['price'])} $", f"Pro: {pro['credits']:,} credits a month for ${pro['price']}")}</a>.</p>
 <p class="saldo-err note" data-topup-err hidden>{icon("info")}<span></span></p></div>
-<div class="cta-row"><a class="btn btn-ghost" href="/precios/">Comparar planes</a><a class="btn btn-quiet" href="/#instalar">Instalar servidores</a></div>
+<div class="cta-row"><a class="btn btn-ghost" href="{U("pricing")}">{L("Comparar planes", "Compare plans")}</a><a class="btn btn-quiet" href="{U("install")}">{L("Instalar servidores", "Install the tools")}</a></div>
 </div>
-<div class="saldo-card uso" data-usage hidden><h3>Uso en los últimos 30 días</h3>
-<div class="tw"><table class="uso-t"><thead><tr><th>Servidor</th><th>Herramienta</th><th class="num">Llamadas</th><th class="num">Créditos</th><th class="num">Errores</th></tr></thead><tbody data-usage-tools></tbody></table></div>
-<h4>Últimas llamadas</h4>
-<div class="tw"><table class="uso-t"><thead><tr><th>Cuándo</th><th>Servidor</th><th>Herramienta</th><th class="num">Créditos</th><th>Estado</th></tr></thead><tbody data-usage-recent></tbody></table></div>
-<p class="muted small">Se registra servidor, herramienta, resultado y créditos de cada llamada por URL. Nunca el contenido. Se borra a los 180 días.</p>
+<div class="saldo-card uso" data-usage hidden><h3>{L("Uso en los últimos 30 días", "Usage in the last 30 days")}</h3>
+<div class="tw"><table class="uso-t"><thead><tr><th>{L("Servidor", "Server")}</th><th>{L("Herramienta", "Tool")}</th><th class="num">{L("Llamadas", "Calls")}</th><th class="num">{L("Créditos", "Credits")}</th><th class="num">{L("Errores", "Errors")}</th></tr></thead><tbody data-usage-tools></tbody></table></div>
+<h4>{L("Últimas llamadas", "Recent calls")}</h4>
+<div class="tw"><table class="uso-t"><thead><tr><th>{L("Cuándo", "When")}</th><th>{L("Servidor", "Server")}</th><th>{L("Herramienta", "Tool")}</th><th class="num">{L("Créditos", "Credits")}</th><th>{L("Estado", "Status")}</th></tr></thead><tbody data-usage-recent></tbody></table></div>
+<p class="muted small">{L("Se registra servidor, herramienta, resultado y créditos de cada llamada por URL. Nunca el contenido. Se borra a los 180 días.", "We log server, tool, result and credits for each remote call. Never the content. Deleted after 180 days.")}</p>
 </div></div>
 <p class="saldo-err note" data-balance-err hidden>{icon("info")}<span></span></p>
-<div class="faq saldo-faq">{faq_html([
+<div class="faq saldo-faq">{faq_html(L([
         ("¿Perdiste tu licencia?", "Escribe tu correo en la página de confirmación del pago o en el portal de KeyFlint y te enviamos un enlace de acceso de un solo uso."),
         ("¿Por qué no veo el detalle por servidor?", "KeyFlint registra el saldo de la licencia, no el uso por herramienta. Cada servidor te dice lo que cuesta antes de usarlo."),
         ("¿Cómo añado créditos?", "Consulta tu saldo, elige el importe en Recargar créditos y paga con Stripe. En unos segundos se suman a la misma licencia, sin cambiar nada en tu configuración."),
         ("¿Hay descuento por volumen?", "Sí: desde 20 € recibes un 10 % más de créditos, desde 50 € un 25 % y desde 100 € un 40 %."),
         ("¿Y si me arrepiento?", "Si no has usado los créditos de una recarga, escríbenos en los 14 días siguientes y te devolvemos el importe. Al devolverla se retiran esos créditos."),
-    ])}</div>
+    ], [
+        ("Lost your license?", "Enter your email on the payment confirmation page or in the KeyFlint portal and we send you a one-time access link."),
+        ("Why no per-tool breakdown?", "KeyFlint tracks the license balance. Remote calls show up in the usage table; each tool tells your AI its cost before running."),
+        ("How do I add credits?", "Check your balance, pick an amount under Top up credits and pay with Stripe. Within seconds they are added to the same license, with no config changes."),
+        ("Is there a volume discount?", "Yes: from €20 you get 10% more credits, from €50 25% more and from €100 40% more."),
+        ("What if I change my mind?", "If you have not used the credits from a top-up, email us within 14 days and we refund it. The refunded credits are removed."),
+    ]))}</div>
 </div></section>"""
-    return page("/saldo/", "Consulta tu saldo de créditos · Flint",
-                "Consulta los créditos que te quedan en tu licencia de KeyFlint MCP.", body, noindex=True)
+    return page(U("balance"), L("Consulta tu saldo de créditos · Flint", "Check your credit balance · Flint"),
+                L("Consulta los créditos que te quedan en tu licencia de KeyFlint MCP.", "Check the credits left on your Flint license and top up."),
+                body, noindex=True, lang=_LANG[-1])
 
 
 def thanks() -> str:
@@ -1083,7 +1120,7 @@ def en_plans() -> str:
     topup = f"""<div class="plan featured"><span class="badge">No subscription</span>
 <div class="plan-head"><h3 class="h3">Pay as you go</h3><p class="muted small">Pay only for what you use</p></div>
 <p class="price">from €{tp['min']}</p><p class="credits">{tp['rate']} credits per euro · up to +40%</p>
-<a class="btn btn-primary btn-block" href="/saldo/#recargar">Top up</a>
+<a class="btn btn-primary btn-block" href="/en/balance/#recargar">Top up</a>
 <ul class="checks">{tiers}<li>{icon("check")}Adds to the same license</li><li>{icon("check")}Credits never expire</li></ul></div>"""
     out = [free, topup]
     for p in SITE["packs"]:
@@ -1095,6 +1132,73 @@ def en_plans() -> str:
 <a class="btn {'btn-primary' if p.get('featured') else 'btn-ghost'} btn-block" href="{e(p['checkout'])}" rel="noopener" data-checkout>Buy {e(p['name'])}</a>
 <ul class="checks"><li>{icon("check")}{e(billing)}</li><li>{icon("check")}{p.get('seats', 3)} devices</li><li>{icon("check")}Failed calls are free</li></ul></div>""")
     return "".join(out)
+
+
+EN_USAGE = [("web-intel", "Read a web page as Markdown", 1), ("web-intel", "Full SEO audit", 3),
+            ("norma43", "Parse a Norma 43 bank statement", 1), ("norma43", "Reconcile a statement with invoices", 3),
+            ("contabridge", "Convert a journal (e.g. A3 to Xero)", 2), ("contabridge", "Validate a journal before import", 1),
+            ("norma43", "Validate an IBAN or Spanish tax ID", 0)]
+
+
+def en_usage_rows() -> str:
+    by = {m["slug"]: m for m in MCPS}
+    return "".join(f'<tr><td><span class="row"><span class="row-ic">{icon(by[s]["icon"])}</span>{e(t)}</span></td>'
+                   f'<td class="r"><span class="credit{" free" if c == 0 else ""}">{"Free" if c == 0 else f"{c} cr"}</span></td></tr>'
+                   for s, t, c in EN_USAGE)
+
+
+def en_balance() -> str:
+    with lang_ctx("en"):
+        return balance_page()
+
+
+def en_start() -> str:
+    with lang_ctx("en"):
+        ins = installer(ALL)
+        uv_mac = code_block("uv-mac", "curl -LsSf https://astral.sh/uv/install.sh | sh", "macOS and Linux · Terminal")
+        uv_win = code_block("uv-win", 'powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"', "Windows · PowerShell")
+    faq = [("The tools don't show up", "Fully restart the client (on Windows, also quit it from the system tray). Check that uvx --version works in a new terminal."),
+           ("It says the license is not valid", f"Make sure you copied the whole license, with no spaces, into KEYFLINT_LICENSE. Still failing? Email {CONTACT}."),
+           ("I ran out of credits", "The tool returns a top-up link. Top-ups are added to the same license, so you don't change any config.")]
+    body = f"""
+<section class="hero hero-sm"><div class="glow" aria-hidden="true"></div><div class="wrap narrow">
+<nav class="crumbs" aria-label="Breadcrumb"><a href="/en/">Home</a>{icon("chevron-right")}<span aria-current="page">Guide</span></nav>
+<h1>Get started in three steps</h1>
+<p class="lead">From zero to your first working tool in about two minutes. No coding needed.</p>
+</div></section>
+<section class="section tight"><div class="wrap narrow">
+<ol class="guide">
+<li class="g-step" id="license"><span class="g-n">1</span><div class="g-body">
+<h2>Get your license</h2>
+<p>Your license looks like <code>LIC-…</code>, arrives by email and works with every tool.</p>
+<div class="choice">
+<a class="choice-card" href="/en/try/"><span class="tile tile-sm">{icon("key")}</span><span class="cc-text"><b>Free · {SITE['free_credits']} credits</b><span class="muted small">Instant, no card.</span></span>{icon("arrow-right")}</a>
+<a class="choice-card" href="/en/#pricing"><span class="tile tile-sm">{icon("card")}</span><span class="cc-text"><b>Paid plan</b><span class="muted small">License right after payment.</span></span>{icon("arrow-right")}</a>
+</div></div></li>
+<li class="g-step" id="uv"><span class="g-n">2</span><div class="g-body">
+<h2>Install uv, once</h2>
+<p><a href="https://docs.astral.sh/uv/" rel="noopener">uv</a> downloads and runs the tools in isolation on your machine. Only needed for local mode; the remote connector needs nothing. Open a terminal and run the command for your system:</p>
+{uv_mac}
+{uv_win}
+<p class="note">{icon("info")}<span>Then close and reopen your client so it finds <code>uvx</code>.</span></p>
+</div></li>
+<li class="g-step"><span class="g-n">3</span><div class="g-body">
+<h2>Add the tools to your client</h2>
+<p>Paste your license and copy the config with all {len(MCPS)} tools at once. For a single tool with one-click install, use the picker on the <a href="/en/#install">home page</a>.</p>
+<div class="install-card glass">{ins}</div>
+</div></li>
+<li class="g-step"><span class="g-n g-ok">{icon("check")}</span><div class="g-body">
+<h2>Check it</h2>
+<p>Ask your agent: <q>how many credits do I have left?</q> It uses the free <code>credits_balance</code> tool and tells you your balance.</p>
+<div class="faq">{faq_html(faq)}</div>
+</div></li>
+</ol>
+</div></section>"""
+    ld = [{"@context": "https://schema.org", "@type": "HowTo", "name": "Install a Flint MCP server", "totalTime": "PT2M", "inLanguage": "en",
+           "step": [{"@type": "HowToStep", "name": n} for n in ["Get your license", "Install uv", "Add the server to your MCP client", "Check it with your agent"]]}]
+    return page("/en/start/", "How to install an MCP server in Claude, Cursor or VS Code · Flint",
+                "Step-by-step guide to install MCP servers in Claude Desktop, Claude Code, Cursor, VS Code, Codex, Antigravity and Windsurf with a free license.",
+                body, ld, lang="en")
 
 
 def en_home() -> str:
@@ -1110,8 +1214,9 @@ def en_home() -> str:
         ("ledger", "Source on GitHub", "Plain, tested Python under the Business Source License 1.1. Read exactly what your AI runs."),
     ]
     feat_html = "".join(f'<div class="feat"><span class="tile tile-sm">{icon(i)}</span><h3>{t}</h3><p>{d}</p></div>' for i, t, d in feats)
-    remote = en_code("en-remote", "https://mcp.keyflint.dev/norma43/mcp", "Remote connector URL")
-    local = en_code("en-local", '{\n  "mcpServers": {\n    "flint-bank": {\n      "command": "uvx",\n      "args": ["norma43-mcp"],\n      "env": { "KEYFLINT_LICENSE": "LIC-…" }\n    }\n  }\n}', "Local (claude_desktop_config.json, Cursor, VS Code)")
+    with lang_ctx("en"):
+        picker, installers = install_picker()
+        quick, demo, sealed, roi = quick_install(), live_demo(), seal(compact=True), roi_calc()
     faq = [
         ("What is MCP?", "The Model Context Protocol is the open standard that lets AI clients such as Claude, ChatGPT, Cursor and VS Code call external tools. Flint is a set of MCP servers your AI can call when it needs an exact answer."),
         ("Is it open source?", "The code is public on GitHub under the Business Source License 1.1: you can read it, run it and audit it. Commercial use goes through a license with credits."),
@@ -1127,7 +1232,7 @@ def en_home() -> str:
 <h1>Deterministic tools your AI can trust with numbers</h1>
 <p class="lead">AI is great at writing and bad at numbers. Flint gives Claude, ChatGPT, Cursor and VS Code tools that compute instead of guess: bank reconciliation, accounting exports, e-invoicing checks, data cleaning and web audits.</p>
 <div class="cta-row"><a class="btn btn-primary btn-lg" href="/en/try/">{icon("key")}Get {SITE['free_credits']} free credits</a>
-<a class="btn btn-ghost btn-lg" href="#pricing">See pricing</a></div>
+<a class="btn btn-ghost btn-lg" href="#live">{icon("arrow-right")}Try it live, no install</a></div>
 <ul class="assure"><li>{icon("check")}No card</li><li>{icon("check")}Pay per successful call</li><li>{icon("check")}Source on GitHub</li></ul>
 </div>
 <figure class="demo glass en-video"><video controls preload="none" playsinline poster="/assets/video/flint-launch-en.jpg" width="1280" height="720">
@@ -1143,20 +1248,20 @@ def en_home() -> str:
 <p class="lead-sm">Each tool does one exact job end to end and validates data the way the destination software does.</p></div>
 <div class="grid-3">{cards}</div>
 </div></section>
-
-<section class="section alt"><div class="wrap">
+{demo}
+<section class="section"><div class="wrap">
 <div class="section-head"><p class="eyebrow">Why Flint</p><h2>Built for work where "almost right" fails</h2></div>
 <div class="feat-grid">{feat_html}</div>
 </div></section>
-
-<section class="section" id="how"><div class="wrap install-grid">
+{sealed}
+<section class="section" id="install"><div class="wrap install-grid">
 <div class="section-head left"><p class="eyebrow">How it works</p><h2>Connected in two minutes</h2>
 <ol class="steps">
 <li class="step"><span class="tile tile-sm">{icon("key")}</span><div><h3><span class="step-n">1</span>Get a license</h3><p>{SITE['free_credits']} free credits or a paid plan. You see it on screen and get it by email.</p></div></li>
 <li class="step"><span class="tile tile-sm">{icon("plug")}</span><div><h3><span class="step-n">2</span>Connect your AI</h3><p>Add the remote connector URL in Claude or ChatGPT and sign in with your license, or run it locally with uvx in Cursor, VS Code or Claude Desktop.</p></div></li>
 <li class="step"><span class="tile tile-sm">{icon("chat")}</span><div><h3><span class="step-n">3</span>Just ask</h3><p>"Reconcile October's statement with invoices.csv". Your AI picks the tool and shows the cost.</p></div></li>
 </ol></div>
-<div class="install-card glass">{remote}<p class="muted small">Swap <code>norma43</code> for <code>web-intel</code>, <code>dataclean</code>, <code>contabridge</code> or <code>verifactu</code>.</p>{local}</div>
+<div class="install-card glass">{quick}<p class="quick-or muted small">or pick a tool and a client</p><div class="picker" role="group" aria-label="Pick a tool">{picker}</div>{installers}</div>
 </div></section>
 
 <section class="section alt" id="pricing"><div class="wrap">
@@ -1165,6 +1270,12 @@ def en_home() -> str:
 <div class="plans">{en_plans()}</div>
 <p class="muted small center fine">{icon("lock")}Secure checkout with Stripe. Top-ups in euros with VAT included; Pro in USD plus local taxes. You receive an invoice with NIF/VAT. By purchasing you accept the <a href="/terminos/">terms</a>, the <a href="https://keyflint.dev/privacy.html">privacy policy</a>, and the <a href="/reembolsos/">refund policy</a>.</p>
 </div></section>
+<section class="section"><div class="wrap usage-grid">
+<div class="section-head left"><p class="eyebrow">How far it goes</p><h2>Cost of common tasks</h2>
+<p class="lead-sm">Each tool tells your AI its cost before it runs. Validations and utilities are free.</p></div>
+<div class="table-wrap card-flat"><table><thead><tr><th scope="col">Task</th><th scope="col" class="r">Cost</th></tr></thead><tbody>{en_usage_rows()}</tbody></table></div>
+</div></section>
+{roi}
 
 <section class="section"><div class="wrap faq-grid">
 <div class="section-head left"><p class="eyebrow">FAQ</p><h2>Questions</h2>
@@ -1187,6 +1298,9 @@ def en_home() -> str:
 
 def en_try() -> str:
     remotes = "".join(f'<li><b>{e(t[2])}</b> <code>https://mcp.keyflint.dev/{t[1]}/mcp</code></li>' for t in EN_TOOLS)
+    with lang_ctx("en"):
+        picker, installers = install_picker()
+        quick = quick_install()
     body = f"""
 <section class="hero hero-sm"><div class="glow" aria-hidden="true"></div><div class="wrap narrow">
 <nav class="crumbs" aria-label="Breadcrumb"><a href="/en/">Home</a>{icon("chevron-right")}<span aria-current="page">Free trial</span></nav>
@@ -1207,12 +1321,11 @@ def en_try() -> str:
 {en_code("lic-trial", "LIC-…", "KEYFLINT_LICENSE")}
 </div>
 </div></section>
-<section class="section"><div class="wrap narrow legal">
-<h2>Connect it</h2>
-<p><b>Claude or ChatGPT (remote):</b> add a custom connector with one of these URLs and paste your license when asked.</p>
-<ul>{remotes}</ul>
-<p><b>Cursor, VS Code, Claude Desktop (local):</b> install <a href="https://docs.astral.sh/uv/" rel="noopener">uv</a> once and add the server with <code>uvx</code> and the <code>KEYFLINT_LICENSE</code> variable, as shown on the <a href="/en/#how">home page</a>.</p>
-<p class="muted small">By getting a license you accept the <a href="/terminos/">terms</a> (in Spanish, summarised in the <a href="/en/#pricing">FAQ</a>).</p>
+<section class="section" id="install"><div class="wrap install-grid">
+<div class="section-head left"><p class="eyebrow">Next step</p><h2>Install it in your client</h2>
+<p class="lead-sm">Claude, ChatGPT, Claude Code, Cursor, VS Code and more. Your license fills in every snippet. Remote URLs: </p><ul class="muted small">{remotes}</ul>
+<p class="muted small">By getting a license you accept the <a href="/terminos/">terms</a> (in Spanish, summarised in the <a href="/en/#pricing">FAQ</a>).</p></div>
+<div class="install-card glass">{quick}<p class="quick-or muted small">or pick a tool and a client</p><div class="picker" role="group" aria-label="Pick a tool">{picker}</div>{installers}</div>
 </div></section>"""
     return page("/en/try/", f"Try Flint free: {SITE['free_credits']} credits, no card",
                 f"Get a free Flint license with {SITE['free_credits']} credits for all 5 MCP tools. No card.", body, lang="en")
@@ -1225,7 +1338,7 @@ def foot_en() -> str:
 <div class="foot-brand"><a class="brand" href="/en/">{flint()}<span>Flint</span><span class="brand-tag">by KeyFlint</span></a>
 <p class="muted small">Deterministic MCP tools for AI agents, with signed licenses and pay-per-use credits. Built in Spain.</p></div>
 <div><h3>Tools</h3><ul>{tools}</ul></div>
-<div><h3>Resources</h3><ul><li><a href="/en/try/">Free trial</a></li><li><a href="/en/#pricing">Pricing</a></li><li><a href="/saldo/">Check balance (ES)</a></li><li><a href="https://github.com/ArceeDev" rel="noopener">GitHub</a></li><li><a href="/estado/">Status</a></li></ul></div>
+<div><h3>Resources</h3><ul><li><a href="/en/try/">Free trial</a></li><li><a href="/en/start/">Install guide</a></li><li><a href="/en/#pricing">Pricing</a></li><li><a href="/en/balance/">Check balance</a></li><li><a href="https://github.com/ArceeDev" rel="noopener">GitHub</a></li><li><a href="/estado/">Status</a></li></ul></div>
 <div><h3>Legal &amp; support</h3><ul><li><a href="/terminos/">Terms (ES)</a></li><li><a href="/reembolsos/">Refunds (ES)</a></li><li><a href="/aviso-legal/">Legal notice (ES)</a></li><li><a href="https://keyflint.dev/privacy.html">Privacy</a></li><li><a href="{SITE['contact']}">{e(CONTACT)}</a></li></ul></div>
 </div>
 <div class="foot-base">
@@ -1237,7 +1350,7 @@ def foot_en() -> str:
 </div></footer>"""
 
 
-ALT_LANG = {"/": "/en/", "/probar/": "/en/try/"}
+ALT_LANG = {"/": "/en/", "/probar/": "/en/try/", "/saldo/": "/en/balance/", "/empezar/": "/en/start/"}
 
 
 def status_page() -> str:
@@ -1426,6 +1539,8 @@ def main() -> None:
     write("en/index.html", en_home())
     write("estado/index.html", status_page())
     write("en/try/index.html", en_try())
+    write("en/balance/index.html", en_balance())
+    write("en/start/index.html", en_start())
     write("reembolsos/index.html", refunds_page())
     write("aviso-legal/index.html", notice_page())
     write("asesorias/index.html", advisors_page())
@@ -1434,10 +1549,10 @@ def main() -> None:
         print("AVISO: faltan datos del titular en data/catalog.json -> site.legal:", ", ".join(legal_missing()))
     for m in MCPS:
         write(f"{m['slug']}/index.html", mcp_page(m))
-    paths = ["/", "/probar/", "/empezar/", "/precios/", "/terminos/", "/reembolsos/", "/aviso-legal/", "/en/", "/en/try/", "/estado/", "/asesorias/"] + [f"/{m['slug']}/" for m in MCPS]
+    paths = ["/", "/probar/", "/empezar/", "/precios/", "/terminos/", "/reembolsos/", "/aviso-legal/", "/en/", "/en/try/", "/en/start/", "/estado/", "/asesorias/"] + [f"/{m['slug']}/" for m in MCPS]
     write("sitemap.xml", '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
           + "".join(f"<url><loc>{SITE['url']}{p}</loc><lastmod>{TODAY}</lastmod></url>\n" for p in paths) + "</urlset>\n")
-    write("robots.txt", f"User-agent: *\nAllow: /\nDisallow: /gracias/\nDisallow: /saldo/\nDisallow: /api/\n\nSitemap: {SITE['url']}/sitemap.xml\n")
+    write("robots.txt", f"User-agent: *\nAllow: /\nDisallow: /gracias/\nDisallow: /saldo/\nDisallow: /en/balance/\nDisallow: /api/\n\nSitemap: {SITE['url']}/sitemap.xml\n")
     write("llms.txt", f"# {SITE['name']}\n\n> {SITE['description']}\n\n## Servidores\n\n"
           + "".join(f"- [{m['name']}]({SITE['url']}/{m['slug']}/): {m['headline']}\n" for m in MCPS)
           + f"\n## Más\n\n- [Precios]({SITE['url']}/precios/)\n- [Guía de instalación]({SITE['url']}/empezar/)\n")

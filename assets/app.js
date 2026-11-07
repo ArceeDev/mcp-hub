@@ -2,6 +2,10 @@
 (function () {
   "use strict";
   var PH = "LIC-tu-licencia", KEY = "kf-mcp-license", SAFE = /^[A-Za-z0-9._~+\/=-]{6,1024}$/;
+  /* idioma de la página: las mismas funciones sirven /… y /en/… */
+  var EN = document.documentElement.lang === "en", LOC = EN ? "en-US" : "es-ES";
+  function T(es, en) { return EN ? en : es; }
+  function EUR(n) { return EN ? "€" + n : n + " €"; }
   var CHECK = '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>';
 
   function store(k, v) {
@@ -20,7 +24,7 @@
     var text = el.innerText.replace(/ /g, " ");
     function done() {
       var label = b.querySelector("span"), old = label ? label.textContent : null;
-      b.classList.add("done"); if (label) label.textContent = "Copiado";
+      b.classList.add("done"); if (label) label.textContent = T("Copiado", "Copied");
       setTimeout(function () { b.classList.remove("done"); if (label) label.textContent = old; }, 1600);
     }
     function fallback() {
@@ -96,8 +100,8 @@
       if (help) {
         var bad = !!lic && !ok;
         help.classList.toggle("warn", bad);
-        help.textContent = bad ? "Esa licencia tiene caracteres no válidos. Cópiala de nuevo desde el correo." :
-          ok ? "Licencia aplicada en todos los fragmentos y botones." : "Se rellena en todos los fragmentos. No sale de tu navegador.";
+        help.textContent = bad ? T("Esa licencia tiene caracteres no válidos. Cópiala de nuevo desde el correo.", "That license has invalid characters. Copy it again from the email.") :
+          ok ? T("Licencia aplicada en todos los fragmentos y botones.", "License applied to every snippet and button.") : T("Se rellena en todos los fragmentos. No sale de tu navegador.", "Fills in every snippet. It never leaves your browser.");
       }
     });
   }
@@ -117,9 +121,10 @@
   var bf = document.querySelector("[data-balance-form]");
   if (bf) {
     var out = document.querySelector("[data-balance-out]"), err = document.querySelector("[data-balance-err]");
-    var nf = new Intl.NumberFormat("es-ES");
-    var TIERS = { community: "Gratis", pro: "Pro", indie: "Indie", agency: "Agency", studio: "Studio", lifetime: "Founder" };
-    var STATUS = { active: "Activa", grace_period: "En periodo de gracia", expired: "Caducada", suspended: "Suspendida", revoked: "Revocada" };
+    var nf = new Intl.NumberFormat(LOC);
+    var TIERS = { community: T("Gratis", "Free"), pro: "Pro", indie: "Indie", agency: "Agency", studio: "Studio", lifetime: "Founder" };
+    var STATUS = EN ? { active: "Active", grace_period: "Grace period", expired: "Expired", suspended: "Suspended", revoked: "Revoked" }
+      : { active: "Activa", grace_period: "En periodo de gracia", expired: "Caducada", suspended: "Suspendida", revoked: "Revocada" };
     function cleanLicense(raw) {
       if (!raw) return "";
       var str = String(raw).trim();
@@ -148,7 +153,7 @@
         return;
       }
       if (!SAFE.test(lic)) {
-        err.querySelector("span").textContent = "Pega la licencia completa, tal como aparece en el correo.";
+        err.querySelector("span").textContent = T("Pega la licencia completa, tal como aparece en el correo.", "Paste the full license, exactly as it appears in the email.");
         err.hidden = false;
         return;
       }
@@ -156,13 +161,13 @@
       fetch("/api/saldo?license=" + encodeURIComponent(lic), { headers: { accept: "application/json" } })
         .then(function (r) { return r.json(); })
         .then(function (d) {
-          if (!d.ok) throw new Error(d.error || "No se pudo consultar el saldo.");
-          f("tier", "Plan " + (TIERS[d.tier] || d.tier)); f("status", STATUS[d.status] || d.status);
+          if (!d.ok) throw new Error(d.error || T("No se pudo consultar el saldo.", "Could not check the balance."));
+          f("tier", T("Plan ", "") + (TIERS[d.tier] || d.tier) + T("", " plan")); f("status", STATUS[d.status] || d.status);
           out.querySelector('[data-f="status"]').className = "status" + (d.status === "active" ? " ok" : " warn");
           f("balance", nf.format(d.balance)); f("consumed", nf.format(d.consumed)); f("allowance", nf.format(d.allowance));
           var m = out.querySelector("[data-meter]"), pct = d.allowance ? Math.max(0, Math.min(100, d.balance / d.allowance * 100)) : 0;
           m.setAttribute("aria-valuemax", d.allowance); m.setAttribute("aria-valuenow", d.balance);
-          m.setAttribute("aria-label", nf.format(d.balance) + " de " + nf.format(d.allowance) + " créditos");
+          m.setAttribute("aria-label", nf.format(d.balance) + T(" de ", " of ") + nf.format(d.allowance) + T(" créditos", " credits"));
           m.firstElementChild.style.width = pct + "%"; m.classList.toggle("low", pct < 15);
           out.hidden = false;
           store(KEY, lic);
@@ -170,7 +175,7 @@
           syncTopup();
           loadUsage(lic);
         })
-        .catch(function (e) { err.querySelector("span").textContent = e.message || "No se pudo consultar el saldo."; err.hidden = false; })
+        .catch(function (e) { err.querySelector("span").textContent = e.message || T("No se pudo consultar el saldo.", "Could not check the balance."); err.hidden = false; })
         .then(function () { btn.disabled = false; btn.removeAttribute("aria-busy"); });
     });
   }
@@ -183,28 +188,29 @@
     var cfg = JSON.parse(tb.getAttribute("data-topup"));
     var rng = tb.querySelector("[data-topup-range]"), amt = tb.querySelector("[data-topup-amount]");
     var waiver = tb.querySelector("[data-topup-waiver]"), go = tb.querySelector("[data-topup-go]"), terr = tb.querySelector("[data-topup-err]");
-    var nfT = new Intl.NumberFormat("es-ES");
+    var nfT = new Intl.NumberFormat(LOC);
     function bonusOf(eur) { var b = 0; cfg.tiers.forEach(function (t) { if (eur >= t[0]) b = t[1]; }); return b; }
     function creditsOf(eur) { return eur < cfg.min ? 0 : Math.floor(eur * 100 * cfg.rate * (100 + bonusOf(eur)) / 10000); }
     function valid(eur) { return Number.isInteger(eur) && eur >= cfg.min && eur <= cfg.max; }
     syncTopup = function () {
       var eur = Number(amt.value), ok = valid(eur), b = bonusOf(eur), c = creditsOf(eur);
       tb.querySelector("[data-topup-credits]").textContent = ok ? nfT.format(c) : "—";
-      var bonus = tb.querySelector("[data-topup-bonus]"); bonus.hidden = !ok || !b; bonus.textContent = "+" + b + " %";
-      var eqMsg = tb.querySelector("[data-topup-eq]"); eqMsg.hidden = ok; eqMsg.textContent = "Entre " + cfg.min + " € y " + cfg.max + " €, sin decimales";
+      var bonus = tb.querySelector("[data-topup-bonus]"); bonus.hidden = !ok || !b; bonus.textContent = "+" + b + T(" %", "%");
+      var eqMsg = tb.querySelector("[data-topup-eq]"); eqMsg.hidden = ok; eqMsg.textContent = T("Entre ", "Between ") + EUR(cfg.min) + T(" y ", " and ") + EUR(cfg.max) + T(", sin decimales", ", whole euros");
       tb.querySelector("[data-topup-eqs]").hidden = !ok;
       tb.querySelectorAll("[data-eq]").forEach(function (el) { el.textContent = "≈ " + nfT.format(Math.floor(c / Number(el.getAttribute("data-eq")))); });
       if (bonus.getAttribute("data-b") !== String(b)) { bonus.setAttribute("data-b", b); bonus.classList.remove("pop"); void bonus.offsetWidth; bonus.classList.add("pop"); }
       rng.style.setProperty("--p", Math.max(0, Math.min(100, (Number(rng.value) - Number(rng.min)) / (Number(rng.max) - Number(rng.min)) * 100)) + "%");
       var next = cfg.tiers.filter(function (t) { return t[0] > eur; })[0];
       tb.querySelector("[data-topup-next]").textContent = ok && next
-        ? "Con " + next[0] + " € (" + (next[0] - eur) + " € más) recibes " + nfT.format(creditsOf(next[0])) + " créditos: +" + next[1] + " %." : "";
+        ? T("Con " + EUR(next[0]) + " (" + EUR(next[0] - eur) + " más) recibes " + nfT.format(creditsOf(next[0])) + " créditos: +" + next[1] + " %.",
+            "With " + EUR(next[0]) + " (" + EUR(next[0] - eur) + " more) you get " + nfT.format(creditsOf(next[0])) + " credits: +" + next[1] + "%.") : "";
       tb.querySelectorAll("[data-tier-min]").forEach(function (li) {
         var m = Number(li.getAttribute("data-tier-min")), nx = cfg.tiers.filter(function (t) { return t[0] > m; })[0];
         li.classList.toggle("on", ok && eur >= m && (!nx || eur < nx[0]));
         li.setAttribute("aria-pressed", String(ok && eur === m));
       });
-      tb.querySelector("[data-topup-label]").textContent = ok ? "Recargar " + eur + " €" : "Recargar";
+      tb.querySelector("[data-topup-label]").textContent = ok ? T("Recargar ", "Top up ") + EUR(eur) : T("Recargar", "Top up");
       go.disabled = !(ok && waiver.checked && topupLicense);
     };
     rng.addEventListener("input", function () { amt.value = rng.value; syncTopup(); });
@@ -218,14 +224,14 @@
       if (!valid(eur) || !waiver.checked || !topupLicense) return;
       terr.hidden = true; go.disabled = true; go.setAttribute("aria-busy", "true");
       fetch("/api/recarga", { method: "POST", headers: { "content-type": "application/json", accept: "application/json" },
-        body: JSON.stringify({ license: topupLicense, amount: eur, currency: "eur", waiver: true }) })
+        body: JSON.stringify({ license: topupLicense, amount: eur, currency: "eur", waiver: true, lang: EN ? "en" : "es" }) })
         .then(function (r) { return r.json(); })
         .then(function (d) {
-          if (!d.ok || !/^https:\/\/([a-z0-9-]+\.)*(stripe\.com|link\.com)\//.test(d.url || "")) throw new Error(d.error || "No se pudo iniciar el pago.");
+          if (!d.ok || !/^https:\/\/([a-z0-9-]+\.)*(stripe\.com|link\.com)\//.test(d.url || "")) throw new Error(d.error || T("No se pudo iniciar el pago.", "Could not start the payment."));
           location.href = d.url;
         })
         .catch(function (e) {
-          terr.querySelector("span").textContent = e.message || "No se pudo iniciar el pago."; terr.hidden = false;
+          terr.querySelector("span").textContent = e.message || T("No se pudo iniciar el pago.", "Could not start the payment."); terr.hidden = false;
           go.removeAttribute("aria-busy"); syncTopup();
         });
     });
@@ -237,20 +243,20 @@
   var done = document.querySelector("[data-topup-done]");
   var rsid = done && (new URLSearchParams(location.search).get("recarga") || "");
   if (done && /^cs_[A-Za-z0-9_]{10,250}$/.test(rsid)) {
-    var dmsg = done.querySelector("span"), dtries = 0, nfD = new Intl.NumberFormat("es-ES");
-    dmsg.textContent = "Pago recibido. Sumando los créditos a tu licencia…"; done.hidden = false;
+    var dmsg = done.querySelector("span"), dtries = 0, nfD = new Intl.NumberFormat(LOC);
+    dmsg.textContent = T("Pago recibido. Sumando los créditos a tu licencia…", "Payment received. Adding the credits to your license…"); done.hidden = false;
     (function poll() {
       fetch("/api/recarga?session=" + encodeURIComponent(rsid), { headers: { accept: "application/json" } })
         .then(function (r) { return r.json(); })
         .then(function (d) {
           if (d.ok && d.status === "applied") {
-            dmsg.textContent = "Recarga completada: +" + nfD.format(d.credits) + " créditos. Saldo actual: " + nfD.format(d.balance) + " créditos.";
+            dmsg.textContent = T("Recarga completada: +", "Top-up complete: +") + nfD.format(d.credits) + T(" créditos. Saldo actual: ", " credits. Current balance: ") + nfD.format(d.balance) + T(" créditos.", " credits.");
             if (bf && bf.license.value) bf.requestSubmit();
             return;
           }
-          if (d.ok && d.status === "failed") { dmsg.textContent = "El pago se recibió, pero no pudimos sumar los créditos. Escríbenos a support@keyflint.dev y lo resolvemos o te devolvemos el importe."; return; }
+          if (d.ok && d.status === "failed") { dmsg.textContent = T("El pago se recibió, pero no pudimos sumar los créditos. Escríbenos a support@keyflint.dev y lo resolvemos o te devolvemos el importe.", "The payment arrived but we could not add the credits. Email support@keyflint.dev and we will fix it or refund you."); return; }
           if (++dtries < 30) setTimeout(poll, 2000);
-          else dmsg.textContent = "El pago está confirmado y los créditos se están sumando. Vuelve a consultar el saldo en unos minutos.";
+          else dmsg.textContent = T("El pago está confirmado y los créditos se están sumando. Vuelve a consultar el saldo en unos minutos.", "Payment confirmed and the credits are being added. Check your balance again in a few minutes.");
         })
         .catch(function () { if (++dtries < 30) setTimeout(poll, 2000); });
     })();
@@ -264,7 +270,7 @@
       .then(function (r) { return r.json(); })
       .then(function (d) {
         if (!d.ok || (!d.recent.length && !d.tools.length)) { box.hidden = true; return; }
-        var nf = new Intl.NumberFormat("es-ES"), when = new Intl.DateTimeFormat("es-ES", { dateStyle: "short", timeStyle: "short" });
+        var nf = new Intl.NumberFormat(LOC), when = new Intl.DateTimeFormat(LOC, { dateStyle: "short", timeStyle: "short" });
         function td(v, cls) { var c = document.createElement("td"); if (cls) c.className = cls; c.textContent = v; return c; }
         function fill(sel, rows, cells) {
           var tb = box.querySelector(sel); tb.textContent = "";
@@ -347,7 +353,6 @@
   var tf = document.querySelector("[data-trial-form]");
   if (tf) {
     var tmsg = tf.querySelector("[data-trial-msg]"), tout = document.querySelector("[data-trial-out]");
-    var EN = document.documentElement.lang === "en";
     var M = EN ? { bad: "Enter a valid email.", wait: "Creating your license…", mailed: "Done. It will reach your inbox in a few minutes; check spam.",
       used: "That email already has a trial license.", off: "The free trial is not available right now.", fail: "Could not create the license. Try again in a minute.", net: "Could not connect. Try again in a minute.", rec: "Recover it" }
       : { bad: "Escribe un correo válido.", wait: "Creando tu licencia…", mailed: "Listo. Te llega por correo en unos minutos. Revisa spam.",
@@ -402,19 +407,19 @@
   }
   var RENDER = {
     "web-intel": function (box, r) {
-      kv(box, [["Título", r.title], ["Palabras", r.word_count], ["URL final", r.url]]);
-      codeOut(box, (r.markdown || "") + (r.truncated ? "\n\n[…recortado en la demo]" : ""), "Markdown");
+      kv(box, [[T("Título", "Title"), r.title], [T("Palabras", "Words"), r.word_count], [T("URL final", "Final URL"), r.url]]);
+      codeOut(box, (r.markdown || "") + (r.truncated ? T("\n\n[…recortado en la demo]", "\n\n[…truncated in the demo]") : ""), "Markdown");
     },
     norma43: function (box, r) {
       var sm = r.summary || {};
-      box.appendChild(el("p", "status " + (r.valid ? "ok" : "warn"), r.valid ? "Fichero válido" : "Fichero con errores"));
-      kv(box, [["Cuentas", sm.accounts], ["Movimientos", sm.movements], ["Errores", sm.errors], ["Avisos", sm.warnings]]);
+      box.appendChild(el("p", "status " + (r.valid ? "ok" : "warn"), r.valid ? T("Fichero válido", "Valid file") : T("Fichero con errores", "File has errors")));
+      kv(box, [[T("Cuentas", "Accounts"), sm.accounts], [T("Movimientos", "Movements"), sm.movements], [T("Errores", "Errors"), sm.errors], [T("Avisos", "Warnings"), sm.warnings]]);
       issueList(box, r.issues);
       (r.accounts || []).forEach(function (a) {
-        kv(box, [["Cuenta", a.iban], ["Banco", a.bank], ["Titular", a.holder], ["Saldo inicial", a.opening_balance], ["Saldo final", a.closing_balance]]);
+        kv(box, [[T("Cuenta", "Account"), a.iban], [T("Banco", "Bank"), a.bank], [T("Titular", "Holder"), a.holder], [T("Saldo inicial", "Opening balance"), a.opening_balance], [T("Saldo final", "Closing balance"), a.closing_balance]]);
         if (!a.movements || !a.movements.length) return;
         var tw = el("div", "tw"), t = el("table", "uso-t"), th = el("thead"), tr = el("tr"), tb = el("tbody");
-        ["Fecha", "Concepto", "Importe"].forEach(function (h, i) { tr.appendChild(el("th", i === 2 ? "num" : "", h)); });
+        [T("Fecha", "Date"), T("Concepto", "Description"), T("Importe", "Amount")].forEach(function (h, i) { tr.appendChild(el("th", i === 2 ? "num" : "", h)); });
         th.appendChild(tr); t.appendChild(th);
         a.movements.forEach(function (m) {
           var row = el("tr");
@@ -428,7 +433,7 @@
     },
     contabridge: function (box, r) {
       var sm = r.summary || {};
-      kv(box, [["Asientos", sm.entries], ["Líneas", sm.lines], ["Debe", sm.total_debit], ["Haber", sm.total_credit], ["Cuadra", sm.balanced ? "Sí" : "No"]]);
+      kv(box, [[T("Asientos", "Entries"), sm.entries], [T("Líneas", "Lines"), sm.lines], [T("Debe", "Debit"), sm.total_debit], [T("Haber", "Credit"), sm.total_credit], [T("Cuadra", "Balanced"), sm.balanced ? T("Sí", "Yes") : "No"]]);
       issueList(box, r.issues);
       codeOut(box, r.content || "", r.filename);
     },
@@ -445,9 +450,9 @@
   /* calculadora de ahorro (precios y /asesorias/) */
   $$("[data-roi]").forEach(function (f) {
     var cfg = JSON.parse(f.getAttribute("data-roi"));
-    var eur = new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR", maximumFractionDigits: 0 });
-    var eur2 = new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR", minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    var num = new Intl.NumberFormat("es-ES", { maximumFractionDigits: 1 });
+    var eur = new Intl.NumberFormat(LOC, { style: "currency", currency: "EUR", maximumFractionDigits: 0 });
+    var eur2 = new Intl.NumberFormat(LOC, { style: "currency", currency: "EUR", minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    var num = new Intl.NumberFormat(LOC, { maximumFractionDigits: 1 });
     function v(n) { var x = Number(f.elements[n].value); return isFinite(x) && x > 0 ? x : 0; }
     function put(k, t) { var el = f.querySelector("[data-roi-" + k + "]"); if (el) el.textContent = t; }
     function calc() {
@@ -455,7 +460,7 @@
       var saved = Math.max(0, v("manual") - v("review")) * n / 60, manual = v("manual") * n / 60 * rate;
       var credits = t[0] * n, flint = credits * cfg.eur_per_credit + v("review") * n / 60 * rate;
       put("hours", num.format(saved) + " h"); put("manual", eur.format(manual));
-      put("flint", eur.format(flint)); put("credits", eur2.format(credits * cfg.eur_per_credit) + " en créditos + tu revisión");
+      put("flint", eur.format(flint)); put("credits", eur2.format(credits * cfg.eur_per_credit) + T(" en créditos + tu revisión", " in credits + your review"));
       put("save", eur.format(Math.max(0, manual - flint))); put("cpu", t[0]);
     }
     f.elements.task.addEventListener("change", function () {
@@ -474,19 +479,21 @@
       var btn = f.querySelector("button[type=submit]"), body = {};
       $$("input, textarea, select", f).forEach(function (x) { if (x.name) body[x.name] = x.value; });
       btn.disabled = true; btn.setAttribute("aria-busy", "true");
-      msg.className = "lic-help"; msg.textContent = "Ejecutando el servidor…"; out.hidden = true;
+      msg.className = "lic-help"; msg.textContent = T("Ejecutando el servidor…", "Running the server…"); out.hidden = true;
       fetch("/api/demo/" + slug, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) })
         .then(function (r) { return r.json(); })
         .then(function (d) {
           if (!d.ok) {
-            msg.className = "lic-help warn"; msg.textContent = d.error || "No se pudo ejecutar la demo.";
-            if (d.limit) { var a = el("a", "", "Licencia gratis"); a.href = "/probar/"; msg.appendChild(document.createTextNode(" ")); msg.appendChild(a); }
+            msg.className = "lic-help warn";
+            msg.textContent = EN ? (d.limit ? "You've used today's demo runs. Get a free license to keep going." : d.unavailable ? "The demo is not available right now." : "Could not run the demo: " + (d.error || "unknown error"))
+              : (d.error || "No se pudo ejecutar la demo.");
+            if (d.limit) { var a = el("a", "", T("Licencia gratis", "Free license")); a.href = T("/probar/", "/en/try/"); msg.appendChild(document.createTextNode(" ")); msg.appendChild(a); }
             return;
           }
           out.textContent = ""; RENDER[slug](out, d.result || {}); out.hidden = false;
-          msg.className = "lic-help good"; msg.textContent = "Hecho con " + d.tool + ": es lo mismo que recibe tu agente.";
+          msg.className = "lic-help good"; msg.textContent = T("Hecho con " + d.tool + ": es lo mismo que recibe tu agente.", "Done with " + d.tool + ": exactly what your agent gets.");
         })
-        .catch(function () { msg.className = "lic-help warn"; msg.textContent = "No se pudo conectar. Inténtalo en un minuto."; })
+        .catch(function () { msg.className = "lic-help warn"; msg.textContent = T("No se pudo conectar. Inténtalo en un minuto.", "Could not connect. Try again in a minute."); })
         .then(function () { btn.disabled = false; btn.removeAttribute("aria-busy"); });
     });
   });
