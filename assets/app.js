@@ -109,6 +109,10 @@
   });
   apply(store(KEY) || "");
 
+  /* enlace del correo de saldo agotado: /saldo/#licencia=…&importe=5 (la licencia sale de la barra de direcciones) */
+  var HASH = new URLSearchParams((location.hash || "").replace(/^#/, ""));
+  if (HASH.get("licencia") && history.replaceState) history.replaceState(null, "", location.pathname + location.search + "#recargar");
+
   /* saldo */
   var bf = document.querySelector("[data-balance-form]");
   if (bf) {
@@ -125,7 +129,7 @@
     }
     function f(name, v) { var el = out.querySelector('[data-f="' + name + '"]'); if (el) el.textContent = v; }
 
-    var qLic = new URLSearchParams(window.location.search).get("licencia") || new URLSearchParams(window.location.search).get("license");
+    var qLic = new URLSearchParams(window.location.search).get("licencia") || new URLSearchParams(window.location.search).get("license") || HASH.get("licencia");
     if (qLic) {
       bf.license.value = cleanLicense(qLic);
       setTimeout(function () { bf.dispatchEvent(new Event("submit")); }, 50);
@@ -225,6 +229,8 @@
           go.removeAttribute("aria-busy"); syncTopup();
         });
     });
+    var hAmt = Number(HASH.get("importe"));
+    if (valid(hAmt)) { amt.value = hAmt; if (hAmt <= Number(rng.max)) rng.value = hAmt; }
     syncTopup();
   }
   /* vuelta de Stripe: /saldo/?recarga=cs_… */
@@ -427,6 +433,40 @@
       codeOut(box, r.content || "", r.filename);
     },
   };
+  /* playground: pestañas de demos */
+  $$("[data-live]").forEach(function (b) {
+    b.addEventListener("click", function () {
+      var slug = b.getAttribute("data-live"), box = b.closest("section");
+      $$("[data-live]", box).forEach(function (x) { x.setAttribute("aria-selected", x === b ? "true" : "false"); });
+      $$("[data-live-panel]", box).forEach(function (p) { p.hidden = p.getAttribute("data-live-panel") !== slug; });
+    });
+  });
+
+  /* calculadora de ahorro (precios y /asesorias/) */
+  $$("[data-roi]").forEach(function (f) {
+    var cfg = JSON.parse(f.getAttribute("data-roi"));
+    var eur = new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR", maximumFractionDigits: 0 });
+    var eur2 = new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR", minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    var num = new Intl.NumberFormat("es-ES", { maximumFractionDigits: 1 });
+    function v(n) { var x = Number(f.elements[n].value); return isFinite(x) && x > 0 ? x : 0; }
+    function put(k, t) { var el = f.querySelector("[data-roi-" + k + "]"); if (el) el.textContent = t; }
+    function calc() {
+      var t = cfg.tasks[f.elements.task.value], n = v("n"), rate = v("rate");
+      var saved = Math.max(0, v("manual") - v("review")) * n / 60, manual = v("manual") * n / 60 * rate;
+      var credits = t[0] * n, flint = credits * cfg.eur_per_credit + v("review") * n / 60 * rate;
+      put("hours", num.format(saved) + " h"); put("manual", eur.format(manual));
+      put("flint", eur.format(flint)); put("credits", eur2.format(credits * cfg.eur_per_credit) + " en créditos + tu revisión");
+      put("save", eur.format(Math.max(0, manual - flint))); put("cpu", t[0]);
+    }
+    f.elements.task.addEventListener("change", function () {
+      var t = cfg.tasks[f.elements.task.value];
+      f.elements.n.value = t[1]; f.elements.manual.value = t[2]; f.elements.review.value = t[3]; calc();
+    });
+    f.addEventListener("input", calc);
+    f.addEventListener("submit", function (ev) { ev.preventDefault(); });
+    calc();
+  });
+
   $$("[data-demo]").forEach(function (f) {
     var slug = f.getAttribute("data-demo"), msg = f.querySelector("[data-demo-msg]"), out = f.querySelector("[data-demo-out]");
     f.addEventListener("submit", function (ev) {

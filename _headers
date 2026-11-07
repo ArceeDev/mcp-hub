@@ -1,4 +1,7 @@
-/assets/*
+/assets/instalar.*
+  Content-Type: text/plain; charset=utf-8
+  Cache-Control: public, max-age=300
+/*
   Cache-Control: public, max-age=31536000, immutable
 /favicon.*
   Cache-Control: public, max-age=86400, must-revalidate

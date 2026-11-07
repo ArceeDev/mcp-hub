@@ -337,7 +337,7 @@ def page(path: str, title: str, desc: str, body: str, ld: list | None = None, no
 <div class="foot-brand"><a class="brand" href="/">{flint()}<span>Flint</span><span class="brand-tag">by KeyFlint</span></a>
 <p class="muted small">Servidores MCP deterministas para agentes de IA, con licencias criptográficas y pago por uso.</p></div>
 <div><h3>Servidores</h3><ul>{''.join(f'<li><a href="/{m["slug"]}/">{e(m["name"])}</a></li>' for m in MCPS)}</ul></div>
-<div><h3>Recursos</h3><ul><li><a href="/empezar/">Guía de instalación</a></li><li><a href="/saldo/">Consultar saldo</a></li><li><a href="/precios/">Precios</a></li><li><a href="https://keyflint.dev">KeyFlint</a></li></ul></div>
+<div><h3>Recursos</h3><ul><li><a href="/empezar/">Guía de instalación</a></li><li><a href="/saldo/">Consultar saldo</a></li><li><a href="/precios/">Precios</a></li><li><a href="/asesorias/">Para asesorías</a></li><li><a href="https://keyflint.dev">KeyFlint</a></li></ul></div>
 <div><h3>Legal y soporte</h3><ul><li><a href="/terminos/">Términos de uso</a></li><li><a href="/reembolsos/">Reembolsos</a></li><li><a href="/aviso-legal/">Aviso legal</a></li><li><a href="/estado/">Estado del servicio</a></li><li><a href="https://keyflint.dev/privacy.html">Privacidad</a></li><li><a href="https://keyflint.dev/dpa.html">Encargo de tratamiento</a></li><li><a href="{SITE['contact']}">{e(CONTACT)}</a></li></ul></div>
 </div>
 <div class="foot-base">
@@ -435,6 +435,28 @@ def install_picker() -> tuple[str, str]:
     return picker, installers
 
 
+def quick_install() -> str:
+    """Instalador de un comando (installer/instalar.*): todos los servidores en todos los clientes detectados."""
+    sh = f"curl -LsSf {SITE['url']}/instalar.sh | sh -s -- {LIC_PLACEHOLDER}"
+    ps = f"$env:KEYFLINT_LICENSE='{LIC_PLACEHOLDER}'; irm {SITE['url']}/instalar.ps1 | iex"
+    return f"""<div class="quick" data-installer='{{"slug": "quick"}}'>
+<p class="quick-title">{icon("terminal")}<b>Un solo comando</b><span class="muted small">: instala los {len(MCPS)} servidores en Claude Desktop, Cursor, VS Code, Windsurf y Claude Code (los que tengas).</span></p>
+<span class="lic-field"><input type="text" autocomplete="off" spellcheck="false" placeholder="Pega aquí tu LIC-…" data-license aria-label="Tu licencia"><span class="lic-state" data-license-state aria-live="polite"></span></span>
+<p class="lic-help"></p>
+{code_block("q-sh", sh, "macOS / Linux · Terminal")}
+{code_block("q-ps", ps, "Windows · PowerShell")}
+<p class="muted small">Instala <a href="/empezar/#uv">uv</a> si falta, guarda una copia de cada configuración antes de tocarla y no envía nada salvo la licencia a KeyFlint. <a href="/instalar.py">Ver el código</a>.</p>
+</div>"""
+
+
+def installer_files() -> None:
+    servers = {m["slug"]: server_cfg(m) for m in MCPS}
+    src = (ROOT / "installer" / "instalar.py").read_text(encoding="utf-8")
+    write("instalar.py", src.replace("__SERVERS__", json.dumps(servers, ensure_ascii=False)).replace("__PH__", LIC_PLACEHOLDER))
+    for f in ("instalar.sh", "instalar.ps1"):
+        write(f, (ROOT / "installer" / f).read_text(encoding="utf-8").replace("__SITE__", SITE["url"]))
+
+
 DEMO_N43 = "112100041802000513322610012610312000000001500009783ACME SOLUCIONES SL           \n22    0418261003261003020002000000001250000000000000000000000000                \n2301CLIENTE DEMO SL                                                             \n2303        FACTURA 2026-104                                                    \n22    0418261015261015030001000000000042350000012345000000000000                \n3321000418020005133200001000000000042350000100000000125000200000000270765978    \n88999999999999999999000006                                                      \n"
 DEMO_CSV = ("Asiento;Fecha;Cuenta;Concepto;Debe;Haber\n"
             "1;02/11/2026;4300001;Factura 104 Cliente Demo;1.210,00;\n1;02/11/2026;7000001;Factura 104 Cliente Demo;;1.000,00\n"
@@ -442,8 +464,12 @@ DEMO_CSV = ("Asiento;Fecha;Cuenta;Concepto;Debe;Haber\n"
             "2;05/11/2026;5720001;Cobro factura 104;1.210,00;\n2;05/11/2026;4300001;Cobro factura 104;;1.210,00\n")
 
 
-def demo_block(m: dict) -> str:
-    """Prueba sin instalar en la ficha (usa créditos del hub, no del visitante). Solo para los servidores con demo."""
+DEMO_SLUGS = ("norma43", "contabridge", "web-intel")
+
+
+def demo_block(m: dict, head: bool = True) -> str:
+    """Prueba sin instalar (usa créditos del hub, no del visitante). Solo para los servidores con demo.
+    head=False devuelve solo el formulario (pestañas de la portada y /asesorias/)."""
     s = m["slug"]
     if s == "web-intel":
         field = ('<label class="demo-field"><span>URL</span><input type="url" name="url" inputmode="url" '
@@ -462,15 +488,47 @@ def demo_block(m: dict) -> str:
         btn, tool = "Convertir", "convert_journal"
     else:
         return ""
-    return f"""<div class="block demo-try" id="probar-aqui"><h2>Pruébalo aquí, sin instalar</h2>
-<p class="muted">Es el servidor real (<code>{tool}</code>). La demo corre de nuestra cuenta: no gastas créditos ni necesitas licencia.</p>
-<form class="glass demo-form" data-demo="{s}" novalidate>{field}
+    form = f"""<form class="glass demo-form" data-demo="{s}" novalidate>{field}
 <div class="demo-actions"><button class="btn btn-primary" type="submit">{icon("arrow-right")}{btn}</button>
 <span class="muted small">5 pruebas al día. Para tus propios ficheros, <a href="/probar/">licencia gratis</a>.</span></div>
 <p class="lic-help" data-demo-msg aria-live="polite"></p>
 <div class="demo-out" data-demo-out hidden></div>
-</form></div>
+</form>"""
+    if not head:
+        return form
+    return f"""<div class="block demo-try" id="probar-aqui"><h2>Pruébalo aquí, sin instalar</h2>
+<p class="muted">Es el servidor real (<code>{tool}</code>). La demo corre de nuestra cuenta: no gastas créditos ni necesitas licencia.</p>
+{form}</div>
 """
+
+
+def live_demo(slugs=DEMO_SLUGS, title: str = "Pruébalo en vivo, sin instalar nada",
+              lead: str = "Elige un ejemplo y pulsa el botón: es el servidor real, el mismo resultado que recibe tu agente. Sin licencia, sin configurar nada.") -> str:
+    """Playground de la portada: pestañas con las demos reales (/api/demo/<slug>)."""
+    by = {m["slug"]: m for m in MCPS}
+    ms = [by[x] for x in slugs if x in by]
+    tabs = "".join(f'<button type="button" class="pick" role="tab" aria-selected="{"true" if i == 0 else "false"}" '
+                   f'data-live="{m["slug"]}">{icon(m["icon"])}<span>{e(m["name"])}</span></button>' for i, m in enumerate(ms))
+    panels = "".join(f'<div class="live-panel" role="tabpanel" data-live-panel="{m["slug"]}"{"" if i == 0 else " hidden"}>{demo_block(m, head=False)}</div>'
+                     for i, m in enumerate(ms))
+    return f"""<section class="section alt" id="en-vivo"><div class="wrap narrow">
+<div class="section-head"><p class="eyebrow">Demo en vivo</p><h2>{title}</h2><p class="lead-sm">{lead}</p></div>
+<div class="picker live-tabs" role="tablist" aria-label="Elige una demo">{tabs}</div>
+{panels}
+<p class="muted small center">¿Te convence? <a href="/probar/">Pide tu licencia gratis</a> y úsalo con tus propios ficheros desde Claude, Cursor o VS Code.</p>
+</div></section>"""
+
+
+def seal(compact: bool = False) -> str:
+    """Garantía de determinismo: solo lo que el producto hace de verdad (reconcile.py: «Never guess»; refunds automáticos)."""
+    items = [("target", "Misma entrada, mismo resultado", "Sin IA intermedia: dos ejecuciones dan el mismo fichero, byte a byte, y lo puedes comprobar con su hash."),
+             ("shield", "Nunca adivina", "Si un movimiento no se puede casar con certeza, sale marcado como ambiguo o pendiente para que lo revise una persona. No se inventan apuntes."),
+             ("refund", "Lo que falla no se cobra", "Los ficheros no válidos se rechazan antes de cobrar y, si una llamada falla después, el crédito vuelve solo a tu saldo.")]
+    lis = "".join(f'<li><span class="tile tile-sm">{icon(i)}</span><div><h3>{t}</h3><p>{d}</p></div></li>' for i, t, d in items)
+    return f"""<section class="section{' tight' if compact else ''}"><div class="wrap"><div class="seal glass">
+<div class="seal-badge" aria-hidden="true">{icon("check")}<span>Garantía<br>de determinismo</span></div>
+<div><h2>Cero inventos: o es exacto, o te lo marca</h2><ul class="seal-list">{lis}</ul></div>
+</div></div></section>"""
 
 
 def trial_page() -> str:
@@ -498,7 +556,7 @@ def trial_page() -> str:
 <section class="section" id="instalar"><div class="wrap install-grid">
 <div class="section-head left"><p class="eyebrow">Siguiente paso</p><h2>Instálalo en tu cliente</h2>
 <p class="lead-sm">Claude Desktop (extensión .mcpb), Claude Code, Cursor, VS Code y más. Elige servidor y copia.</p></div>
-<div class="install-card glass"><div class="picker" role="group" aria-label="Elige servidor">{picker}</div>{installers}</div>
+<div class="install-card glass">{quick_install()}<p class="quick-or muted small">o elige servidor y cliente</p><div class="picker" role="group" aria-label="Elige servidor">{picker}</div>{installers}</div>
 </div></section>"""
     return page("/probar/", f"Prueba gratis los servidores MCP: {SITE['free_credits']} créditos · Flint",
                 f"Licencia gratis al momento con {SITE['free_credits']} créditos para todos los servidores MCP de KeyFlint. Sin tarjeta.", body)
@@ -538,11 +596,11 @@ def home() -> str:
     body = f"""
 <section class="hero"><div class="glow" aria-hidden="true"></div><div class="wrap hero-grid">
 <div class="hero-copy">
-<p class="kicker"><a class="pill" href="/contabridge/"><span class="pill-dot" aria-hidden="true"></span>Nuevo: ContaBridge para gestorías{icon("arrow-right")}</a></p>
+<p class="kicker"><a class="pill" href="/asesorias/"><span class="pill-dot" aria-hidden="true"></span>Nuevo: Flint para asesorías y gestorías{icon("arrow-right")}</a></p>
 <h1>Herramientas MCP fiables para tu agente de IA</h1>
 <p class="lead">{e(SITE['tagline'])} Funcionan en Claude, Cursor, VS Code, Codex, Antigravity y cualquier cliente compatible, con resultados en tarjetas visuales.</p>
 <div class="cta-row"><a class="btn btn-primary btn-lg" href="#instalar">{icon("download")}Instalar en 2 minutos</a>
-<a class="btn btn-ghost btn-lg" href="/precios/">Ver precios</a></div>
+<a class="btn btn-ghost btn-lg" href="#en-vivo">{icon("arrow-right")}Probar en vivo, sin instalar</a></div>
 <ul class="assure">
 <li>{icon("check")}{SITE['free_credits']} créditos gratis</li><li>{icon("check")}Sin permanencia</li><li>{icon("check")}Se ejecuta en tu equipo</li></ul>
 </div>
@@ -551,6 +609,8 @@ def home() -> str:
 
 <section class="clients" aria-label="Clientes compatibles"><div class="wrap clients-in">
 <p class="clients-title">Compatible con</p><div class="marquee"><div class="marquee-track"><ul class="client-list">{clients}</ul><ul class="client-list" aria-hidden="true">{clients}</ul></div></div></div></section>
+
+{live_demo()}
 
 <section class="section" id="catalogo"><div class="wrap">
 <div class="section-head"><p class="eyebrow">Catálogo</p><h2>Servidores listos para trabajo real</h2>
@@ -562,12 +622,13 @@ def home() -> str:
 <div class="section-head"><p class="eyebrow">Por qué Flint</p><h2>Pensados para producción, no para demos</h2></div>
 <div class="feat-grid">{feat_html}</div>
 </div></section>
+{seal(compact=True)}
 
 <section class="section" id="instalar"><div class="wrap install-grid">
 <div class="section-head left"><p class="eyebrow">Instalación</p><h2>Elige servidor y cliente. Copia. Listo.</h2>
 <p class="lead-sm">Pega tu licencia y todos los fragmentos se rellenan solos. En Claude Desktop, Cursor y VS Code basta un clic.</p>
 <ol class="steps">{steps_html}</ol></div>
-<div class="install-card glass"><div class="picker" role="group" aria-label="Elige servidor">{picker}</div>{installers}</div>
+<div class="install-card glass">{quick_install()}<p class="quick-or muted small">o elige servidor y cliente</p><div class="picker" role="group" aria-label="Elige servidor">{picker}</div>{installers}</div>
 </div></section>
 
 <section class="section alt"><div class="wrap faq-grid">
@@ -657,6 +718,43 @@ def mcp_page(m: dict) -> str:
     return page(f"/{s}/", title, m["summary"][:158], body, ld)
 
 
+ROI_TASKS = [  # (clave, texto, créditos por unidad, unidades/mes, min a mano, min de revisión) · costes = tabla de uso
+    ("n43", "Conciliar extractos Norma 43 (leer + conciliar)", 4, 20, 30, 5),
+    ("diario", "Convertir diarios contables (validar + convertir)", 3, 10, 20, 3),
+    ("web", "Auditar webs (SEO completo)", 3, 10, 30, 5),
+]
+
+
+def roi_calc() -> str:
+    """Calculadora de ahorro con las cifras del visitante. Coste por crédito = recarga mínima (sin bonus)."""
+    tp = SITE["topup"]
+    cfg = {"eur_per_credit": round(1 / tp["rate"], 4), "tasks": {k: [c, n, a, r] for k, _, c, n, a, r in ROI_TASKS}}
+    opts = "".join(f'<option value="{k}">{e(t)}</option>' for k, t, *_ in ROI_TASKS)
+    k0, _, c0, n0, a0, r0 = ROI_TASKS[0]
+    field = lambda name, label, val, suf, mx: (f'<label class="demo-field"><span>{label}</span><span class="roi-in">'
+                                               f'<input type="number" name="{name}" value="{val}" min="0" max="{mx}" step="1" inputmode="numeric">'
+                                               f'<em>{suf}</em></span></label>')
+    return f"""<section class="section" id="ahorro"><div class="wrap narrow">
+<div class="section-head"><p class="eyebrow">Calculadora de ahorro</p><h2>¿Cuánto te cuesta hoy hacerlo a mano?</h2>
+<p class="lead-sm">Pon tus cifras. Comparamos tu tiempo con el coste en créditos al precio de la recarga mínima ({money(1 / tp["rate"])} € por crédito).</p></div>
+<form class="glass roi" data-roi='{e(json.dumps(cfg))}' novalidate>
+<label class="demo-field"><span>Tarea</span><select name="task">{opts}</select></label>
+<div class="roi-grid">
+{field("n", "Cuántas al mes", n0, "/mes", 10000)}
+{field("manual", "Minutos a mano, cada una", a0, "min", 600)}
+{field("review", "Minutos de revisión con Flint", r0, "min", 600)}
+{field("rate", "Coste de una hora de trabajo", 20, "€/h", 500)}
+</div>
+<div class="roi-out" aria-live="polite">
+<div><span class="muted small">Horas que recuperas</span><b data-roi-hours>—</b></div>
+<div><span class="muted small">A mano te cuesta</span><b data-roi-manual>—</b></div>
+<div><span class="muted small">Con Flint</span><b data-roi-flint>—</b><span class="muted small" data-roi-credits></span></div>
+<div class="roi-save"><span class="small">Ahorro al mes</span><b data-roi-save>—</b></div>
+</div>
+<p class="muted small">Estimación con tus datos: incluye el tiempo de revisión y el coste en créditos (<span data-roi-cpu>{c0}</span> por unidad), no el de instalar. <a href="/saldo/#recargar">Recarga desde {tp["min"]} €</a> o empieza con <a href="/probar/">{SITE['free_credits']} créditos gratis</a>.</p>
+</form></div></section>"""
+
+
 def pricing() -> str:
     common = ["Todos los servidores del catálogo", "Reembolso automático si algo falla", "Factura con NIF/VAT"]
     cards = [f"""<div class="plan">
@@ -713,6 +811,7 @@ def pricing() -> str:
 <p class="lead-sm">Con una recarga de 5 € (100 créditos) lees y concilias 25 extractos Norma 43 (4 créditos cada uno).</p></div>
 <div class="table-wrap card-flat"><table><thead><tr><th scope="col">Tarea</th><th scope="col" class="r">Coste</th></tr></thead><tbody>{urows}</tbody></table></div>
 </div></section>
+{roi_calc()}
 <section class="section"><div class="wrap faq-grid">
 <div class="section-head left"><p class="eyebrow">Preguntas frecuentes</p><h2>Pagos y licencias</h2></div>
 <div class="faq">{faq_html(faq)}</div></div></section>"""
@@ -727,6 +826,57 @@ def pricing() -> str:
     return page("/precios/", "Precios de los servidores MCP · Flint",
                 f"Un saldo de créditos para todos los servidores MCP de KeyFlint. Recargas desde {SITE['topup']['min']} € sin suscripción o gratis con {SITE['free_credits']} créditos.",
                 body, ld)
+
+
+def advisors_page() -> str:
+    """Landing no técnica para asesorías y gestorías (/asesorias/)."""
+    by = {m["slug"]: m for m in MCPS}
+    pains = [
+        ("landmark", "Bancos conciliados sin picar", "Le pasas los extractos del banco (el fichero Norma 43 / cuaderno 43 que descargas de la banca online) y te devuelve cada movimiento casado con su factura, con la puntuación y el motivo."),
+        ("ledger", "Diarios que entran a la primera", "Convierte asientos entre A3, ContaPlus / Sage 50, Xero y QuickBooks, y revisa que cuadran antes de importarlos. Sin plantillas de Excel."),
+        ("shield", "VeriFactu y Facturae revisados antes de enviar", "Comprueba la cadena de registros (huellas, enlaces, duplicados), el XML contra el XSD de la AEAT, el QR tributario y las facturas Facturae."),
+    ]
+    pains_html = "".join(f'<div class="feat"><span class="tile tile-sm">{icon(i)}</span><h3>{t}</h3><p>{d}</p></div>' for i, t, d in pains)
+    steps = [("key", "Pide tu licencia gratis", f"Con tu correo. {SITE['free_credits']} créditos, sin tarjeta."),
+             ("download", "Instálalo una vez", "Un comando lo deja listo en Claude Desktop o Cursor. Si prefieres, lo hace tu informático en dos minutos."),
+             ("chat", "Pídeselo en castellano", "«Concilia este extracto con las facturas de octubre». El asistente usa la herramienta y te enseña el resultado.")]
+    steps_html = "".join(f'<li class="step"><span class="tile tile-sm">{icon(i)}</span><div><h3><span class="step-n">{n}</span>{t}</h3><p>{d}</p></div></li>'
+                         for n, (i, t, d) in enumerate(steps, 1))
+    faq = [
+        ("¿Tengo que saber de informática?", "No. Se instala una vez con un comando que copias y pegas (o con un clic en Claude Desktop). Después solo hablas con el asistente."),
+        ("¿Mis datos salen del despacho?", "Con la instalación local, no: los ficheros se procesan en tu ordenador y a KeyFlint solo llega la licencia y el consumo de créditos."),
+        ("¿Y si la IA se equivoca con un apunte?", "Las herramientas no usan IA para calcular: aplican reglas fijas y dan siempre el mismo resultado. Lo que no se puede casar con certeza queda marcado para que lo revises."),
+        ("¿Sustituye a mi programa de contabilidad?", "No. Prepara y revisa los ficheros para que entren limpios en A3, ContaPlus, Sage 50, Xero o QuickBooks."),
+        ("¿Cuánto cuesta?", f"Pagas por uso: conciliar un extracto son 4 créditos (unos 0,20 €). Empiezas con {SITE['free_credits']} créditos gratis y recargas desde {SITE['topup']['min']} €, sin cuotas."),
+    ]
+    body = f"""
+<section class="hero"><div class="glow" aria-hidden="true"></div><div class="wrap narrow center">
+<p class="eyebrow">Para asesorías y gestorías</p>
+<h1>La IA que concilia bancos y revisa tus ficheros fiscales, sin inventarse nada</h1>
+<p class="lead">Extractos Norma 43, diarios de A3 o ContaPlus y registros VeriFactu, preparados en segundos desde Claude o Cursor. Con la instalación local, tus datos no salen de tu despacho.</p>
+<div class="cta-row center"><a class="btn btn-primary btn-lg" href="#en-vivo">{icon("arrow-right")}Verlo con un extracto de ejemplo</a>
+<a class="btn btn-ghost btn-lg" href="/probar/">{SITE['free_credits']} créditos gratis</a></div>
+<ul class="assure center"><li>{icon("check")}Sin cuotas ni permanencia</li><li>{icon("check")}Factura con NIF</li><li>{icon("check")}Soporte en castellano</li></ul>
+</div></section>
+<section class="section"><div class="wrap">
+<div class="section-head"><p class="eyebrow">Lo que te quita de encima</p><h2>Menos horas picando datos, menos sustos con Hacienda</h2></div>
+<div class="feat-grid">{pains_html}</div>
+<p class="muted small center">Fichas técnicas: <a href="/norma43/">{e(by["norma43"]["name"])}</a> · <a href="/contabridge/">{e(by["contabridge"]["name"])}</a> · <a href="/verifactu/">{e(by["verifactu"]["name"])}</a></p>
+</div></section>
+{live_demo(("norma43", "contabridge"), "Míralo funcionar con un ejemplo", "Un extracto bancario y dos asientos de prueba. Pulsa el botón: es la herramienta real, sin instalar nada.")}
+{seal(compact=True)}
+{roi_calc()}
+<section class="section alt"><div class="wrap install-grid">
+<div class="section-head left"><p class="eyebrow">Cómo empezar</p><h2>Listo en tres pasos</h2><ol class="steps">{steps_html}</ol></div>
+<div class="faq">{faq_html(faq)}</div>
+</div></section>
+<section class="section"><div class="wrap"><div class="cta-band">
+<div><h2>Prueba con tus extractos de este mes</h2><p class="lead-sm">{SITE['free_credits']} créditos gratis: unos 6 extractos conciliados. Sin tarjeta.</p></div>
+<div class="cta-row"><a class="btn btn-primary btn-lg" href="/probar/">Pedir licencia gratis</a><a class="btn btn-ghost btn-lg" href="{SITE['contact']}">Hablar con nosotros</a></div>
+</div></div></section>"""
+    return page("/asesorias/", "Conciliación bancaria y VeriFactu con IA para asesorías · Flint",
+                "Concilia extractos Norma 43, convierte diarios de A3 y ContaPlus y revisa VeriFactu desde Claude o Cursor. Resultados exactos, pago por uso y 25 créditos gratis.",
+                body, [faq_ld(faq)])
 
 
 def start() -> str:
@@ -1278,11 +1428,13 @@ def main() -> None:
     write("en/try/index.html", en_try())
     write("reembolsos/index.html", refunds_page())
     write("aviso-legal/index.html", notice_page())
+    write("asesorias/index.html", advisors_page())
+    installer_files()
     if legal_missing():
         print("AVISO: faltan datos del titular en data/catalog.json -> site.legal:", ", ".join(legal_missing()))
     for m in MCPS:
         write(f"{m['slug']}/index.html", mcp_page(m))
-    paths = ["/", "/probar/", "/empezar/", "/precios/", "/terminos/", "/reembolsos/", "/aviso-legal/", "/en/", "/en/try/", "/estado/"] + [f"/{m['slug']}/" for m in MCPS]
+    paths = ["/", "/probar/", "/empezar/", "/precios/", "/terminos/", "/reembolsos/", "/aviso-legal/", "/en/", "/en/try/", "/estado/", "/asesorias/"] + [f"/{m['slug']}/" for m in MCPS]
     write("sitemap.xml", '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
           + "".join(f"<url><loc>{SITE['url']}{p}</loc><lastmod>{TODAY}</lastmod></url>\n" for p in paths) + "</urlset>\n")
     write("robots.txt", f"User-agent: *\nAllow: /\nDisallow: /gracias/\nDisallow: /saldo/\nDisallow: /api/\n\nSitemap: {SITE['url']}/sitemap.xml\n")
