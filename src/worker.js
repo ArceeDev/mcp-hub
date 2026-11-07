@@ -141,6 +141,67 @@ async function trial(request, env, url) {
   }
 }
 
+// Recarga libre: el gateway crea la sesión de Stripe y suma los créditos a ESTA licencia al cobrar.
+// Aquí solo validamos, limitamos por IP y no dejamos que el navegador elija los créditos.
+const TOPUP_MIN = 5, TOPUP_MAX = 500;
+const TOPUP_ERRORS = {
+  400: "Elige un importe entre 5 € y 500 €, sin decimales.",
+  404: "No encontramos esa licencia. Revisa que esté completa.",
+  409: "Esta licencia no está activa. Escríbenos a support@keyflint.dev.",
+  429: "Has llegado al límite de recargas de hoy para esta licencia. Vuelve mañana o escríbenos.",
+  503: "Las recargas no están disponibles ahora mismo. Inténtalo más tarde.",
+};
+
+async function topup(request, env, url) {
+  if (!sameOrigin(request, url)) return json({ ok: false }, 403);
+  let body = {};
+  try { body = await request.json(); } catch (e) { /* cuerpo no válido */ }
+  const license = String(body.license || "").trim();
+  const amount = body.amount;
+  const currency = String(body.currency || "eur").toLowerCase();
+  if (!LICENSE_RE.test(license)) return json({ ok: false, error: "Licencia con formato no válido." }, 400);
+  if (!Number.isInteger(amount) || amount < TOPUP_MIN || amount > TOPUP_MAX) return json({ ok: false, error: TOPUP_ERRORS[400] }, 400);
+  if (currency !== "eur" && currency !== "usd") return json({ ok: false, error: "Moneda no admitida." }, 400);
+  if (body.waiver !== true) return json({ ok: false, error: "Marca la casilla para recibir los créditos ya." }, 400);
+  const db = env.USAGE_DB, ip = clientIp(request), day = today();
+  let ipKey = null;
+  if (db) {
+    ipKey = await hash(ip, env.LIMITS_SALT || "kf-hub");
+    if (!(await take(db, "topup_ip", ipKey, day, num(env.TOPUP_PER_IP_DAY, 10))))
+      return json({ ok: false, error: "Demasiados intentos de pago desde tu conexión. Inténtalo mañana." }, 429);
+  }
+  const back = (env.PUBLIC_URL || "https://mcp.keyflint.dev").replace(/\/$/, "") + "/saldo/";
+  try {
+    const r = await gateway(env, "/api/v1/billing/topup", {
+      method: "POST",
+      body: JSON.stringify({ license_key: license, amount_cents: amount * 100, currency, return_url: back }),
+    });
+    const d = r.data && r.data.data;
+    if (r.ok && d && typeof d.checkout_url === "string" && /^https:\/\//.test(d.checkout_url))
+      return json({ ok: true, url: d.checkout_url, credits: Number(d.credits) || 0 });
+    if (db && ipKey) await giveBack(db, "topup_ip", ipKey, day);
+    const st = r.status === 422 ? 400 : r.status;
+    return json({ ok: false, error: TOPUP_ERRORS[st] || "KeyFlint no responde ahora mismo. Inténtalo en un minuto." }, TOPUP_ERRORS[st] ? st : 502);
+  } catch (e) {
+    if (db && ipKey) await giveBack(db, "topup_ip", ipKey, day);
+    return json({ ok: false, error: "KeyFlint no responde ahora mismo. Inténtalo en un minuto." }, 502);
+  }
+}
+
+async function topupStatus(request, env, url) {
+  const sid = (url.searchParams.get("session") || "").trim();
+  if (!SESSION_RE.test(sid)) return json({ ok: false, error: "Enlace de pago no válido." }, 400);
+  try {
+    const r = await gateway(env, "/api/v1/billing/topup/" + encodeURIComponent(sid), { method: "GET" });
+    const d = r.data && r.data.data;
+    if (!r.ok || !d) return json({ ok: false, error: "KeyFlint no responde ahora mismo." }, 502);
+    return json({ ok: true, status: String(d.status || "pending"), credits: Number(d.credits) || 0,
+      balance: Number(d.credit_balance) || 0 });
+  } catch (e) {
+    return json({ ok: false, error: "KeyFlint no responde ahora mismo." }, 502);
+  }
+}
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
@@ -148,6 +209,8 @@ export default {
     if (url.pathname === "/api/licencia" && request.method === "GET") return reveal(request, env, url);
     if (url.pathname === "/api/recuperar" && request.method === "POST") return recover(request, env, url);
     if (url.pathname === "/api/prueba" && request.method === "POST") return trial(request, env, url);
+    if (url.pathname === "/api/recarga" && request.method === "POST") return topup(request, env, url);
+    if (url.pathname === "/api/recarga" && request.method === "GET") return topupStatus(request, env, url);
     if (url.pathname.startsWith("/api/")) return json({ ok: false, error: "No encontrado." }, 404);
     return env.ASSETS.fetch(request);
   },

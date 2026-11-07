@@ -550,7 +550,7 @@ def home() -> str:
 </div></section>
 
 <section class="section"><div class="wrap"><div class="cta-band">
-<div><h2>Empieza gratis hoy</h2><p class="lead-sm">{SITE['free_credits']} créditos para probar cualquier servidor. Planes desde {money(min_price)} $.</p></div>
+<div><h2>Empieza gratis hoy</h2><p class="lead-sm">{SITE['free_credits']} créditos para probar cualquier servidor. Recargas desde {SITE['topup']['min']} € o Pro a {money(min_price)} $/mes.</p></div>
 <div class="cta-row"><a class="btn btn-primary btn-lg" href="/precios/">Ver planes</a><a class="btn btn-ghost btn-lg" href="/empezar/">Leer la guía</a></div>
 </div></div></section>"""
     ld = [
@@ -637,6 +637,13 @@ def pricing() -> str:
 <p class="price">0 $</p><p class="credits">{SITE['free_credits']} créditos</p>
 <a class="btn btn-ghost btn-block" href="/probar/">Pedir licencia gratis</a>
 <ul class="checks"><li>{icon("check")}1 equipo</li><li>{icon("check")}Todos los servidores</li><li>{icon("check")}Sin tarjeta</li></ul></div>"""]
+    tp = SITE["topup"]
+    tier_li = "".join(f'<li>{icon("check")}{a} € o más: {tp["rate"] * (100 + b) // 100} cr/€{f" (+{b} %)" if b else ""}</li>' for a, b, _ in tp["tiers"])
+    cards.append(f"""<div class="plan featured"><span class="badge">Sin suscripción</span>
+<div class="plan-head"><h2 class="h3">Recarga libre</h2><p class="muted small">Paga solo lo que vas a usar</p></div>
+<p class="price">desde {tp['min']} €</p><p class="credits">{tp['rate']} créditos por euro<span class="muted"> · hasta +40 %</span></p>
+<a class="btn btn-primary btn-block" href="/saldo/#recargar">Elegir importe</a>
+<ul class="checks">{tier_li}<li>{icon("check")}Se suma a tu misma licencia</li><li>{icon("check")}Los créditos no caducan</li></ul></div>""")
     for p in SITE["packs"]:
         per100 = money(round(p["price"] / p["credits"] * 100, 2))
         feats = [p["billing"], f"{p['seats']} equipos"] + common
@@ -657,10 +664,11 @@ def pricing() -> str:
                     for s, t, c in usage)
     faq = [
         ("¿Cómo recibo la licencia?", "Por correo, en el email que uses al pagar, unos segundos después del pago. Si no la ves, revisa la carpeta de spam."),
-        ("¿Qué pasa si se me acaban los créditos?", "La herramienta te avisa con el enlace de compra y no se cobra nada. El plan Pro se recarga cada mes; Indie y Agency son de pago único."),
-        ("¿Qué es un equipo?", "Cada ordenador o servidor donde usas la licencia. Pro e Indie permiten 3; Agency, 25."),
+        ("¿Qué pasa si se me acaban los créditos?", "La herramienta te avisa y no se cobra nada. Recarga desde 5 € en Mi saldo: los créditos se suman a la misma licencia y no tienes que tocar la configuración de Claude, Cursor ni VS Code."),
+        ("¿Caducan los créditos?", "Los de una recarga, no: se quedan en tu licencia hasta que los uses. Con Pro, cada mes recibes 1.000 créditos nuevos y se gastan antes que los recargados, que se conservan."),
+        ("¿Qué es un equipo?", "Cada ordenador o servidor donde usas la licencia. La licencia gratis permite 1; Pro, 3."),
         ("¿Puedo cancelar Pro?", "Sí, cuando quieras y sin permanencia, desde el enlace de gestión del correo de Stripe o escribiéndonos."),
-        ("¿Por qué en dólares?", "Es la moneda de todos los planes de KeyFlint. Stripe te muestra el importe en tu moneda y calcula los impuestos de tu país."),
+        ("¿El precio incluye impuestos?", "Las recargas en euros llevan el IVA incluido: pagas exactamente el importe que eliges. Pro se cobra en dólares y Stripe añade los impuestos de tu país y te muestra el total en tu moneda."),
         ("¿Qué datos guardáis?", "Ninguno de tus ficheros: los servidores se ejecutan en tu equipo. Solo registramos la licencia y el consumo de créditos."),
     ]
     body = f"""
@@ -671,11 +679,11 @@ def pricing() -> str:
 </div></section>
 <section class="section tight"><div class="wrap">
 <div class="plans">{''.join(cards)}</div>
-<p class="muted small center fine">{icon("lock")}Pago seguro con Stripe. Precios en USD, impuestos según tu país. Recibes factura y puedes añadir tu NIF/VAT.</p>
+<p class="muted small center fine">{icon("lock")}Pago seguro con Stripe. Recargas en euros con IVA incluido; Pro en USD más impuestos según tu país. Recibes factura y puedes añadir tu NIF/VAT.</p>
 </div></section>
 <section class="section alt"><div class="wrap usage-grid">
 <div class="section-head left"><p class="eyebrow">Cuánto da de sí</p><h2>Coste de las tareas más habituales</h2>
-<p class="lead-sm">Con el plan Indie, una gestoría concilia y pasa a asientos unos 2.000 extractos (5 créditos cada uno).</p></div>
+<p class="lead-sm">Con una recarga de 5 € (100 créditos) lees y concilias 25 extractos Norma 43 (4 créditos cada uno).</p></div>
 <div class="table-wrap card-flat"><table><thead><tr><th scope="col">Tarea</th><th scope="col" class="r">Coste</th></tr></thead><tbody>{urows}</tbody></table></div>
 </div></section>
 <section class="section"><div class="wrap faq-grid">
@@ -685,10 +693,12 @@ def pricing() -> str:
            "description": "Créditos de uso para todos los servidores MCP de KeyFlint.",
            "brand": {"@type": "Brand", "name": "KeyFlint"},
            "offers": [{"@type": "Offer", "name": p["name"], "price": p["price"], "priceCurrency": "USD",
-                       "url": f"{SITE['url']}/precios/", "availability": "https://schema.org/InStock"} for p in SITE["packs"]]},
+                       "url": f"{SITE['url']}/precios/", "availability": "https://schema.org/InStock"} for p in SITE["packs"]]
+                     + [{"@type": "Offer", "name": "Recarga libre", "price": SITE["topup"]["min"], "priceCurrency": "EUR",
+                         "url": f"{SITE['url']}/saldo/", "availability": "https://schema.org/InStock"}]},
           faq_ld(faq)]
     return page("/precios/", "Precios de los servidores MCP · KeyFlint MCP",
-                f"Un saldo de créditos para todos los servidores MCP de KeyFlint. Desde {money(min(p['price'] for p in SITE['packs']))} $ o gratis con {SITE['free_credits']} créditos.",
+                f"Un saldo de créditos para todos los servidores MCP de KeyFlint. Recargas desde {SITE['topup']['min']} € sin suscripción o gratis con {SITE['free_credits']} créditos.",
                 body, ld)
 
 
@@ -743,11 +753,12 @@ def start() -> str:
 
 
 def balance_page() -> str:
-    recharge = "".join(
-        f'<a class="btn {"btn-primary" if p.get("featured") else "btn-ghost"}" href="{e(p["checkout"])}" rel="noopener" data-checkout>'
-        f'<b>{e(p["name"])}</b><span class="tabnum">{p["credits"]:,} cr · {money(p["price"])} ${e(p.get("period", ""))}</span></a>'
-        .replace(f'{p["credits"]:,} cr', f'{p["credits"]:,}'.replace(",", ".") + " cr")
-        for p in SITE["packs"])
+    tp = SITE["topup"]
+    pro = SITE["packs"][0]
+    tiers = "".join(f'<li data-tier-min="{a}"><b>{e(n)}</b><span>{a} €+</span><span class="tabnum">{tp["rate"] * (100 + b) // 100} cr/€</span>'
+                    f'<span class="muted">{f"+{b} %" if b else "base"}</span></li>' for a, b, n in tp["tiers"])
+    topup_cfg = e(json.dumps({"min": tp["min"], "max": tp["max"], "rate": tp["rate"],
+                              "tiers": [[a, b] for a, b, _ in tp["tiers"]]}))
     body = f"""
 <section class="hero hero-sm"><div class="glow" aria-hidden="true"></div><div class="wrap narrow">
 <nav class="crumbs" aria-label="Ruta"><a href="/">Inicio</a>{icon("chevron-right")}<span aria-current="page">Mi saldo</span></nav>
@@ -758,18 +769,27 @@ def balance_page() -> str:
 <form class="saldo-form glass" data-balance-form novalidate>
 <label class="lic"><span class="lic-label">{icon("key")}Tu licencia</span>
 <span class="lic-field"><input type="text" name="license" autocomplete="off" spellcheck="false" placeholder="LIC-…" required aria-describedby="saldo-help"></span>
-<span id="saldo-help" class="lic-help">Se consulta a KeyFlint en el momento. Este sitio no la guarda.</span></label>
+<span id="saldo-help" class="lic-help">Se consulta a KeyFlint en el momento. Solo se recuerda en este navegador.</span></label>
 <button class="btn btn-primary btn-lg" type="submit">{icon("gauge")}Consultar saldo</button>
 </form>
+<div class="note ok-note" data-topup-done aria-live="polite" hidden>{icon("check")}<span></span></div>
 <div class="saldo-out" data-balance-out aria-live="polite" hidden>
 <div class="saldo-card">
 <div class="saldo-head"><span class="eyebrow" data-f="tier"></span><span class="status" data-f="status"></span></div>
 <p class="saldo-num"><b class="tabnum" data-f="balance"></b><span class="muted"> créditos disponibles</span></p>
 <div class="meter" role="meter" aria-valuemin="0" data-meter><span></span></div>
 <dl class="saldo-dl"><div><dt>Usados</dt><dd class="tabnum" data-f="consumed"></dd></div><div><dt>Total del plan</dt><dd class="tabnum" data-f="allowance"></dd></div></dl>
-<div class="recharge"><h3 class="h4">{icon("card")}Recargar créditos</h3>
-<div class="recharge-row">{recharge}</div>
-<p class="muted small" data-recharge-note>Pago seguro con Stripe. Si tienes la licencia gratis y pagas con el mismo correo, se amplía la misma clave. Con un plan de pago recibes una licencia nueva con su saldo.</p></div>
+<div class="recharge topup" id="recargar" data-topup='{topup_cfg}'><h3 class="h4">{icon("card")}Recargar créditos</h3>
+<p class="muted small">Elige cuánto pagar. Los créditos se suman a <b>esta misma licencia</b>: no cambias nada en Claude, Cursor ni VS Code. No caducan.</p>
+<div class="topup-amt"><input type="range" min="{tp['min']}" max="{tp['slider_max']}" step="1" value="{tp['default']}" aria-label="Importe en euros" data-topup-range>
+<label class="topup-num"><span class="sr-only">Importe exacto</span><input type="number" inputmode="numeric" min="{tp['min']}" max="{tp['max']}" step="1" value="{tp['default']}" data-topup-amount><span>€</span></label></div>
+<p class="topup-sum"><b class="tabnum" data-topup-credits></b> créditos <span class="topup-badge" data-topup-bonus hidden></span><span class="muted small" data-topup-eq></span></p>
+<p class="muted small" data-topup-next></p>
+<ul class="topup-tiers">{tiers}</ul>
+<label class="topup-waiver"><input type="checkbox" data-topup-waiver> <span>Quiero los créditos ya. Acepto que, al empezar a usarlos, pierdo el derecho de desistimiento de 14 días sobre la parte usada.</span></label>
+<button class="btn btn-primary" type="button" data-topup-go disabled>{icon("card")}<span data-topup-label>Recargar</span></button>
+<p class="muted small">Pago seguro con Stripe, IVA incluido. De {tp['min']} € a {tp['max']} € por pago. ¿Lo usas a diario? <a href="{e(pro['checkout'])}" rel="nofollow">Pro: {money(pro['credits'])} créditos al mes por {money(pro['price'])} $</a>.</p>
+<p class="saldo-err note" data-topup-err hidden>{icon("info")}<span></span></p></div>
 <div class="cta-row"><a class="btn btn-ghost" href="/precios/">Comparar planes</a><a class="btn btn-quiet" href="/#instalar">Instalar servidores</a></div>
 </div>
 <div class="saldo-card uso" data-usage hidden><h3>Uso en los últimos 30 días</h3>
@@ -782,7 +802,9 @@ def balance_page() -> str:
 <div class="faq saldo-faq">{faq_html([
         ("¿Perdiste tu licencia?", "Escribe tu correo en la página de confirmación del pago o en el portal de KeyFlint y te enviamos un enlace de acceso de un solo uso."),
         ("¿Por qué no veo el detalle por servidor?", "KeyFlint registra el saldo de la licencia, no el uso por herramienta. Cada servidor te dice lo que cuesta antes de usarlo."),
-        ("¿Cómo añado créditos?", "Compra un plan y recibirás una licencia nueva con su saldo. Sustitúyela en tu configuración."),
+        ("¿Cómo añado créditos?", "Consulta tu saldo, elige el importe en Recargar créditos y paga con Stripe. En unos segundos se suman a la misma licencia, sin cambiar nada en tu configuración."),
+        ("¿Hay descuento por volumen?", "Sí: desde 20 € recibes un 10 % más de créditos, desde 50 € un 25 % y desde 100 € un 40 %."),
+        ("¿Y si me arrepiento?", "Si no has usado los créditos de una recarga, escríbenos en los 14 días siguientes y te devolvemos el importe. Al devolverla se retiran esos créditos."),
     ])}</div>
 </div></section>"""
     return page("/saldo/", "Consulta tu saldo de créditos · KeyFlint MCP",
