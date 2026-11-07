@@ -25,7 +25,7 @@ const NAMES = { "web-intel": "Web Intel", norma43: "Norma 43", contabridge: "Con
   dataclean: "DataClean" };
 const SCOPE = "mcp";
 const LICENSE_RE = /^LIC-[A-Za-z0-9._~+\/=-]{6,1024}$/;
-const INSTANCES = 3; // contenedores entre los que se reparte la carga
+const INSTANCES = 1; // 1 contenedor primario caliente evita 3x cold-starts; escalable con MCP_INSTANCES
 const QUIET = new Set(["credits_balance", "pricing"]); // gratis y frecuentes: no ensucian el historial
 
 export class McpRuntime extends Container {
@@ -99,7 +99,8 @@ async function forward(request, env, ctx, license) {
 async function upstreamFetch(env, url, upstream) {
   // Desarrollo local sin Docker: MCP_UPSTREAM=http://127.0.0.1:8091 (uvicorn container/app.py).
   if (env.MCP_UPSTREAM) return fetch(new Request(env.MCP_UPSTREAM.replace(/\/$/, "") + url.pathname + url.search, upstream));
-  const container = await getRandom(env.MCP_RUNTIME, INSTANCES);
+  const n = Math.max(1, Math.min(5, Number(env.MCP_INSTANCES) || INSTANCES));
+  const container = await getRandom(env.MCP_RUNTIME, n);
   return container.fetch(upstream);
 }
 
@@ -169,6 +170,24 @@ async function daily(env) {
     // Contadores diarios de prueba gratis y demos: basta con los de los 2 últimos días (day = 0 son permanentes).
     await env.USAGE_DB.prepare("DELETE FROM hub_limits WHERE day > 0 AND day < ?1")
       .bind(Math.floor(Date.now() / 86_400_000) - 2).run();
+  }
+  if (env.HUB_DEMO_LICENSE && env.KEYFLINT_ADMIN_KEY) {
+    const base = (env.GATEWAY_URL || "https://licenses.keyflint.dev").replace(/\/$/, "");
+    try {
+      const bRes = await fetch(`${base}/api/v1/quota/balance?license_key=${encodeURIComponent(env.HUB_DEMO_LICENSE)}`, {
+        headers: { accept: "application/json", "user-agent": "mcp-hub-worker" }, signal: AbortSignal.timeout(8000),
+      });
+      const bData = await bRes.json().catch(() => ({}));
+      const rem = Number(bData?.data?.remaining_credits ?? 9999);
+      if (bRes.ok && rem < 500) {
+        await fetch(`${base}/api/v1/quota/replenish`, {
+          method: "POST",
+          headers: { "content-type": "application/json", "x-admin-key": env.KEYFLINT_ADMIN_KEY, "user-agent": "mcp-hub-worker" },
+          body: JSON.stringify({ license_key: env.HUB_DEMO_LICENSE, credits: 1000 }),
+          signal: AbortSignal.timeout(8000),
+        });
+      }
+    } catch (e) { console.error("demo replenish check", e.message); }
   }
   const res = await upstreamFetch(env, new URL("http://mcp/healthz"), new Request("http://mcp/healthz"));
   const data = await res.json().catch(() => ({}));
