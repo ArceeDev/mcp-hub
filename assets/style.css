@@ -598,3 +598,19 @@ svg.logo{width:30px;height:30px;flex:none;filter:drop-shadow(0 1px 6px rgba(204,
 .roi-grid .demo-field{justify-content:space-between}
 .roi>.demo-field select{max-width:520px}
 .assure.center{justify-content:center}
+/* procesador por lotes (/lote/, /en/batch/) */
+.drop{display:flex;flex-direction:column;align-items:center;gap:8px;padding:32px 16px;text-align:center;border:1.5px dashed var(--line-2);border-radius:var(--r-lg);background:var(--bg);cursor:pointer;transition:border-color .15s,background .15s}
+.drop:hover,.drop.over,.drop:focus-within{border-color:var(--brand-line);background:var(--brand-soft)}
+.drop .tile .i{width:22px;height:22px}
+.batch-list{overflow-x:auto;border:1px solid var(--line);border-radius:12px}
+.batch-list .fn{max-width:260px;overflow:hidden;text-overflow:ellipsis;font-family:var(--mono);font-size:.8125rem}
+.batch-list td.muted{white-space:normal;min-width:160px}
+.batch-actions{display:flex;flex-wrap:wrap;align-items:center;gap:12px}
+.saldo-form .batch-actions .btn{align-self:auto}
+.status.bad{color:#C62828;border-color:rgba(198,40,40,.35)}
+.note.bad{border-color:rgba(198,40,40,.35);color:#8E1B1B}
+.batch-out{padding-top:8px;border-top:1px solid var(--line)}
+.batch-out h2{display:flex;align-items:center;gap:8px;margin:8px 0}
+.batch-out h2 .i{width:20px;height:20px;color:var(--ok)}
+.batch-info{margin-top:48px}
+.batch-term{margin-top:40px}

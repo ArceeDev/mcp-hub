@@ -43,7 +43,7 @@ def L(es: str, en: str) -> str:
 
 def U(key: str) -> str:
     return {"try": ("/probar/", "/en/try/"), "balance": ("/saldo/", "/en/balance/"), "start": ("/empezar/", "/en/start/"),
-            "pricing": ("/precios/", "/en/#pricing"), "home": ("/", "/en/"), "install": ("/#instalar", "/en/#install"),
+            "pricing": ("/precios/", "/en/#pricing"), "batch": ("/lote/", "/en/batch/"), "home": ("/", "/en/"), "install": ("/#instalar", "/en/#install"),
             "catalog": ("/#catalogo", "/en/#tools")}[key][_LANG[-1] == "en"]
 
 
@@ -359,7 +359,7 @@ def page(path: str, title: str, desc: str, body: str, ld: list | None = None, no
 <div class="foot-brand"><a class="brand" href="/">{flint()}<span>Flint</span><span class="brand-tag">by KeyFlint</span></a>
 <p class="muted small">Servidores MCP deterministas para agentes de IA, con licencias criptográficas y pago por uso.</p></div>
 <div><h3>Servidores</h3><ul>{''.join(f'<li><a href="/{m["slug"]}/">{e(m["name"])}</a></li>' for m in MCPS)}</ul></div>
-<div><h3>Recursos</h3><ul><li><a href="/empezar/">Guía de instalación</a></li><li><a href="/saldo/">Consultar saldo</a></li><li><a href="/precios/">Precios</a></li><li><a href="/asesorias/">Para asesorías</a></li><li><a href="https://keyflint.dev">KeyFlint</a></li></ul></div>
+<div><h3>Recursos</h3><ul><li><a href="/empezar/">Guía de instalación</a></li><li><a href="/saldo/">Consultar saldo</a></li><li><a href="/precios/">Precios</a></li><li><a href="/asesorias/">Para asesorías</a></li><li><a href="/lote/">Procesar por lotes</a></li><li><a href="https://keyflint.dev">KeyFlint</a></li></ul></div>
 <div><h3>Legal y soporte</h3><ul><li><a href="/terminos/">Términos de uso</a></li><li><a href="/reembolsos/">Reembolsos</a></li><li><a href="/aviso-legal/">Aviso legal</a></li><li><a href="/estado/">Estado del servicio</a></li><li><a href="https://keyflint.dev/privacy.html">Privacidad</a></li><li><a href="https://keyflint.dev/dpa.html">Encargo de tratamiento</a></li><li><a href="{SITE['contact']}">{e(CONTACT)}</a></li></ul></div>
 </div>
 <div class="foot-base">
@@ -648,8 +648,9 @@ def home() -> str:
 <section class="section alt" id="lote"><div class="wrap install-grid">
 <div class="section-head left"><p class="eyebrow">Modo Carpeta Vigilada · Sin abrir el chat</p>
 <h2>Procesa 50 extractos Norma 43 o facturas XML de golpe</h2>
-<p class="lead-sm">¿No quieres ir uno por uno en el chat? Suelta todos los ficheros <code>.n43</code>, <code>.c43</code> y <code>.xml</code> del mes en una carpeta. Este comando los procesa en lote y te deja un <code>resumen-flint.csv</code> listo para abrir en Excel.</p>
-<ul class="checks"><li>{icon("check")}Con <code>--vigilar</code> procesa cada fichero nuevo en cuanto cae en la carpeta</li><li>{icon("check")}Guarda el informe auditable <code>.flint.json</code> junto a cada extracto</li><li>{icon("check")}Pack Despacho recomendado: <a href="/saldo/#importe=100"><b>100 € → 2.800 créditos (+40 %)</b></a> sin caducidad</li></ul></div>
+<p class="lead-sm">¿No quieres ir uno por uno en el chat? Arrastra todos los ficheros <code>.n43</code>, <code>.c43</code> y <code>.xml</code> del mes al procesador del navegador y descarga un <code>resumen-flint.csv</code> listo para abrir en Excel. Sin terminal.</p>
+<div class="cta-row"><a class="btn btn-primary btn-lg" href="/lote/">{icon("download")}Abrir el procesador por lotes</a></div>
+<ul class="checks"><li>{icon("check")}¿Prefieres terminal? Con <code>--vigilar</code> procesa cada fichero nuevo en cuanto cae en la carpeta</li><li>{icon("check")}Guarda el informe auditable <code>.flint.json</code> junto a cada extracto</li><li>{icon("check")}Pack Despacho recomendado: <a href="/saldo/#importe=100"><b>100 € → 2.800 créditos (+40 %)</b></a> sin caducidad</li></ul></div>
 <div class="card-flat"><p class="small"><b>Windows (PowerShell)</b> — procesa la carpeta actual:</p>
 {code_block("lote-ps", f"irm {SITE['url']}/lote.ps1 | iex", "PowerShell")}
 <p class="small" style="margin-top:14px"><b>macOS y Linux</b> — procesa o deja vigilando una carpeta:</p>
@@ -816,7 +817,7 @@ def pricing() -> str:
 <p class="price">100 €<span class="per"> pago único</span></p>
 <p class="credits">2.800 créditos<span class="muted"> · +40 % bonificación</span></p>
 <a class="btn btn-ghost btn-block" href="/saldo/#importe=100">Cargar Pack Despacho</a>
-<ul class="checks"><li>{icon("check")}≈ 700 extractos Norma 43 conciliados</li><li>{icon("check")}Saldo compartido en el despacho</li><li>{icon("check")}Incluye script de Carpeta Vigilada</li><li>{icon("check")}Los créditos no caducan · IVA incluido</li><li>{icon("check")}Factura con NIF al instante</li></ul></div>""")
+<ul class="checks"><li>{icon("check")}≈ 700 extractos Norma 43 conciliados</li><li>{icon("check")}Saldo compartido en el despacho</li><li>{icon("check")}<a href="/lote/">Procesador por lotes</a> en el navegador y Carpeta Vigilada</li><li>{icon("check")}Los créditos no caducan · IVA incluido</li><li>{icon("check")}Factura con NIF al instante</li></ul></div>""")
     usage = [("web-intel", "Leer una web", 1), ("web-intel", "Auditoría SEO completa", 3),
              ("norma43", "Leer un extracto Norma 43", 1), ("norma43", "Conciliar un extracto con facturas", 3),
              ("contabridge", "Convertir un diario de A3 a ContaPlus", 2), ("contabridge", "Validar un diario antes de importar", 1),
@@ -842,6 +843,7 @@ def pricing() -> str:
 </div></section>
 <section class="section tight"><div class="wrap">
 <div class="plans">{''.join(cards)}</div>
+<p class="muted small center">¿Asesoría o gestoría? <a href="/lote/">Procesa los extractos Norma 43 y XML de VERI*FACTU del mes en el navegador</a>: arrastras, pegas la licencia y descargas el resumen para Excel.</p>
 <p class="muted small center fine">{icon("lock")}Pago seguro con Stripe. Recargas en euros con IVA incluido; Pro en USD más impuestos según tu país. Recibes factura y puedes añadir tu NIF/VAT. Al comprar aceptas los <a href="/terminos/">términos de servicio</a>, la <a href="https://keyflint.dev/privacy.html">política de privacidad</a> y la <a href="/reembolsos/">política de reembolso</a>.</p>
 </div></section>
 <section class="section alt"><div class="wrap usage-grid">
@@ -906,8 +908,9 @@ def advisors_page() -> str:
 <section class="section alt" id="lote"><div class="wrap install-grid">
 <div class="section-head left"><p class="eyebrow">Modo Carpeta Vigilada · Sin abrir el chat</p>
 <h2>Procesa 50 extractos Norma 43 o facturas XML de golpe</h2>
-<p class="lead-sm">¿No quieres ir uno por uno en el chat? Suelta todos los ficheros <code>.n43</code>, <code>.c43</code> y <code>.xml</code> del mes en una carpeta. Este comando los procesa en lote y te deja un <code>resumen-flint.csv</code> listo para abrir en Excel.</p>
-<ul class="checks"><li>{icon("check")}Con <code>--vigilar</code> procesa cada fichero nuevo en cuanto cae en la carpeta</li><li>{icon("check")}Guarda el informe auditable <code>.flint.json</code> junto a cada extracto</li><li>{icon("check")}Pack Despacho recomendado: <a href="/saldo/#importe=100"><b>100 € → 2.800 créditos (+40 %)</b></a> sin caducidad</li></ul></div>
+<p class="lead-sm">¿No quieres ir uno por uno en el chat? Arrastra todos los ficheros <code>.n43</code>, <code>.c43</code> y <code>.xml</code> del mes al procesador del navegador y descarga un <code>resumen-flint.csv</code> listo para abrir en Excel. Sin terminal.</p>
+<div class="cta-row"><a class="btn btn-primary btn-lg" href="/lote/">{icon("download")}Abrir el procesador por lotes</a></div>
+<ul class="checks"><li>{icon("check")}¿Prefieres terminal? Con <code>--vigilar</code> procesa cada fichero nuevo en cuanto cae en la carpeta</li><li>{icon("check")}Guarda el informe auditable <code>.flint.json</code> junto a cada extracto</li><li>{icon("check")}Pack Despacho recomendado: <a href="/saldo/#importe=100"><b>100 € → 2.800 créditos (+40 %)</b></a> sin caducidad</li></ul></div>
 <div class="card-flat"><p class="small"><b>Windows (PowerShell)</b> — procesa la carpeta actual:</p>
 {code_block("lote-ps", f"irm {SITE['url']}/lote.ps1 | iex", "PowerShell")}
 <p class="small" style="margin-top:14px"><b>macOS y Linux</b> — procesa o deja vigilando una carpeta:</p>
@@ -925,6 +928,66 @@ def advisors_page() -> str:
     return page("/asesorias/", "Conciliación bancaria y VeriFactu con IA para asesorías · Flint",
                 "Concilia extractos Norma 43, convierte diarios de A3 y ContaPlus y revisa VeriFactu desde Claude o Cursor. Resultados exactos, pago por uso y 25 créditos gratis.",
                 body, [faq_ld(faq)])
+
+
+def batch_page() -> str:
+    """Procesador por lotes en el navegador (/lote/ y /en/batch/): misma lógica que installer/lote.py, sin terminal."""
+    term = f"curl -LsSf {SITE['url']}/lote.sh | sh -s -- ./extractos --vigilar"
+    costs = [("Norma 43 (.n43 .c43 .q43)", "parse_norma43", 1), (L("VERI*FACTU (.xml exportado)", "VERI*FACTU (exported .xml)"), "validate_verifactu_xml", 3),
+             (L("Facturae 3.2.2 (.xml .xsig)", "Facturae 3.2.2 (.xml .xsig)"), "validate_facturae", 2)]
+    crows = "".join(f'<tr><td>{e(a)}</td><td><code>{t}</code></td><td class="num">{c} cr</td></tr>' for a, t, c in costs)
+    body = f"""
+<section class="hero hero-sm"><div class="glow" aria-hidden="true"></div><div class="wrap narrow">
+<nav class="crumbs" aria-label="{L("Ruta", "Breadcrumb")}"><a href="{U("home")}">{L("Inicio", "Home")}</a>{icon("chevron-right")}<span aria-current="page">{L("Procesar por lotes", "Batch processing")}</span></nav>
+<h1>{L("Procesa todos los extractos y facturas del mes de golpe", "Process a whole month of bank statements and invoices at once")}</h1>
+<p class="lead">{L("Arrastra tus ficheros Norma 43 (.n43, .c43, .q43) y XML de VERI*FACTU o Facturae, pega tu licencia y descarga el resumen para Excel. Sin instalar nada y sin abrir la terminal.", "Drop your Norma 43 statements (.n43, .c43, .q43) and VERI*FACTU or Facturae XML, paste your license and download the Excel summary. Nothing to install, no terminal.")}</p>
+</div></section>
+<section class="section tight"><div class="wrap narrow" data-batch>
+<form class="saldo-form glass batch" data-batch-form novalidate>
+<label class="lic"><span class="lic-label">{icon("key")}{L("Tu licencia", "Your license")}</span>
+<span class="lic-field"><input type="text" name="license" autocomplete="off" spellcheck="false" placeholder="LIC-…" required aria-describedby="lote-help" data-batch-lic></span>
+<span id="lote-help" class="lic-help">{L(f'Se guarda solo en este navegador. ¿Aún sin licencia? <a href="{U("try")}">{SITE["free_credits"]} créditos gratis</a>.', f'Stored only in this browser. No license yet? <a href="{U("try")}">{SITE["free_credits"]} free credits</a>.')}</span></label>
+<label class="drop" data-batch-drop><input type="file" multiple accept=".n43,.c43,.q43,.xml,.xsig" class="sr-only" data-batch-input>
+<span class="tile">{icon("download")}</span><b>{L("Arrastra aquí los ficheros o haz clic para elegirlos", "Drop files here or click to choose them")}</b>
+<span class="muted small">.n43 · .c43 · .q43 · .xml · .xsig · {L("hasta 10 MB cada uno", "up to 10 MB each")}</span></label>
+<div class="tw batch-list" data-batch-list hidden><table class="uso-t"><thead><tr><th>{L("Fichero", "File")}</th><th>{L("Tipo", "Type")}</th><th>{L("Estado", "Status")}</th><th>{L("Detalle", "Detail")}</th><th class="num"></th></tr></thead><tbody data-batch-rows></tbody></table></div>
+<div class="batch-actions"><button class="btn btn-primary btn-lg" type="submit" data-batch-go disabled>{icon("refresh")}<span>{L("Procesar", "Process")}</span></button>
+<button class="btn btn-ghost" type="button" data-batch-stop hidden>{L("Detener", "Stop")}</button>
+<button class="btn btn-quiet" type="button" data-batch-clear hidden>{L("Vaciar lista", "Clear list")}</button>
+<span class="muted small tabnum" data-batch-cost aria-live="polite"></span></div>
+<p class="note" data-batch-msg aria-live="polite" hidden>{icon("info")}<span></span></p>
+<div class="batch-out" data-batch-out hidden><h2 class="h4">{icon("check")}{L("Resultados listos", "Results ready")}</h2>
+<p class="muted small">{L("El resumen se abre directamente en Excel (separador ; y coma decimal). El ZIP incluye además el informe auditable .flint.json de cada fichero.", "The summary opens straight in Excel. The ZIP also holds the auditable .flint.json report of each file.")}</p>
+<div class="cta-row"><button class="btn btn-primary" type="button" data-batch-csv>{icon("table")}{L("Descargar resumen .csv", "Download summary .csv")}</button>
+<button class="btn btn-ghost" type="button" data-batch-zip>{icon("download")}{L("Descargar todo (.zip)", "Download everything (.zip)")}</button>
+<a class="btn btn-quiet" href="{U("balance")}">{L("Ver saldo", "Check balance")}</a></div></div>
+</form>
+<div class="install-grid batch-info">
+<div><h2 class="h3">{L("Qué hace con cada fichero", "What it does with each file")}</h2>
+<ul class="checks"><li>{icon("check")}{L("Norma 43: comprueba totales y saldos como el banco y saca IBAN, movimientos y saldo inicial y final.", "Norma 43: checks totals and balances the way the bank does and returns IBAN, movements and opening and closing balance.")}</li>
+<li>{icon("check")}{L("XML de VERI*FACTU: valida contra el XSD de la AEAT y audita huellas y encadenamiento.", "VERI*FACTU XML: validates against the AEAT XSD and audits fingerprints and chaining.")}</li>
+<li>{icon("check")}{L("Facturae: XSD, cuadre de importes, NIF, DIR3 y si está firmada.", "Facturae: XSD, amount checks, NIF, DIR3 and whether it is signed.")}</li>
+<li>{icon("check")}{L("Envía los bytes exactos: respeta Ñ y acentos de los ficheros CP850/Latin-1 y las firmas XAdES.", "Sends the exact bytes: keeps CP850/Latin-1 accents and XAdES signatures intact.")}</li>
+<li>{icon("check")}{L("Si un fichero falla, no se cobra. Puedes reintentar solo los pendientes.", "If a file fails, it is not charged. Retry only the pending ones.")}</li></ul></div>
+<div><h2 class="h3">{L("Cuánto cuesta", "What it costs")}</h2>
+<div class="tw uso"><table class="uso-t"><thead><tr><th>{L("Fichero", "File")}</th><th>{L("Herramienta", "Tool")}</th><th class="num">{L("Créditos", "Credits")}</th></tr></thead><tbody>{crows}</tbody></table></div>
+<p class="muted small">{L('Para despachos: <a href="/saldo/#importe=100">100 € → 2.800 créditos (+40 %)</a>, sin caducidad.', 'Credits never expire. <a href="/en/balance/">Top up from €5</a>.')}</p>
+<p class="muted small">{L("Privacidad: cada fichero viaja cifrado a nuestro servidor, se procesa en memoria y no se guarda. Solo registramos herramienta, resultado y créditos.", "Privacy: each file travels encrypted to our server, is processed in memory and never stored. We only log tool, result and credits.")}</p></div>
+</div>
+<div class="card-flat batch-term"><p class="small"><b>{L("¿Prefieres dejar una carpeta vigilada?", "Prefer a watched folder?")}</b> {L("El mismo proceso por terminal procesa cada fichero nuevo en cuanto cae en la carpeta:", "The same process from a terminal handles each new file as soon as it lands in the folder:")}</p>
+{code_block("lote-sh", term, "Terminal")}
+<p class="muted small">Windows: <code>irm {SITE['url']}/lote.ps1 | iex</code></p></div>
+</div></section>
+<script defer src="/assets/lote.js?v={VERSION}"></script>"""
+    return page(U("batch"), L("Procesador por lotes Norma 43, VERI*FACTU y Facturae · Flint", "Batch processor for Norma 43, VERI*FACTU and Facturae · Flint"),
+                L("Arrastra extractos Norma 43 y XML de VERI*FACTU o Facturae, pega tu licencia y descarga el resumen .csv para Excel. Sin instalar nada.",
+                  "Drop Norma 43 statements and VERI*FACTU or Facturae XML, paste your license and download the Excel .csv summary. Nothing to install."),
+                body, lang=_LANG[-1])
+
+
+def en_batch() -> str:
+    with lang_ctx("en"):
+        return batch_page()
 
 
 def start() -> str:
@@ -1293,6 +1356,7 @@ def en_home() -> str:
 <div class="section-head"><p class="eyebrow">Pricing</p><h2>One credit balance for every tool</h2>
 <p class="lead-sm">A €{SITE["topup"]["min"]} top-up ({SITE["topup"]["min"] * SITE["topup"]["rate"]} credits) reads and reconciles 25 Norma 43 statements at 4 credits each.</p></div>
 <div class="plans">{en_plans()}</div>
+<p class="muted small center">Accounting firm? <a href="/en/batch/">Process a month of Norma 43 and VERI*FACTU files in your browser</a>: drop, paste your license, download the Excel summary.</p>
 <p class="muted small center fine">{icon("lock")}Secure checkout with Stripe. Top-ups in euros with VAT included; Pro in USD plus local taxes. You receive an invoice with NIF/VAT. By purchasing you accept the <a href="/terminos/">terms</a>, the <a href="https://keyflint.dev/privacy.html">privacy policy</a>, and the <a href="/reembolsos/">refund policy</a>.</p>
 </div></section>
 <section class="section"><div class="wrap usage-grid">
@@ -1363,7 +1427,7 @@ def foot_en() -> str:
 <div class="foot-brand"><a class="brand" href="/en/">{flint()}<span>Flint</span><span class="brand-tag">by KeyFlint</span></a>
 <p class="muted small">Deterministic MCP tools for AI agents, with signed licenses and pay-per-use credits. Built in Spain.</p></div>
 <div><h3>Tools</h3><ul>{tools}</ul></div>
-<div><h3>Resources</h3><ul><li><a href="/en/try/">Free trial</a></li><li><a href="/en/start/">Install guide</a></li><li><a href="/en/#pricing">Pricing</a></li><li><a href="/en/balance/">Check balance</a></li><li><a href="https://github.com/ArceeDev" rel="noopener">GitHub</a></li><li><a href="/estado/">Status</a></li></ul></div>
+<div><h3>Resources</h3><ul><li><a href="/en/try/">Free trial</a></li><li><a href="/en/start/">Install guide</a></li><li><a href="/en/#pricing">Pricing</a></li><li><a href="/en/balance/">Check balance</a></li><li><a href="/en/batch/">Batch processor</a></li><li><a href="https://github.com/ArceeDev" rel="noopener">GitHub</a></li><li><a href="/estado/">Status</a></li></ul></div>
 <div><h3>Legal &amp; support</h3><ul><li><a href="/terminos/">Terms (ES)</a></li><li><a href="/reembolsos/">Refunds (ES)</a></li><li><a href="/aviso-legal/">Legal notice (ES)</a></li><li><a href="https://keyflint.dev/privacy.html">Privacy</a></li><li><a href="{SITE['contact']}">{e(CONTACT)}</a></li></ul></div>
 </div>
 <div class="foot-base">
@@ -1375,7 +1439,7 @@ def foot_en() -> str:
 </div></footer>"""
 
 
-ALT_LANG = {"/": "/en/", "/probar/": "/en/try/", "/saldo/": "/en/balance/", "/empezar/": "/en/start/"}
+ALT_LANG = {"/": "/en/", "/probar/": "/en/try/", "/saldo/": "/en/balance/", "/empezar/": "/en/start/", "/lote/": "/en/batch/"}
 
 
 def status_page() -> str:
@@ -1569,12 +1633,14 @@ def main() -> None:
     write("reembolsos/index.html", refunds_page())
     write("aviso-legal/index.html", notice_page())
     write("asesorias/index.html", advisors_page())
+    write("lote/index.html", batch_page())
+    write("en/batch/index.html", en_batch())
     installer_files()
     if legal_missing():
         print("AVISO: faltan datos del titular en data/catalog.json -> site.legal:", ", ".join(legal_missing()))
     for m in MCPS:
         write(f"{m['slug']}/index.html", mcp_page(m))
-    paths = ["/", "/probar/", "/empezar/", "/precios/", "/terminos/", "/reembolsos/", "/aviso-legal/", "/en/", "/en/try/", "/en/start/", "/estado/", "/asesorias/"] + [f"/{m['slug']}/" for m in MCPS]
+    paths = ["/", "/probar/", "/empezar/", "/precios/", "/terminos/", "/reembolsos/", "/aviso-legal/", "/en/", "/en/try/", "/en/start/", "/estado/", "/asesorias/", "/lote/", "/en/batch/"] + [f"/{m['slug']}/" for m in MCPS]
     write("sitemap.xml", '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
           + "".join(f"<url><loc>{SITE['url']}{p}</loc><lastmod>{TODAY}</lastmod></url>\n" for p in paths) + "</urlset>\n")
     write("robots.txt", f"User-agent: *\nAllow: /\nDisallow: /gracias/\nDisallow: /saldo/\nDisallow: /en/balance/\nDisallow: /api/\n\nSitemap: {SITE['url']}/sitemap.xml\n")

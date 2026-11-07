@@ -15,6 +15,7 @@ import csv
 import datetime as dt
 import json
 import os
+import re
 from pathlib import Path
 import sys
 import time
@@ -139,18 +140,18 @@ def process_file(path: Path, license_key: str) -> dict:
         data = call_mcp("verifactu", "validate_verifactu_xml", {"content_base64": b64}, license_key)
         valid = bool(data.get("valid", False))
         issues = data.get("issues") or data.get("errors") or []
-        sm = data.get("summary") or {}
-        recs = data.get("records") or []
-        first_nif = (recs[0].get("issuer_nif") or recs[0].get("IDEmisorFactura") or "") if recs and isinstance(recs[0], dict) else ""
+        recs = data.get("records")
+        m = re.search(rb"<(?:\w+:)?IDEmisorFactura(?:Anulada)?>\s*([^<\s]+)", raw_bytes)
+        first_nif = m.group(1).decode("ascii", "ignore") if m else ""
         return {
             "fecha_proceso": now_str,
             "fichero": path.name,
             "tipo": "VERI*FACTU XML",
             "estado": "OK" if valid else "CADENA_CON_ERRORES",
             "iban_o_emisor": first_nif,
-            "movimientos_o_facturas": sm.get("records", data.get("record_count", len(recs))),
+            "movimientos_o_facturas": recs if isinstance(recs, int) else len(recs or []),
             "saldo_inicial": "",
-            "saldo_final_o_total": data.get("last_huella", "")[:16],
+            "saldo_final_o_total": str(data.get("last_huella") or "")[:16],
             "moneda": "EUR",
             "avisos": len(issues),
             "raw": data,
