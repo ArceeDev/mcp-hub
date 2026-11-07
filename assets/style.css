@@ -463,7 +463,8 @@ td code{color:var(--ink)}
 }
 @media (max-width:520px){.brand-tag{display:none}.top-in{gap:8px}}
 @media (max-width:360px){.top-saldo span{display:none}.top-saldo{padding:0 10px}}
-@media (prefers-reduced-motion:reduce){.marquee{overflow-x:auto;scrollbar-width:none}.marquee-track{animation:none!important}.client-list[aria-hidden]{display:none}}
+/* con "reducir movimiento" (p. ej. Windows con efectos de animación desactivados) la cinta sigue, mucho más lenta; se pausa al pasar el ratón */
+@media (prefers-reduced-motion:reduce){.marquee-track{animation:marquee 70s linear infinite!important}}
 .reveal{display:flex;flex-direction:column;gap:16px;padding:24px;margin:0 0 28px}
 .reveal-head{display:flex;gap:14px;align-items:center}
 .reveal-head h2{margin:0}
@@ -559,6 +560,7 @@ svg.logo{width:30px;height:30px;flex:none;filter:drop-shadow(0 1px 6px rgba(204,
 .en-video video{display:block;width:100%;height:auto;aspect-ratio:16/9;background:#0B0D17}
 .flint-glyph{width:44px;height:44px;flex:none}
 .en-tool .card-foot{gap:18px;justify-content:flex-start}
+.en-tool h3 a{color:inherit;text-decoration:none}.en-tool h3 a:hover{text-decoration:underline}
 .install-card > p.muted{margin:10px 4px 14px}
 .st-list{list-style:none;margin:0 0 14px;padding:6px 18px}
 .st-row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid var(--line)}

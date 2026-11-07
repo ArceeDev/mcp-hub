@@ -420,29 +420,19 @@ def page(path: str, title: str, desc: str, body: str, ld: list | None = None, no
 
 def mcp_card(m: dict) -> str:
     chips = "".join(f'<li><code>{e(t[0].split(",")[0])}</code></li>' for t in m["tools"][:3])
-    return f"""<a class="card mcp-card" href="/{m['slug']}/">
-<div class="card-top"><span class="tile">{icon(m['icon'])}</span><span class="eyebrow">{e(m['category'])}</span></div>
-<h3>{e(m['name'])}</h3>
-<p>{e(m['headline'])}</p>
+    glyph = {t[1]: t[0] for t in EN_TOOLS}.get(m["slug"])
+    top = (f'<img class="flint-glyph" src="/assets/flint/{glyph}.svg" alt="" width="44" height="44">' if glyph
+           else f'<span class="tile">{icon(m["icon"])}</span>')
+    return f"""<div class="card mcp-card en-tool">
+<div class="card-top">{top}<code class="muted small">{e(m['package'])}</code></div>
+<h3><a href="/{m['slug']}/">{e(m['name'])}</a></h3>
+<p><b>{e(m['headline'])}</b></p>
+<p class="muted small">{e(m['category'])} · {len(m['tools'])} herramientas</p>
 <ul class="chips">{chips}</ul>
-<span class="card-foot"><span class="muted small">{len(m['tools'])} herramientas</span><span class="link-arrow">Ver servidor{icon("arrow-right")}</span></span>
-</a>"""
-
-
-def hero_demo() -> str:
-    return f"""<figure class="demo glass" aria-label="Ejemplo: un agente usa tres herramientas">
-<div class="demo-bar"><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span><span class="demo-title">Agente · Norma 43 + ContaBridge</span></div>
-<div class="demo-body">
-<div class="msg user"><span class="who">Tú</span><p>Concilia el extracto de octubre con las facturas pendientes y pásame los asientos a A3.</p></div>
-<ul class="calls">
-<li class="call"><span class="call-ic">{icon("plug")}</span><code>parse_norma43</code><span class="call-res">142 movimientos</span><span class="cr">1 cr</span></li>
-<li class="call"><span class="call-ic">{icon("plug")}</span><code>reconcile_movements</code><span class="call-res">131 conciliados · 3 a revisar</span><span class="cr">3 cr</span></li>
-<li class="call"><span class="call-ic">{icon("plug")}</span><code>bank_to_journal</code><span class="call-res">SUENLACE.DAT listo</span><span class="cr">3 cr</span></li>
-</ul>
-<div class="msg bot"><span class="who">Agente</span><p>Listo: 131 de 142 movimientos conciliados. Te dejo 3 casos para revisar y el fichero para importar en A3.</p></div>
-</div>
-<figcaption class="demo-foot"><span>{icon("shield")}Licencia verificada en local</span><span class="tabnum">7 créditos</span></figcaption>
-</figure>"""
+<span class="card-foot"><a class="link-arrow" href="/{m['slug']}/">Ver ficha{icon("arrow-right")}</a>
+<a class="link-arrow" href="{e(m['repo'])}" rel="noopener">GitHub{icon("arrow-right")}</a>
+<a class="link-arrow" href="https://pypi.org/project/{e(m['package'])}/" rel="noopener">PyPI{icon("arrow-right")}</a></span>
+</div>"""
 
 
 def install_picker() -> tuple[str, str]:
@@ -634,7 +624,9 @@ def home() -> str:
 <ul class="assure">
 <li>{icon("check")}{SITE['free_credits']} créditos gratis</li><li>{icon("check")}Sin permanencia</li><li>{icon("check")}Se ejecuta en tu equipo</li></ul>
 </div>
-{hero_demo()}
+<figure class="demo glass en-video"><video controls preload="none" playsinline poster="/assets/video/flint-lanzamiento-es.jpg" width="1280" height="720">
+<source src="/assets/video/flint-lanzamiento-es.mp4" type="video/mp4"></video>
+<figcaption class="demo-foot"><span>{icon("shield")}Salida real de Flint Bank, dos ejecuciones: mismo hash</span><span class="tabnum">70 s</span></figcaption></figure>
 </div></section>
 
 <section class="clients" aria-label="Clientes compatibles"><div class="wrap clients-in">
