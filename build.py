@@ -185,6 +185,10 @@ CLIENTS = [
     ("antigravity", "Antigravity", "antigravity"),
     ("windsurf", "Windsurf", "windsurf"),
 ]
+# Cinta "Compatible con": ChatGPT solo conecta por URL (modo remoto)
+_cl = {c[0]: c for c in CLIENTS + CLIENTS_REMOTE}
+MARQUEE = [_cl[k] for k in ("desktop", "cursor", "chatgpt", "code", "vscode", "codex", "antigravity", "windsurf")
+           if k != "chatgpt" or SITE["remote"]]
 
 
 def installer(m: dict) -> str:
@@ -359,8 +363,8 @@ def page(path: str, title: str, desc: str, body: str, ld: list | None = None, no
 <meta property="og:image" content="{SITE['url']}/assets/og-flint.png">
 <meta property="og:locale" content="{T['locale']}">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="theme-color" content="#0B0D17" media="(prefers-color-scheme: dark)">
-<meta name="theme-color" content="#F7F8FA" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#F7F8FA">
+<meta name="color-scheme" content="light">
 <script>document.documentElement.className="js"</script>
 <link rel="icon" href="/favicon.ico" sizes="any">
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
@@ -378,6 +382,7 @@ def page(path: str, title: str, desc: str, body: str, ld: list | None = None, no
 <header class="top"><div class="wrap top-in">
 <a class="brand" href="{T['home']}" aria-label="Flint by KeyFlint">{flint()}<span>Flint</span><span class="brand-tag">by KeyFlint</span></a>
 <nav class="nav" aria-label="{T['navl']}">{navh}</nav>
+{"" if en else f'<a class="top-saldo" href="/saldo/"{" aria-current=\"page\"" if path == "/saldo/" else ""}>{icon("key")}<span>Mi saldo</span></a>'}
 <a class="btn btn-primary btn-sm top-cta" href="{T['cta'][0]}">{T['cta'][1]}</a>
 </div></header>
 <main id="main">
@@ -501,7 +506,7 @@ def trial_page() -> str:
 
 def home() -> str:
     cards = "\n".join(mcp_card(m) for m in MCPS)
-    clients = "".join(f'<li>{brand(ic)}<span>{e(n)}</span></li>' for _, n, ic in CLIENTS) + \
+    clients = "".join(f'<li>{brand(ic)}<span>{e(n)}</span></li>' for _, n, ic in MARQUEE) + \
         f'<li>{icon("plug")}<span>Cualquier cliente MCP</span></li>'
     feats = [
         ("key", "Una licencia para todo", "La misma clave funciona en todos los servidores. Sin cuentas ni contraseñas que recordar."),
@@ -545,7 +550,7 @@ def home() -> str:
 </div></section>
 
 <section class="clients" aria-label="Clientes compatibles"><div class="wrap clients-in">
-<p class="clients-title">Compatible con</p><ul class="client-list">{clients}</ul></div></section>
+<p class="clients-title">Compatible con</p><div class="marquee"><div class="marquee-track"><ul class="client-list">{clients}</ul><ul class="client-list" aria-hidden="true">{clients}</ul></div></div></div></section>
 
 <section class="section" id="catalogo"><div class="wrap">
 <div class="section-head"><p class="eyebrow">Catálogo</p><h2>Servidores listos para trabajo real</h2>
@@ -943,7 +948,7 @@ def en_plans() -> str:
 
 
 def en_home() -> str:
-    clients = "".join(f'<li>{brand(ic)}<span>{e(n)}</span></li>' for _, n, ic in CLIENTS) + \
+    clients = "".join(f'<li>{brand(ic)}<span>{e(n)}</span></li>' for _, n, ic in MARQUEE) + \
         f'<li>{icon("plug")}<span>Any MCP client</span></li>'
     cards = "".join(en_tool_card(t) for t in EN_TOOLS)
     feats = [
@@ -981,7 +986,7 @@ def en_home() -> str:
 </div></section>
 
 <section class="clients" aria-label="Works with"><div class="wrap clients-in">
-<p class="clients-title">Works with</p><ul class="client-list">{clients}</ul></div></section>
+<p class="clients-title">Works with</p><div class="marquee"><div class="marquee-track"><ul class="client-list">{clients}</ul><ul class="client-list" aria-hidden="true">{clients}</ul></div></div></div></section>
 
 <section class="section" id="tools"><div class="wrap">
 <div class="section-head"><p class="eyebrow">Five tools, one account</p><h2>The AI proposes. Flint checks.</h2>
