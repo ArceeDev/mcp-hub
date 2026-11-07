@@ -297,7 +297,7 @@ td code{color:var(--ink)}
 .qa p{padding:0 18px 18px;color:var(--ink-2)}
 
 /* pricing */
-.plans{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:28px;align-items:stretch;max-width:1040px;margin:0 auto}
+.plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(235px,1fr));gap:22px;align-items:stretch;max-width:1180px;margin:0 auto}
 .plan{position:relative;display:flex;flex-direction:column;gap:16px;padding:36px 30px 32px;border-radius:var(--r-lg);background:var(--surface);border:1px solid var(--line)}
 .plan.featured{border-color:var(--brand);background:linear-gradient(180deg,var(--brand-soft),transparent 45%),var(--surface);box-shadow:0 30px 60px -30px rgba(204,255,0,.25)}
 .badge{position:absolute;top:-12px;left:22px;font:600 .75rem/1 var(--sans);padding:6px 10px;border-radius:999px;background:var(--brand);color:var(--brand-ink)}

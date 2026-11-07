@@ -453,7 +453,7 @@ def installer_files() -> None:
     servers = {m["slug"]: server_cfg(m) for m in MCPS}
     src = (ROOT / "installer" / "instalar.py").read_text(encoding="utf-8")
     write("instalar.py", src.replace("__SERVERS__", json.dumps(servers, ensure_ascii=False)).replace("__PH__", LIC_PLACEHOLDER))
-    for f in ("instalar.sh", "instalar.ps1"):
+    for f in ("instalar.sh", "instalar.ps1", "lote.py", "lote.sh", "lote.ps1"):
         write(f, (ROOT / "installer" / f).read_text(encoding="utf-8").replace("__SITE__", SITE["url"]))
 
 
@@ -623,6 +623,16 @@ def home() -> str:
 <div class="feat-grid">{feat_html}</div>
 </div></section>
 {seal(compact=True)}
+<section class="section alt" id="lote"><div class="wrap install-grid">
+<div class="section-head left"><p class="eyebrow">Modo Carpeta Vigilada · Sin abrir el chat</p>
+<h2>Procesa 50 extractos Norma 43 o facturas XML de golpe</h2>
+<p class="lead-sm">¿No quieres ir uno por uno en el chat? Suelta todos los ficheros <code>.n43</code>, <code>.c43</code> y <code>.xml</code> del mes en una carpeta. Este comando los procesa en lote y te deja un <code>resumen-flint.csv</code> listo para abrir en Excel.</p>
+<ul class="checks"><li>{icon("check")}Con <code>--vigilar</code> procesa cada fichero nuevo en cuanto cae en la carpeta</li><li>{icon("check")}Guarda el informe auditable <code>.flint.json</code> junto a cada extracto</li><li>{icon("check")}Pack Despacho recomendado: <a href="/saldo/#importe=100"><b>100 € → 2.800 créditos (+40 %)</b></a> sin caducidad</li></ul></div>
+<div class="card-flat"><p class="small"><b>Windows (PowerShell)</b> — procesa la carpeta actual:</p>
+{code_block(f"irm {SITE['url']}/lote.ps1 | iex", "PowerShell")}
+<p class="small" style="margin-top:14px"><b>macOS y Linux</b> — procesa o deja vigilando una carpeta:</p>
+{code_block(f"curl -LsSf {SITE['url']}/lote.sh | sh -s -- ./extractos --vigilar", "Terminal")}</div>
+</div></section>
 
 <section class="section" id="instalar"><div class="wrap install-grid">
 <div class="section-head left"><p class="eyebrow">Instalación</p><h2>Elige servidor y cliente. Copia. Listo.</h2>
@@ -779,6 +789,12 @@ def pricing() -> str:
 <p class="credits">{money(p['credits'])} créditos{' al mes' if p.get('period') else ''}<span class="muted"> · {per100} $ / 100</span></p>
 <a class="btn {'btn-primary' if p.get('featured') else 'btn-ghost'} btn-block" href="{p['checkout']}" rel="nofollow">Comprar {e(p['name'])}</a>
 <ul class="checks">{''.join(f'<li>{icon("check")}{e(f)}</li>' for f in feats)}</ul></div>""")
+    cards.append(f"""<div class="plan">
+<div class="plan-head"><h2 class="h3">Pack Despacho</h2><p class="muted small">Asesorías, gestorías y cierres de lote</p></div>
+<p class="price">100 €<span class="per"> pago único</span></p>
+<p class="credits">2.800 créditos<span class="muted"> · +40 % bonificación</span></p>
+<a class="btn btn-ghost btn-block" href="/saldo/#importe=100">Cargar Pack Despacho</a>
+<ul class="checks"><li>{icon("check")}≈ 700 extractos Norma 43 conciliados</li><li>{icon("check")}Saldo compartido en el despacho</li><li>{icon("check")}Incluye script de Carpeta Vigilada</li><li>{icon("check")}Los créditos no caducan · IVA incluido</li><li>{icon("check")}Factura con NIF al instante</li></ul></div>""")
     usage = [("web-intel", "Leer una web", 1), ("web-intel", "Auditoría SEO completa", 3),
              ("norma43", "Leer un extracto Norma 43", 1), ("norma43", "Conciliar un extracto con facturas", 3),
              ("contabridge", "Convertir un diario de A3 a ContaPlus", 2), ("contabridge", "Validar un diario antes de importar", 1),
@@ -865,6 +881,16 @@ def advisors_page() -> str:
 </div></section>
 {live_demo(("norma43", "contabridge"), "Míralo funcionar con un ejemplo", "Un extracto bancario y dos asientos de prueba. Pulsa el botón: es la herramienta real, sin instalar nada.")}
 {seal(compact=True)}
+<section class="section alt" id="lote"><div class="wrap install-grid">
+<div class="section-head left"><p class="eyebrow">Modo Carpeta Vigilada · Sin abrir el chat</p>
+<h2>Procesa 50 extractos Norma 43 o facturas XML de golpe</h2>
+<p class="lead-sm">¿No quieres ir uno por uno en el chat? Suelta todos los ficheros <code>.n43</code>, <code>.c43</code> y <code>.xml</code> del mes en una carpeta. Este comando los procesa en lote y te deja un <code>resumen-flint.csv</code> listo para abrir en Excel.</p>
+<ul class="checks"><li>{icon("check")}Con <code>--vigilar</code> procesa cada fichero nuevo en cuanto cae en la carpeta</li><li>{icon("check")}Guarda el informe auditable <code>.flint.json</code> junto a cada extracto</li><li>{icon("check")}Pack Despacho recomendado: <a href="/saldo/#importe=100"><b>100 € → 2.800 créditos (+40 %)</b></a> sin caducidad</li></ul></div>
+<div class="card-flat"><p class="small"><b>Windows (PowerShell)</b> — procesa la carpeta actual:</p>
+{code_block(f"irm {SITE['url']}/lote.ps1 | iex", "PowerShell")}
+<p class="small" style="margin-top:14px"><b>macOS y Linux</b> — procesa o deja vigilando una carpeta:</p>
+{code_block(f"curl -LsSf {SITE['url']}/lote.sh | sh -s -- ./extractos --vigilar", "Terminal")}</div>
+</div></section>
 {roi_calc()}
 <section class="section alt"><div class="wrap install-grid">
 <div class="section-head left"><p class="eyebrow">Cómo empezar</p><h2>Listo en tres pasos</h2><ol class="steps">{steps_html}</ol></div>
