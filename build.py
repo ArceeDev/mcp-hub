@@ -651,9 +651,9 @@ def home() -> str:
 <p class="lead-sm">¿No quieres ir uno por uno en el chat? Suelta todos los ficheros <code>.n43</code>, <code>.c43</code> y <code>.xml</code> del mes en una carpeta. Este comando los procesa en lote y te deja un <code>resumen-flint.csv</code> listo para abrir en Excel.</p>
 <ul class="checks"><li>{icon("check")}Con <code>--vigilar</code> procesa cada fichero nuevo en cuanto cae en la carpeta</li><li>{icon("check")}Guarda el informe auditable <code>.flint.json</code> junto a cada extracto</li><li>{icon("check")}Pack Despacho recomendado: <a href="/saldo/#importe=100"><b>100 € → 2.800 créditos (+40 %)</b></a> sin caducidad</li></ul></div>
 <div class="card-flat"><p class="small"><b>Windows (PowerShell)</b> — procesa la carpeta actual:</p>
-{code_block(f"irm {SITE['url']}/lote.ps1 | iex", "PowerShell")}
+{code_block("lote-ps", f"irm {SITE['url']}/lote.ps1 | iex", "PowerShell")}
 <p class="small" style="margin-top:14px"><b>macOS y Linux</b> — procesa o deja vigilando una carpeta:</p>
-{code_block(f"curl -LsSf {SITE['url']}/lote.sh | sh -s -- ./extractos --vigilar", "Terminal")}</div>
+{code_block("lote-sh", f"curl -LsSf {SITE['url']}/lote.sh | sh -s -- ./extractos --vigilar", "Terminal")}</div>
 </div></section>
 
 <section class="section" id="instalar"><div class="wrap install-grid">
@@ -909,9 +909,9 @@ def advisors_page() -> str:
 <p class="lead-sm">¿No quieres ir uno por uno en el chat? Suelta todos los ficheros <code>.n43</code>, <code>.c43</code> y <code>.xml</code> del mes en una carpeta. Este comando los procesa en lote y te deja un <code>resumen-flint.csv</code> listo para abrir en Excel.</p>
 <ul class="checks"><li>{icon("check")}Con <code>--vigilar</code> procesa cada fichero nuevo en cuanto cae en la carpeta</li><li>{icon("check")}Guarda el informe auditable <code>.flint.json</code> junto a cada extracto</li><li>{icon("check")}Pack Despacho recomendado: <a href="/saldo/#importe=100"><b>100 € → 2.800 créditos (+40 %)</b></a> sin caducidad</li></ul></div>
 <div class="card-flat"><p class="small"><b>Windows (PowerShell)</b> — procesa la carpeta actual:</p>
-{code_block(f"irm {SITE['url']}/lote.ps1 | iex", "PowerShell")}
+{code_block("lote-ps", f"irm {SITE['url']}/lote.ps1 | iex", "PowerShell")}
 <p class="small" style="margin-top:14px"><b>macOS y Linux</b> — procesa o deja vigilando una carpeta:</p>
-{code_block(f"curl -LsSf {SITE['url']}/lote.sh | sh -s -- ./extractos --vigilar", "Terminal")}</div>
+{code_block("lote-sh", f"curl -LsSf {SITE['url']}/lote.sh | sh -s -- ./extractos --vigilar", "Terminal")}</div>
 </div></section>
 {roi_calc()}
 <section class="section alt"><div class="wrap install-grid">
