@@ -63,6 +63,14 @@ def icon(name: str, cls: str = "i") -> str:
             f'{ICONS[name]}</svg>')
 
 
+FLINT = '<polygon points="20,5 44,3 36,16 4,29" fill="#E0FF4D"/><polygon points="44,3 59,19 49,24 36,16" fill="#CCFF00"/><polygon points="59,19 57,42 49,24" fill="#9FCC00"/><polygon points="57,42 38,61 30,46 49,24" fill="#8DB300"/><polygon points="38,61 13,55 30,46" fill="#9FCC00"/><polygon points="13,55 4,29 18,34 30,46" fill="#C2F000"/><polygon points="4,29 36,16 49,24 30,46 18,34" fill="#B5E300"/><polygon points="15,34 22,27 29,34 43,17 50,24 29,45" fill="#0B0D17"/>'
+
+
+def flint(cls: str = "logo") -> str:
+    """Símbolo Flint: pedernal facetado con un ✓ grabado."""
+    return f'<svg class="{cls}" viewBox="0 0 64 64" aria-hidden="true" focusable="false">{FLINT}</svg>'
+
+
 def brand(name: str, cls: str = "b") -> str:
     vb, inner, hexc = BRANDS[name]
     return (f'<svg class="{cls} b-{name}" viewBox="{vb}" role="img" aria-hidden="true" focusable="false" '
@@ -177,6 +185,10 @@ CLIENTS = [
     ("antigravity", "Antigravity", "antigravity"),
     ("windsurf", "Windsurf", "windsurf"),
 ]
+# Cinta "Compatible con": ChatGPT solo conecta por URL (modo remoto)
+_cl = {c[0]: c for c in CLIENTS + CLIENTS_REMOTE}
+MARQUEE = [_cl[k] for k in ("desktop", "cursor", "chatgpt", "code", "vscode", "codex", "antigravity", "windsurf")
+           if k != "chatgpt" or SITE["remote"]]
 
 
 def installer(m: dict) -> str:
@@ -301,30 +313,58 @@ def remote_panels(m: dict, local_desktop: str, cards: str) -> dict[str, str]:
 
 # ---------------------------------------------------------------- layout
 
-def page(path: str, title: str, desc: str, body: str, ld: list | None = None, noindex: bool = False) -> str:
+def page(path: str, title: str, desc: str, body: str, ld: list | None = None, noindex: bool = False, lang: str = "es") -> str:
     url = SITE["url"] + path
     lds = "".join(jsonld(x) for x in (ld or []))
     robots = '<meta name="robots" content="noindex">\n' if noindex else ""
-    nav = [("/#catalogo", "Catálogo"), ("/#instalar", "Instalar"), ("/precios/", "Precios"), ("/empezar/", "Guía"), ("/saldo/", "Mi saldo")]
+    en = lang == "en"
+    nav = ([("/en/#tools", "Tools"), ("/en/#how", "How it works"), ("/en/#pricing", "Pricing"), ("/", "ES")] if en else
+           [("/#catalogo", "Catálogo"), ("/#instalar", "Instalar"), ("/precios/", "Precios"), ("/empezar/", "Guía"), ("/saldo/", "Mi saldo"), ("/en/", "EN")])
+    pair = ALT_LANG.get(path) or {v: k for k, v in ALT_LANG.items()}.get(path)
+    alts = ""
+    if pair:
+        es_p, en_p = (pair, path) if en else (path, pair)
+        alts = (f'<link rel="alternate" hreflang="es" href="{SITE["url"]}{es_p}">\n'
+                f'<link rel="alternate" hreflang="en" href="{SITE["url"]}{en_p}">\n')
+    T = ({"locale": "en_US", "skip": "Skip to content", "home": "/en/", "cta": ("/en/try/", "Try free"), "navl": "Main"} if en else
+         {"locale": "es_ES", "skip": "Saltar al contenido", "home": "/", "cta": ("/probar/", "Probar gratis"), "navl": "Principal"})
     navh = "".join(f'<a href="{h}"' + (' aria-current="page"' if h == path else "") + f">{t}</a>" for h, t in nav)
+    tok = SITE.get("cf_analytics_token", "").strip()
+    analytics = (f'<script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon=\'{{"token": "{e(tok)}"}}\'></script>\n'
+                 if tok and not noindex else "")
+    foot_es = "" if en else f"""<footer class="foot"><div class="wrap">
+<div class="foot-grid">
+<div class="foot-brand"><a class="brand" href="/">{flint()}<span>Flint</span><span class="brand-tag">by KeyFlint</span></a>
+<p class="muted small">Servidores MCP deterministas para agentes de IA, con licencias criptográficas y pago por uso.</p></div>
+<div><h3>Servidores</h3><ul>{''.join(f'<li><a href="/{m["slug"]}/">{e(m["name"])}</a></li>' for m in MCPS)}</ul></div>
+<div><h3>Recursos</h3><ul><li><a href="/empezar/">Guía de instalación</a></li><li><a href="/saldo/">Consultar saldo</a></li><li><a href="/precios/">Precios</a></li><li><a href="https://keyflint.dev">KeyFlint</a></li></ul></div>
+<div><h3>Legal y soporte</h3><ul><li><a href="/terminos/">Términos de uso</a></li><li><a href="/reembolsos/">Reembolsos</a></li><li><a href="/aviso-legal/">Aviso legal</a></li><li><a href="/estado/">Estado del servicio</a></li><li><a href="https://keyflint.dev/privacy.html">Privacidad</a></li><li><a href="https://keyflint.dev/dpa.html">Encargo de tratamiento</a></li><li><a href="{SITE['contact']}">{e(CONTACT)}</a></li></ul></div>
+</div>
+<div class="foot-base">
+<p class="muted small">© {dt.date.today().year} KeyFlint · Los servidores se ejecutan en tu equipo y no guardan tus datos.</p>
+<div class="badges">
+<a class="badge-pill" href="https://stripe.com" rel="noopener"><span class="muted">Pagos con</span>{brand("stripe")}<b>Stripe</b></a>
+<a class="badge-pill kf" href="https://keyflint.dev"><span class="muted">Licencias</span><span class="kf-mark">{icon("logo", "logo")}by&nbsp;KeyFlint</span></a>
+</div></div>
+</div></footer>"""
     return f"""<!doctype html>
-<html lang="{SITE['lang']}" class="no-js">
+<html lang="{lang}" class="no-js">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{e(title)}</title>
 <meta name="description" content="{e(desc)}">
 {robots}<link rel="canonical" href="{url}">
-<meta property="og:type" content="website">
+{alts}<meta property="og:type" content="website">
 <meta property="og:site_name" content="{e(SITE['name'])}">
 <meta property="og:title" content="{e(title)}">
 <meta property="og:description" content="{e(desc)}">
 <meta property="og:url" content="{url}">
-<meta property="og:image" content="{SITE['url']}/assets/og.png">
-<meta property="og:locale" content="es_ES">
+<meta property="og:image" content="{SITE['url']}/assets/og-flint.png">
+<meta property="og:locale" content="{T['locale']}">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="theme-color" content="#0B0D17" media="(prefers-color-scheme: dark)">
-<meta name="theme-color" content="#F7F8FA" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#F7F8FA">
+<meta name="color-scheme" content="light">
 <script>document.documentElement.className="js"</script>
 <link rel="icon" href="/favicon.ico" sizes="any">
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
@@ -335,33 +375,20 @@ def page(path: str, title: str, desc: str, body: str, ld: list | None = None, no
 <link rel="preload" href="/assets/fonts/interdisplay-600.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/assets/style.css?v={VERSION}">
 <script defer src="/assets/app.js?v={VERSION}"></script>
-{lds}
+{analytics}{lds}
 </head>
 <body>
-<a class="skip" href="#main">Saltar al contenido</a>
+<a class="skip" href="#main">{T['skip']}</a>
 <header class="top"><div class="wrap top-in">
-<a class="brand" href="/" aria-label="KeyFlint MCP, inicio">{icon("logo", "logo")}<span>KeyFlint</span><span class="brand-tag">MCP</span></a>
-<nav class="nav" aria-label="Principal">{navh}</nav>
-<a class="btn btn-primary btn-sm top-cta" href="/probar/">Probar gratis</a>
+<a class="brand" href="{T['home']}" aria-label="Flint by KeyFlint">{flint()}<span>Flint</span><span class="brand-tag">by KeyFlint</span></a>
+<nav class="nav" aria-label="{T['navl']}">{navh}</nav>
+{"" if en else f'<a class="top-saldo" href="/saldo/"{" aria-current=\"page\"" if path == "/saldo/" else ""}>{icon("key")}<span>Mi saldo</span></a>'}
+<a class="btn btn-primary btn-sm top-cta" href="{T['cta'][0]}">{T['cta'][1]}</a>
 </div></header>
 <main id="main">
 {body}
 </main>
-<footer class="foot"><div class="wrap">
-<div class="foot-grid">
-<div class="foot-brand"><a class="brand" href="/">{icon("logo", "logo")}<span>KeyFlint</span><span class="brand-tag">MCP</span></a>
-<p class="muted small">Servidores MCP deterministas para agentes de IA, con licencias criptográficas y pago por uso.</p></div>
-<div><h3>Servidores</h3><ul>{''.join(f'<li><a href="/{m["slug"]}/">{e(m["name"])}</a></li>' for m in MCPS)}</ul></div>
-<div><h3>Recursos</h3><ul><li><a href="/empezar/">Guía de instalación</a></li><li><a href="/saldo/">Consultar saldo</a></li><li><a href="/precios/">Precios</a></li><li><a href="https://keyflint.dev">KeyFlint</a></li></ul></div>
-<div><h3>Legal y soporte</h3><ul><li><a href="https://keyflint.dev/privacy.html">Privacidad</a></li><li><a href="https://keyflint.dev/dpa.html">Encargo de tratamiento</a></li><li><a href="{SITE['contact']}">{e(CONTACT)}</a></li></ul></div>
-</div>
-<div class="foot-base">
-<p class="muted small">© {dt.date.today().year} KeyFlint · Los servidores se ejecutan en tu equipo y no guardan tus datos.</p>
-<div class="badges">
-<a class="badge-pill" href="https://stripe.com" rel="noopener"><span class="muted">Pagos con</span>{brand("stripe")}<b>Stripe</b></a>
-<a class="badge-pill kf" href="https://keyflint.dev"><span class="muted">Licencias</span><span class="kf-mark">{icon("logo", "logo")}by&nbsp;KeyFlint</span></a>
-</div></div>
-</div></footer>
+{foot_en() if en else foot_es}
 </body>
 </html>
 """
@@ -473,13 +500,13 @@ def trial_page() -> str:
 <p class="lead-sm">Claude Desktop (extensión .mcpb), Claude Code, Cursor, VS Code y más. Elige servidor y copia.</p></div>
 <div class="install-card glass"><div class="picker" role="group" aria-label="Elige servidor">{picker}</div>{installers}</div>
 </div></section>"""
-    return page("/probar/", f"Prueba gratis los servidores MCP: {SITE['free_credits']} créditos · KeyFlint MCP",
+    return page("/probar/", f"Prueba gratis los servidores MCP: {SITE['free_credits']} créditos · Flint",
                 f"Licencia gratis al momento con {SITE['free_credits']} créditos para todos los servidores MCP de KeyFlint. Sin tarjeta.", body)
 
 
 def home() -> str:
     cards = "\n".join(mcp_card(m) for m in MCPS)
-    clients = "".join(f'<li>{brand(ic)}<span>{e(n)}</span></li>' for _, n, ic in CLIENTS) + \
+    clients = "".join(f'<li>{brand(ic)}<span>{e(n)}</span></li>' for _, n, ic in MARQUEE) + \
         f'<li>{icon("plug")}<span>Cualquier cliente MCP</span></li>'
     feats = [
         ("key", "Una licencia para todo", "La misma clave funciona en todos los servidores. Sin cuentas ni contraseñas que recordar."),
@@ -523,7 +550,7 @@ def home() -> str:
 </div></section>
 
 <section class="clients" aria-label="Clientes compatibles"><div class="wrap clients-in">
-<p class="clients-title">Compatible con</p><ul class="client-list">{clients}</ul></div></section>
+<p class="clients-title">Compatible con</p><div class="marquee"><div class="marquee-track"><ul class="client-list">{clients}</ul><ul class="client-list" aria-hidden="true">{clients}</ul></div></div></div></section>
 
 <section class="section" id="catalogo"><div class="wrap">
 <div class="section-head"><p class="eyebrow">Catálogo</p><h2>Servidores listos para trabajo real</h2>
@@ -532,7 +559,7 @@ def home() -> str:
 </div></section>
 
 <section class="section alt"><div class="wrap">
-<div class="section-head"><p class="eyebrow">Por qué KeyFlint MCP</p><h2>Pensados para producción, no para demos</h2></div>
+<div class="section-head"><p class="eyebrow">Por qué Flint</p><h2>Pensados para producción, no para demos</h2></div>
 <div class="feat-grid">{feat_html}</div>
 </div></section>
 
@@ -557,7 +584,7 @@ def home() -> str:
         {"@context": "https://schema.org", "@type": "WebSite", "name": SITE["name"], "url": SITE["url"] + "/",
          "description": SITE["description"], "inLanguage": "es"},
         {"@context": "https://schema.org", "@type": "Organization", "name": "KeyFlint", "url": "https://keyflint.dev",
-         "logo": SITE["url"] + "/assets/icon.svg", "email": CONTACT},
+         "logo": SITE["url"] + "/assets/flint-icon.svg", "email": CONTACT},
         {"@context": "https://schema.org", "@type": "ItemList", "itemListElement": [
             {"@type": "ListItem", "position": i + 1, "url": f"{SITE['url']}/{m['slug']}/", "name": m["name"]}
             for i, m in enumerate(MCPS)]},
@@ -679,7 +706,7 @@ def pricing() -> str:
 </div></section>
 <section class="section tight"><div class="wrap">
 <div class="plans">{''.join(cards)}</div>
-<p class="muted small center fine">{icon("lock")}Pago seguro con Stripe. Recargas en euros con IVA incluido; Pro en USD más impuestos según tu país. Recibes factura y puedes añadir tu NIF/VAT.</p>
+<p class="muted small center fine">{icon("lock")}Pago seguro con Stripe. Recargas en euros con IVA incluido; Pro en USD más impuestos según tu país. Recibes factura y puedes añadir tu NIF/VAT. Al comprar aceptas los <a href="/terminos/">términos</a> y la <a href="/reembolsos/">política de reembolso</a>.</p>
 </div></section>
 <section class="section alt"><div class="wrap usage-grid">
 <div class="section-head left"><p class="eyebrow">Cuánto da de sí</p><h2>Coste de las tareas más habituales</h2>
@@ -697,7 +724,7 @@ def pricing() -> str:
                      + [{"@type": "Offer", "name": "Recarga libre", "price": SITE["topup"]["min"], "priceCurrency": "EUR",
                          "url": f"{SITE['url']}/saldo/", "availability": "https://schema.org/InStock"}]},
           faq_ld(faq)]
-    return page("/precios/", "Precios de los servidores MCP · KeyFlint MCP",
+    return page("/precios/", "Precios de los servidores MCP · Flint",
                 f"Un saldo de créditos para todos los servidores MCP de KeyFlint. Recargas desde {SITE['topup']['min']} € sin suscripción o gratis con {SITE['free_credits']} créditos.",
                 body, ld)
 
@@ -747,7 +774,7 @@ def start() -> str:
            "totalTime": "PT2M",
            "step": [{"@type": "HowToStep", "name": n} for n in
                     ["Consigue tu licencia", "Instala uv", "Añade el servidor a tu cliente MCP", "Compruébalo con tu agente"]]}]
-    return page("/empezar/", "Cómo instalar un servidor MCP en Claude, Cursor o VS Code · KeyFlint MCP",
+    return page("/empezar/", "Cómo instalar un servidor MCP en Claude, Cursor o VS Code · Flint",
                 "Guía paso a paso para instalar servidores MCP en Claude Desktop, Claude Code, Cursor, VS Code, Codex, Antigravity y Windsurf con una licencia gratuita.",
                 body, ld)
 
@@ -811,7 +838,7 @@ def balance_page() -> str:
         ("¿Y si me arrepiento?", "Si no has usado los créditos de una recarga, escríbenos en los 14 días siguientes y te devolvemos el importe. Al devolverla se retiran esos créditos."),
     ])}</div>
 </div></section>"""
-    return page("/saldo/", "Consulta tu saldo de créditos · KeyFlint MCP",
+    return page("/saldo/", "Consulta tu saldo de créditos · Flint",
                 "Consulta los créditos que te quedan en tu licencia de KeyFlint MCP.", body, noindex=True)
 
 
@@ -844,15 +871,382 @@ def thanks() -> str:
 </form>
 <p class="muted small center">¿Sigue sin llegar? Escribe a <a href="{SITE['contact']}">{e(CONTACT)}</a>.</p>
 </div></section>"""
-    return page("/gracias/", "Pago completado · KeyFlint MCP", "Tu licencia está de camino.", body, noindex=True)
+    return page("/gracias/", "Pago completado · Flint", "Tu licencia está de camino.", body, noindex=True)
 
 
 def not_found() -> str:
-    return page("/404", "Página no encontrada · KeyFlint MCP", "Página no encontrada.",
+    return page("/404", "Página no encontrada · Flint", "Página no encontrada.",
                 f'<section class="hero hero-sm center"><div class="glow" aria-hidden="true"></div><div class="wrap narrow"><p class="eyebrow">Error 404</p>'
                 f'<h1>Esta página no existe</h1><p class="lead">Puede que el enlace haya cambiado.</p>'
                 f'<div class="cta-row center"><a class="btn btn-primary btn-lg" href="/">Ir al inicio</a>'
                 f'<a class="btn btn-ghost btn-lg" href="/#catalogo">Ver catálogo</a></div></div></section>', noindex=True)
+
+
+# ---------------------------------------------------------------- english
+
+EN_TOOLS = [
+    ("web", "web-intel", "Flint Web", "web-intel-mcp", "uvx web-intel-mcp",
+     "Turn any web page into clean Markdown and audit its SEO.",
+     "Clean Markdown, metadata and links from any page, the site's tech stack, and an SEO score from 0 to 100 with the 5 fixes that matter most."),
+    ("data", "dataclean", "Flint Data", "dataclean-mcp", "uvx dataclean-mcp",
+     "Clean and validate messy CSV and Excel files without losing a row.",
+     "Real column types, European and US amounts and dates, mojibake and odd spaces removed, phones in E.164, duplicates and schema checks. Ambiguous values are flagged, never dropped."),
+    ("bank", "norma43", "Flint Bank", "norma43-mcp", "uvx norma43-mcp",
+     "Parse Spanish Norma 43 bank statements and reconcile them with invoices.",
+     "Reads Cuaderno 43 files with the same checks a bank runs and matches movements to invoices (1:1, one transfer for several invoices, partial payments), each with a score and a reason."),
+    ("ledger", "contabridge", "Flint Ledger", "contabridge-mcp", "uvx contabridge-mcp",
+     "Move journal entries between A3, ContaPlus, QuickBooks and Xero.",
+     "Converts entries between a3, Sage ContaPlus / Sage 50, QuickBooks (IIF and CSV), Xero and Holded, adjusts sub-account lengths and checks that every entry balances."),
+    ("fiscal", "verifactu", "Flint Fiscal", "verifactu-keyflint-mcp", "uvx --from verifactu-keyflint-mcp verifactu-mcp",
+     "Check VeriFactu records and Facturae e-invoices before you send them.",
+     "Verifies VERI*FACTU fingerprints and chaining, validates the XML against the AEAT schema, builds the tax QR and creates or validates Facturae 3.2.2. It reviews files: it is not a certified invoicing system."),
+]
+EN_PACKS = {
+    "pro": ("For daily use", "1,000 new credits every month, cancel anytime", "/mo"),
+}
+
+
+def en_code(id_: str, text: str, label: str = "") -> str:
+    return code_block(id_, text, label).replace("<span>Copiar</span>", "<span>Copy</span>")
+
+
+def en_tool_card(t) -> str:
+    glyph, slug, name, pkg, _, one, desc = t
+    return f"""<div class="card mcp-card en-tool">
+<div class="card-top"><img class="flint-glyph" src="/assets/flint/{glyph}.svg" alt="" width="44" height="44"><code class="muted small">{e(pkg)}</code></div>
+<h3>{e(name)}</h3>
+<p><b>{e(one)}</b></p>
+<p class="muted small">{e(desc)}</p>
+<span class="card-foot"><a class="link-arrow" href="https://github.com/ArceeDev/{'verifactu-mcp' if slug == 'verifactu' else pkg}" rel="noopener">GitHub{icon("arrow-right")}</a>
+<a class="link-arrow" href="https://pypi.org/project/{pkg}/" rel="noopener">PyPI{icon("arrow-right")}</a></span>
+</div>"""
+
+
+def en_plans() -> str:
+    free = f"""<div class="plan">
+<div class="plan-head"><h3 class="h3">Free</h3><p class="muted small">Try it on your own files</p></div>
+<p class="price">€0</p><p class="credits">{SITE['free_credits']} credits</p>
+<a class="btn btn-ghost btn-block" href="/en/try/">Get a free license</a>
+<ul class="checks"><li>{icon("check")}All 5 tools</li><li>{icon("check")}No card</li><li>{icon("check")}1 device</li></ul></div>"""
+    tp = SITE["topup"]
+    tiers = "".join(f'<li>{icon("check")}€{a}+: {tp["rate"] * (100 + b) // 100} credits/€{f" (+{b}%)" if b else ""}</li>' for a, b, _ in tp["tiers"])
+    topup = f"""<div class="plan featured"><span class="badge">No subscription</span>
+<div class="plan-head"><h3 class="h3">Pay as you go</h3><p class="muted small">Pay only for what you use</p></div>
+<p class="price">from €{tp['min']}</p><p class="credits">{tp['rate']} credits per euro · up to +40%</p>
+<a class="btn btn-primary btn-block" href="/saldo/#recargar">Top up</a>
+<ul class="checks">{tiers}<li>{icon("check")}Adds to the same license</li><li>{icon("check")}Credits never expire</li></ul></div>"""
+    out = [free, topup]
+    for p in SITE["packs"]:
+        who, billing, per = EN_PACKS.get(p["id"], ("", "", ""))
+        feat, badge = "", ""
+        out.append(f"""<div class="plan{feat}">{badge}
+<div class="plan-head"><h3 class="h3">{e(p['name'])}</h3><p class="muted small">{e(who)}</p></div>
+<p class="price">${p['price']:,}<span class="muted small">{per}</span></p><p class="credits">{p['credits']:,} credits</p>
+<a class="btn {'btn-primary' if p.get('featured') else 'btn-ghost'} btn-block" href="{e(p['checkout'])}" rel="noopener" data-checkout>Buy {e(p['name'])}</a>
+<ul class="checks"><li>{icon("check")}{e(billing)}</li><li>{icon("check")}{p.get('seats', 3)} devices</li><li>{icon("check")}Failed calls are free</li></ul></div>""")
+    return "".join(out)
+
+
+def en_home() -> str:
+    clients = "".join(f'<li>{brand(ic)}<span>{e(n)}</span></li>' for _, n, ic in MARQUEE) + \
+        f'<li>{icon("plug")}<span>Any MCP client</span></li>'
+    cards = "".join(en_tool_card(t) for t in EN_TOOLS)
+    feats = [
+        ("target", "Deterministic", "Same file in, same result out. Run it twice and the SHA-256 of the output matches."),
+        ("refund", "Pay only when it works", "Each tool has a fixed credit cost. Invalid files are rejected before charging, and failed calls are refunded automatically."),
+        ("shield", "Flags, never guesses", "Anything uncertain is marked for review instead of being invented."),
+        ("lock", "Your files stay with you", "Run locally with uvx and your files never leave your machine, or use the remote connector with OAuth."),
+        ("key", "One license, every tool", "Signed Ed25519 license tokens, verified locally in under a millisecond."),
+        ("ledger", "Source on GitHub", "Plain, tested Python under the Business Source License 1.1. Read exactly what your AI runs."),
+    ]
+    feat_html = "".join(f'<div class="feat"><span class="tile tile-sm">{icon(i)}</span><h3>{t}</h3><p>{d}</p></div>' for i, t, d in feats)
+    remote = en_code("en-remote", "https://mcp.keyflint.dev/norma43/mcp", "Remote connector URL")
+    local = en_code("en-local", '{\n  "mcpServers": {\n    "flint-bank": {\n      "command": "uvx",\n      "args": ["norma43-mcp"],\n      "env": { "KEYFLINT_LICENSE": "LIC-…" }\n    }\n  }\n}', "Local (claude_desktop_config.json, Cursor, VS Code)")
+    faq = [
+        ("What is MCP?", "The Model Context Protocol is the open standard that lets AI clients such as Claude, ChatGPT, Cursor and VS Code call external tools. Flint is a set of MCP servers your AI can call when it needs an exact answer."),
+        ("Is it open source?", "The code is public on GitHub under the Business Source License 1.1: you can read it, run it and audit it. Commercial use goes through a license with credits."),
+        ("Where are my files processed?", "Locally, if you run the servers with uvx: only the license check and the credit count reach our servers. With the remote connector, files are processed to answer the call and are not stored."),
+        ("Is Flint Fiscal a certified invoicing system?", "No. It reviews VeriFactu and Facturae files before you send them. It does not send anything to the Spanish tax agency and does not certify compliance."),
+        ("Why so many Spanish formats?", "That is where AI fails most and nobody else covers it: Norma 43 statements, a3 and ContaPlus exports, VeriFactu. Flint Web and Flint Data work for any country."),
+        ("What if I run out of credits or want a refund?", "Tools tell your AI when credits run out and nothing is charged. Top up from €5 and the credits land on the same license, with no config changes. Within 14 days we refund a top-up or your first Pro month if you used less than 20% of its credits; failed calls are never charged."),
+    ]
+    body = f"""
+<section class="hero"><div class="glow" aria-hidden="true"></div><div class="wrap hero-grid">
+<div class="hero-copy">
+<p class="eyebrow">MCP tools for money, accounting and data</p>
+<h1>Deterministic tools your AI can trust with numbers</h1>
+<p class="lead">AI is great at writing and bad at numbers. Flint gives Claude, ChatGPT, Cursor and VS Code tools that compute instead of guess: bank reconciliation, accounting exports, e-invoicing checks, data cleaning and web audits.</p>
+<div class="cta-row"><a class="btn btn-primary btn-lg" href="/en/try/">{icon("key")}Get {SITE['free_credits']} free credits</a>
+<a class="btn btn-ghost btn-lg" href="#pricing">See pricing</a></div>
+<ul class="assure"><li>{icon("check")}No card</li><li>{icon("check")}Pay per successful call</li><li>{icon("check")}Source on GitHub</li></ul>
+</div>
+<figure class="demo glass en-video"><video controls preload="none" playsinline poster="/assets/video/flint-launch-en.jpg" width="1280" height="720">
+<source src="/assets/video/flint-launch-en.mp4" type="video/mp4"></video>
+<figcaption class="demo-foot"><span>{icon("shield")}Real output from Flint Bank, run twice: same hash</span><span class="tabnum">63 s</span></figcaption></figure>
+</div></section>
+
+<section class="clients" aria-label="Works with"><div class="wrap clients-in">
+<p class="clients-title">Works with</p><div class="marquee"><div class="marquee-track"><ul class="client-list">{clients}</ul><ul class="client-list" aria-hidden="true">{clients}</ul></div></div></div></section>
+
+<section class="section" id="tools"><div class="wrap">
+<div class="section-head"><p class="eyebrow">Five tools, one account</p><h2>The AI proposes. Flint checks.</h2>
+<p class="lead-sm">Each tool does one exact job end to end and validates data the way the destination software does.</p></div>
+<div class="grid-3">{cards}</div>
+</div></section>
+
+<section class="section alt"><div class="wrap">
+<div class="section-head"><p class="eyebrow">Why Flint</p><h2>Built for work where "almost right" fails</h2></div>
+<div class="feat-grid">{feat_html}</div>
+</div></section>
+
+<section class="section" id="how"><div class="wrap install-grid">
+<div class="section-head left"><p class="eyebrow">How it works</p><h2>Connected in two minutes</h2>
+<ol class="steps">
+<li class="step"><span class="tile tile-sm">{icon("key")}</span><div><h3><span class="step-n">1</span>Get a license</h3><p>{SITE['free_credits']} free credits or a paid plan. You see it on screen and get it by email.</p></div></li>
+<li class="step"><span class="tile tile-sm">{icon("plug")}</span><div><h3><span class="step-n">2</span>Connect your AI</h3><p>Add the remote connector URL in Claude or ChatGPT and sign in with your license, or run it locally with uvx in Cursor, VS Code or Claude Desktop.</p></div></li>
+<li class="step"><span class="tile tile-sm">{icon("chat")}</span><div><h3><span class="step-n">3</span>Just ask</h3><p>"Reconcile October's statement with invoices.csv". Your AI picks the tool and shows the cost.</p></div></li>
+</ol></div>
+<div class="install-card glass">{remote}<p class="muted small">Swap <code>norma43</code> for <code>web-intel</code>, <code>dataclean</code>, <code>contabridge</code> or <code>verifactu</code>.</p>{local}</div>
+</div></section>
+
+<section class="section alt" id="pricing"><div class="wrap">
+<div class="section-head"><p class="eyebrow">Pricing</p><h2>One credit balance for every tool</h2>
+<p class="lead-sm">A €{SITE["topup"]["min"]} top-up ({SITE["topup"]["min"] * SITE["topup"]["rate"]} credits) reads and reconciles 25 Norma 43 statements at 4 credits each.</p></div>
+<div class="plans">{en_plans()}</div>
+<p class="muted small center fine">{icon("lock")}Secure checkout with Stripe. Top-ups in euros with VAT included; Pro in USD plus local taxes. 14-day refund policy.</p>
+</div></section>
+
+<section class="section"><div class="wrap faq-grid">
+<div class="section-head left"><p class="eyebrow">FAQ</p><h2>Questions</h2>
+<p class="lead-sm">Anything else? Email <a href="{SITE['contact']}">{e(CONTACT)}</a>. A real person answers within one business day.</p></div>
+<div class="faq">{faq_html(faq)}</div>
+</div></section>
+
+<section class="section"><div class="wrap"><div class="cta-band">
+<div><h2>Try it on your own files</h2><p class="lead-sm">{SITE['free_credits']} free credits, no card. Built solo from Spain.</p></div>
+<div class="cta-row"><a class="btn btn-primary btn-lg" href="/en/try/">Get a free license</a><a class="btn btn-ghost btn-lg" href="https://github.com/ArceeDev" rel="noopener">See the code</a></div>
+</div></div></section>"""
+    ld = [{"@context": "https://schema.org", "@type": "SoftwareApplication", "name": "Flint", "applicationCategory": "BusinessApplication",
+           "operatingSystem": "Windows, macOS, Linux", "url": SITE["url"] + "/en/", "inLanguage": "en",
+           "offers": {"@type": "Offer", "price": 0, "priceCurrency": "USD"}},
+          faq_ld(faq)]
+    return page("/en/", "Flint: deterministic MCP tools for bank files, accounting and CSVs",
+                "MCP tools for Claude, ChatGPT, Cursor and VS Code that compute instead of guess: Norma 43 reconciliation, A3/ContaPlus/QuickBooks/Xero exports, VeriFactu checks, CSV cleaning and SEO audits.",
+                body, ld, lang="en")
+
+
+def en_try() -> str:
+    remotes = "".join(f'<li><b>{e(t[2])}</b> <code>https://mcp.keyflint.dev/{t[1]}/mcp</code></li>' for t in EN_TOOLS)
+    body = f"""
+<section class="hero hero-sm"><div class="glow" aria-hidden="true"></div><div class="wrap narrow">
+<nav class="crumbs" aria-label="Breadcrumb"><a href="/en/">Home</a>{icon("chevron-right")}<span aria-current="page">Free trial</span></nav>
+<h1>{SITE['free_credits']} free credits, no card</h1>
+<p class="lead">Enter your email and get a license right away. It works with all 5 tools.</p>
+</div></section>
+<section class="section tight"><div class="wrap narrow">
+<form class="recover glass" data-trial-form novalidate>
+<div><h2 class="h3">Your trial license</h2>
+<p class="muted small">One per email. No newsletter.</p></div>
+<div class="recover-row"><input type="email" name="email" autocomplete="email" placeholder="you@company.com" required aria-label="Email">
+<button class="btn btn-primary" type="submit">{icon("key")}Get my license</button></div>
+<p class="lic-help" data-trial-msg aria-live="polite"></p>
+</form>
+<div class="reveal glass" data-trial-out hidden>
+<div class="reveal-head"><span class="tile tile-sm">{icon("check")}</span><div><h2 class="h3">Ready: {SITE['free_credits']} credits</h2>
+<p class="muted small">Saved in this browser. Keep it like a password.</p></div></div>
+{en_code("lic-trial", "LIC-…", "KEYFLINT_LICENSE")}
+</div>
+</div></section>
+<section class="section"><div class="wrap narrow legal">
+<h2>Connect it</h2>
+<p><b>Claude or ChatGPT (remote):</b> add a custom connector with one of these URLs and paste your license when asked.</p>
+<ul>{remotes}</ul>
+<p><b>Cursor, VS Code, Claude Desktop (local):</b> install <a href="https://docs.astral.sh/uv/" rel="noopener">uv</a> once and add the server with <code>uvx</code> and the <code>KEYFLINT_LICENSE</code> variable, as shown on the <a href="/en/#how">home page</a>.</p>
+<p class="muted small">By getting a license you accept the <a href="/terminos/">terms</a> (in Spanish, summarised in the <a href="/en/#pricing">FAQ</a>).</p>
+</div></section>"""
+    return page("/en/try/", f"Try Flint free: {SITE['free_credits']} credits, no card",
+                f"Get a free Flint license with {SITE['free_credits']} credits for all 5 MCP tools. No card.", body, lang="en")
+
+
+def foot_en() -> str:
+    tools = "".join(f'<li><a href="https://github.com/ArceeDev/{"verifactu-mcp" if t[1] == "verifactu" else t[3]}" rel="noopener">{e(t[2])}</a></li>' for t in EN_TOOLS)
+    return f"""<footer class="foot"><div class="wrap">
+<div class="foot-grid">
+<div class="foot-brand"><a class="brand" href="/en/">{flint()}<span>Flint</span><span class="brand-tag">by KeyFlint</span></a>
+<p class="muted small">Deterministic MCP tools for AI agents, with signed licenses and pay-per-use credits. Built in Spain.</p></div>
+<div><h3>Tools</h3><ul>{tools}</ul></div>
+<div><h3>Resources</h3><ul><li><a href="/en/try/">Free trial</a></li><li><a href="/en/#pricing">Pricing</a></li><li><a href="/saldo/">Check balance (ES)</a></li><li><a href="https://github.com/ArceeDev" rel="noopener">GitHub</a></li><li><a href="/estado/">Status</a></li></ul></div>
+<div><h3>Legal &amp; support</h3><ul><li><a href="/terminos/">Terms (ES)</a></li><li><a href="/reembolsos/">Refunds (ES)</a></li><li><a href="/aviso-legal/">Legal notice (ES)</a></li><li><a href="https://keyflint.dev/privacy.html">Privacy</a></li><li><a href="{SITE['contact']}">{e(CONTACT)}</a></li></ul></div>
+</div>
+<div class="foot-base">
+<p class="muted small">© {dt.date.today().year} KeyFlint · Source on GitHub under BSL 1.1.</p>
+<div class="badges">
+<a class="badge-pill" href="https://stripe.com" rel="noopener"><span class="muted">Payments by</span>{brand("stripe")}<b>Stripe</b></a>
+<a class="badge-pill kf" href="https://keyflint.dev"><span class="muted">Licensing</span><span class="kf-mark">{icon("logo", "logo")}by&nbsp;KeyFlint</span></a>
+</div></div>
+</div></footer>"""
+
+
+ALT_LANG = {"/": "/en/", "/probar/": "/en/try/"}
+
+
+def status_page() -> str:
+    rows = [("licenses", "Licencias y créditos", "licenses.keyflint.dev")] + [(t[1], t[2], f"/{t[1]}/mcp") for t in EN_TOOLS]
+    lis = "".join(f'<li class="st-row"><div><b>{e(n)}</b><span class="muted small"> · <code>{e(d)}</code></span></div>'
+                  f'<span class="st" data-st="{k}">Comprobando…</span></li>' for k, n, d in rows)
+    body = f"""
+<section class="hero hero-sm"><div class="glow" aria-hidden="true"></div><div class="wrap narrow">
+<nav class="crumbs" aria-label="Ruta"><a href="/">Inicio</a>{icon("chevron-right")}<span aria-current="page">Estado</span></nav>
+<h1>Estado del servicio</h1>
+<p class="lead">Comprobamos en directo el servidor de licencias y las cinco herramientas en modo remoto. <span lang="en">Live status of licensing and the five remote tools.</span></p>
+</div></section>
+<section class="section tight"><div class="wrap narrow">
+<ul class="st-list glass" data-status>{lis}</ul>
+<p class="muted small">Última comprobación: <span data-st-time>…</span>. Los servidores locales (<code>uvx</code>) solo dependen de las licencias. ¿Algo raro? Escribe a <a href="{SITE['contact']}">{e(CONTACT)}</a>.</p>
+</div></section>"""
+    return page("/estado/", "Estado del servicio · Flint", "Estado en directo de las licencias y de las herramientas remotas de Flint.", body)
+
+
+# ---------------------------------------------------------------- legal
+
+LEGAL = SITE["legal"]
+
+
+def _ld(key: str, label: str) -> str:
+    """Holder data from catalog.json; a visible placeholder until it is filled in."""
+    v = LEGAL.get(key, "").strip()
+    return e(v) if v else f'<mark class="todo">[PENDIENTE: {e(label)}]</mark>'
+
+
+def legal_missing() -> list[str]:
+    return [k for k in ("holder", "nif", "address") if not LEGAL.get(k, "").strip()]
+
+
+def legal_page(path: str, crumb: str, title: str, lead: str, sections: list[tuple[str, str]]) -> str:
+    toc = "".join(f'<li><a href="#s{i}">{e(h)}</a></li>' for i, (h, _) in enumerate(sections, 1))
+    secs = "".join(f'<h2 id="s{i}">{e(h)}</h2>{b}' for i, (h, b) in enumerate(sections, 1))
+    body = f"""
+<section class="hero hero-sm"><div class="glow" aria-hidden="true"></div><div class="wrap narrow">
+<nav class="crumbs" aria-label="Ruta"><a href="/">Inicio</a>{icon("chevron-right")}<span aria-current="page">{e(crumb)}</span></nav>
+<h1>{e(title)}</h1>
+<p class="lead">{lead}</p>
+<p class="muted small">Última actualización: {e(LEGAL.get("updated", TODAY))}</p>
+</div></section>
+<section class="section tight"><div class="wrap narrow legal">
+<nav class="legal-toc" aria-label="En esta página"><ol>{toc}</ol></nav>
+{secs}
+</div></section>"""
+    return page(path, f"{title} · Flint", re.sub(r"<[^>]+>", "", lead)[:158], body)
+
+
+def terms_page() -> str:
+    mail = e(LEGAL["email"])
+    support = e(CONTACT)
+    s = [
+        ("Quién presta el servicio",
+         f'<p>Flint (mcp.keyflint.dev) es un servicio de {_ld("holder", "nombre y apellidos")}, NIF {_ld("nif", "NIF")}, '
+         f'con domicilio en {_ld("address", "domicilio")}. Contacto: <a href="mailto:{support}">{support}</a>. Más datos en el <a href="/aviso-legal/">aviso legal</a>.</p>'),
+        ("Qué contratas",
+         "<p>Acceso a los servidores MCP del catálogo (Flint Web, Data, Bank, Ledger y Fiscal), en tu equipo o en modo remoto, mediante una "
+         "licencia con un saldo de créditos. Cada llamada correcta descuenta los créditos que indica la página de <a href=\"/precios/\">precios</a>; "
+         "las llamadas que fallan no descuentan nada.</p>"),
+        ("Tu licencia",
+         "<ul><li>La licencia es una clave personal. Quien la tenga puede gastar sus créditos: guárdala como una contraseña.</li>"
+         "<li>Cada licencia permite un número de equipos: 1 en la prueba gratis y 3 en Pro.</li>"
+         "<li>Si la pierdes, puedes recuperarla con un enlace a tu email desde <a href=\"/saldo/\">Mi saldo</a>.</li>"
+         "<li>No puedes revender, alquilar ni compartir públicamente licencias o créditos.</li></ul>"),
+        ("Planes, créditos y vigencia",
+         "<ul><li><b>Prueba gratis:</b> 25 créditos, una por persona, sin tarjeta. Válida 12 meses.</li>"
+         "<li><b>Recarga libre:</b> pagas el importe que eliges (de 5 € a 500 €) y los créditos se suman a tu misma licencia, con más créditos por euro a partir de 20 €. No caducan mientras el servicio exista.</li>"
+         "<li><b>Pro:</b> suscripción mensual con 1.000 créditos nuevos cada mes, que se gastan antes que los de tus recargas. Los créditos mensuales que no uses no pasan al mes siguiente; los recargados se conservan. Puedes cancelar cuando quieras y no se te cobrará el mes siguiente.</li></ul>"),
+        ("Precio y pago",
+         "<p>Los precios están en la página de <a href=\"/precios/\">precios</a>. Las recargas se pagan en euros con el IVA incluido; Pro, en dólares (USD) más los impuestos de tu país. "
+         "El pago lo procesa Stripe, que te muestra el importe final y te envía la factura, en la que puedes añadir tu NIF o número de IVA. Si en tu compra aparece Stripe como vendedor, "
+         "Stripe gestiona el cobro y los impuestos; el uso de las herramientas se rige por estos términos.</p>"),
+        ("Desistimiento y reembolsos",
+         "<p>Tienes 14 días para pedir el reembolso completo y, en muchos casos, también después de usar créditos. Lo explicamos en la "
+         "<a href=\"/reembolsos/\">política de reembolso</a>.</p>"),
+        ("Qué hacen y qué no hacen las herramientas",
+         "<ul><li>Son deterministas: el mismo fichero da el mismo resultado. Aun así, revisa siempre el resultado antes de usarlo en tu contabilidad, en tus impuestos o ante terceros.</li>"
+         "<li>No son asesoramiento contable, fiscal ni legal.</li>"
+         "<li>Flint Fiscal revisa ficheros VeriFactu y Facturae, pero no es un sistema informático de facturación (SIF), no envía nada a la Agencia Tributaria y no certifica el cumplimiento.</li>"
+         "<li>Lo que la herramienta no puede casar o validar con seguridad se marca para que lo revises, en lugar de adivinarlo.</li></ul>"),
+        ("Tus datos y tus ficheros",
+         "<p>En modo local, los servidores se ejecutan en tu equipo y tus ficheros no salen de él. En modo remoto, los ficheros se procesan para responder a la llamada y no se guardan. "
+         "Solo registramos la licencia, el email asociado y el consumo de créditos. Más detalle en la <a href=\"https://keyflint.dev/privacy.html\">política de privacidad</a> "
+         "y, si eres empresa, en el <a href=\"https://keyflint.dev/dpa.html\">encargo de tratamiento</a>.</p>"),
+        ("Uso aceptable",
+         "<p>No puedes usar el servicio para actividades ilegales, para atacar o sobrecargar la infraestructura, ni para saltarte los límites de la licencia o de la prueba gratis. "
+         "Si lo haces, podemos suspender la licencia; si es de pago y no hubo abuso, te devolveremos la parte no usada.</p>"),
+        ("Código y propiedad intelectual",
+         "<p>El código de los servidores está publicado en GitHub con licencia Business Source License 1.1, que permite leerlo y usarlo según sus condiciones. "
+         "Las marcas KeyFlint y Flint, la web y sus textos no se ceden.</p>"),
+        ("Disponibilidad y responsabilidad",
+         "<p>Trabajamos para que el servicio esté siempre disponible, pero no garantizamos un tiempo de actividad concreto. Responderemos de los daños causados por dolo o culpa grave "
+         "y de lo que la ley no permita limitar. En lo demás, nuestra responsabilidad se limita al importe que hayas pagado en los 12 meses anteriores. "
+         "Si eres consumidor, conservas todos los derechos que te reconoce la ley.</p>"),
+        ("Cambios en estos términos",
+         "<p>Si cambiamos algo importante, lo avisaremos por email con 15 días de antelación. Los cambios no afectan a los créditos que ya hayas comprado.</p>"),
+        ("Ley aplicable y reclamaciones",
+         f"<p>Se aplica la ley española. Escríbenos primero a <a href=\"mailto:{support}\">{support}</a> o a <a href=\"mailto:{mail}\">{mail}</a>; respondemos en menos de 48 horas laborables. "
+         "Si eres consumidor, puedes reclamar ante los juzgados de tu domicilio.</p>"),
+    ]
+    return legal_page("/terminos/", "Términos", "Términos de uso",
+                      "Las condiciones para usar los servidores MCP y comprar créditos, en lenguaje claro.", s)
+
+
+def refunds_page() -> str:
+    support = e(CONTACT)
+    s = [
+        ("Resumen",
+         "<ul><li><b>Las llamadas que fallan no se cobran:</b> no tienes que pedir nada.</li>"
+         "<li><b>14 días de garantía:</b> si no te convence una recarga o el primer mes de Pro, te devolvemos todo si has usado menos del 20 % de sus créditos.</li>"
+         "<li><b>Pro:</b> cancelas cuando quieras y no se te vuelve a cobrar.</li></ul>"),
+        ("Cómo pedir un reembolso",
+         f"<p>Escribe a <a href=\"mailto:{support}\">{support}</a> desde el email de la compra, en los 14 días siguientes al pago. "
+         "No hace falta que expliques el motivo. Lo tramitamos en un máximo de 3 días laborables y Stripe lo devuelve al mismo medio de pago, normalmente en 5 a 10 días.</p>"),
+        ("Qué pasa con la licencia",
+         "<p>Al devolver una recarga se retiran de tu licencia los créditos que aportó; el resto de tu saldo y tu licencia siguen igual. Al devolver Pro se cancela la suscripción.</p>"),
+        ("Derecho de desistimiento",
+         "<p>Si eres consumidor, la ley te da 14 días para desistir de la compra. Como los créditos son contenido digital que se entrega al momento, "
+         "ese derecho se pierde sobre la parte que empiezas a usar con tu consentimiento (lo aceptas al recargar). Nuestra garantía va más allá: mientras hayas usado menos del 20 % de los créditos, te devolvemos todo igualmente.</p>"),
+        ("Suscripción Pro",
+         "<p>Puedes cancelar en cualquier momento desde el enlace de gestión del correo de Stripe o escribiéndonos. Conservas los créditos hasta el final del mes pagado y no se te cobra el siguiente. "
+         "Si cancelas en los 14 días siguientes a un cobro y has usado menos del 20 % de los créditos de ese mes, te devolvemos ese mes.</p>"),
+        ("Errores de cobro",
+         "<p>Si te hemos cobrado dos veces o algo no cuadra, lo devolvemos siempre, sin plazo.</p>"),
+    ]
+    return legal_page("/reembolsos/", "Reembolsos", "Política de reembolso",
+                      "Si algo no funciona, no pagas. Y si no te convence, te devolvemos el dinero.", s)
+
+
+def notice_page() -> str:
+    mail = e(LEGAL["email"])
+    support = e(CONTACT)
+    s = [
+        ("Titular",
+         f'<ul><li><b>Titular:</b> {_ld("holder", "nombre y apellidos")}</li>'
+         f'<li><b>NIF:</b> {_ld("nif", "NIF")}</li>'
+         f'<li><b>Domicilio:</b> {_ld("address", "domicilio")}</li>'
+         f'<li><b>Email:</b> <a href="mailto:{support}">{support}</a> y <a href="mailto:{mail}">{mail}</a></li>'
+         "<li><b>Actividad:</b> desarrollo y venta de software (servidores MCP) con licencia de uso por créditos.</li></ul>"
+         "<p>Este aviso cumple el artículo 10 de la Ley 34/2002 de servicios de la sociedad de la información (LSSI).</p>"),
+        ("Condiciones de uso de la web",
+         "<p>Puedes navegar por esta web libremente. Las condiciones de compra y uso de los servidores están en los <a href=\"/terminos/\">términos de uso</a> "
+         "y en la <a href=\"/reembolsos/\">política de reembolso</a>.</p>"),
+        ("Cookies y almacenamiento",
+         "<p>Esta web no usa cookies de publicidad ni de seguimiento. Si compras o pides la prueba gratis, tu navegador guarda tu licencia (localStorage) para mostrártela; "
+         "puedes borrarla cuando quieras desde el navegador. Las estadísticas de visitas, si las hay, son anónimas y sin cookies.</p>"),
+        ("Propiedad intelectual",
+         "<p>Los textos, el diseño y las marcas KeyFlint y Flint pertenecen al titular. El código de los servidores se publica en GitHub con licencia Business Source License 1.1. "
+         "Los logotipos de terceros (Claude, ChatGPT, Cursor, VS Code, Stripe y otros) pertenecen a sus dueños y solo indican compatibilidad.</p>"),
+        ("Enlaces",
+         "<p>No respondemos del contenido de las webs de terceros a las que enlazamos.</p>"),
+        ("Ley aplicable",
+         "<p>Se aplica la ley española.</p>"),
+    ]
+    return legal_page("/aviso-legal/", "Aviso legal", "Aviso legal",
+                      "Quién está detrás de mcp.keyflint.dev y cómo contactar.", s)
 
 
 # ---------------------------------------------------------------- output
@@ -878,9 +1272,17 @@ def main() -> None:
     write("saldo/index.html", balance_page())
     write("probar/index.html", trial_page())
     write("404.html", not_found())
+    write("terminos/index.html", terms_page())
+    write("en/index.html", en_home())
+    write("estado/index.html", status_page())
+    write("en/try/index.html", en_try())
+    write("reembolsos/index.html", refunds_page())
+    write("aviso-legal/index.html", notice_page())
+    if legal_missing():
+        print("AVISO: faltan datos del titular en data/catalog.json -> site.legal:", ", ".join(legal_missing()))
     for m in MCPS:
         write(f"{m['slug']}/index.html", mcp_page(m))
-    paths = ["/", "/probar/", "/empezar/", "/precios/"] + [f"/{m['slug']}/" for m in MCPS]
+    paths = ["/", "/probar/", "/empezar/", "/precios/", "/terminos/", "/reembolsos/", "/aviso-legal/", "/en/", "/en/try/", "/estado/"] + [f"/{m['slug']}/" for m in MCPS]
     write("sitemap.xml", '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
           + "".join(f"<url><loc>{SITE['url']}{p}</loc><lastmod>{TODAY}</lastmod></url>\n" for p in paths) + "</urlset>\n")
     write("robots.txt", f"User-agent: *\nAllow: /\nDisallow: /gracias/\nDisallow: /saldo/\nDisallow: /api/\n\nSitemap: {SITE['url']}/sitemap.xml\n")
