@@ -309,8 +309,10 @@ td code{color:var(--ink)}
 .checks{list-style:none;padding:16px 0 0;margin:6px 0 0;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:10px;font-size:.9rem;color:var(--ink-2)}
 .checks li{display:flex;gap:10px;align-items:flex-start}
 .checks .i{width:18px;height:18px;color:var(--ok);margin-top:2px}
-.fine{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:28px}
-.fine .i{width:16px;height:16px}
+.fine{display:block;text-align:center;margin:32px auto 0;max-width:820px;line-height:1.6;font-size:.85rem;color:var(--muted)}
+.fine .i{display:inline-block;vertical-align:-2px;width:15px;height:15px;margin-right:6px;color:var(--muted)}
+.fine a{color:var(--ink-2);text-decoration:underline;text-underline-offset:3px;transition:color .15s ease}
+.fine a:hover{color:var(--ink)}
 .usage-grid{display:grid;grid-template-columns:.9fr 1.1fr;gap:56px;align-items:center}
 
 /* guide */

@@ -706,7 +706,7 @@ def pricing() -> str:
 </div></section>
 <section class="section tight"><div class="wrap">
 <div class="plans">{''.join(cards)}</div>
-<p class="muted small center fine">{icon("lock")}Pago seguro con Stripe. Recargas en euros con IVA incluido; Pro en USD más impuestos según tu país. Recibes factura y puedes añadir tu NIF/VAT. Al comprar aceptas los <a href="/terminos/">términos</a> y la <a href="/reembolsos/">política de reembolso</a>.</p>
+<p class="muted small center fine">{icon("lock")}Pago seguro con Stripe. Recargas en euros con IVA incluido; Pro en USD más impuestos según tu país. Recibes factura y puedes añadir tu NIF/VAT. Al comprar aceptas los <a href="/terminos/">términos de servicio</a>, la <a href="https://keyflint.dev/privacy.html">política de privacidad</a> y la <a href="/reembolsos/">política de reembolso</a>.</p>
 </div></section>
 <section class="section alt"><div class="wrap usage-grid">
 <div class="section-head left"><p class="eyebrow">Cuánto da de sí</p><h2>Coste de las tareas más habituales</h2>
@@ -1013,7 +1013,7 @@ def en_home() -> str:
 <div class="section-head"><p class="eyebrow">Pricing</p><h2>One credit balance for every tool</h2>
 <p class="lead-sm">A €{SITE["topup"]["min"]} top-up ({SITE["topup"]["min"] * SITE["topup"]["rate"]} credits) reads and reconciles 25 Norma 43 statements at 4 credits each.</p></div>
 <div class="plans">{en_plans()}</div>
-<p class="muted small center fine">{icon("lock")}Secure checkout with Stripe. Top-ups in euros with VAT included; Pro in USD plus local taxes. 14-day refund policy.</p>
+<p class="muted small center fine">{icon("lock")}Secure checkout with Stripe. Top-ups in euros with VAT included; Pro in USD plus local taxes. You receive an invoice with NIF/VAT. By purchasing you accept the <a href="/terminos/">terms</a>, the <a href="https://keyflint.dev/privacy.html">privacy policy</a>, and the <a href="/reembolsos/">refund policy</a>.</p>
 </div></section>
 
 <section class="section"><div class="wrap faq-grid">
