@@ -187,13 +187,18 @@
       var eur = Number(amt.value), ok = valid(eur), b = bonusOf(eur), c = creditsOf(eur);
       tb.querySelector("[data-topup-credits]").textContent = ok ? nfT.format(c) : "—";
       var bonus = tb.querySelector("[data-topup-bonus]"); bonus.hidden = !ok || !b; bonus.textContent = "+" + b + " %";
-      tb.querySelector("[data-topup-eq]").textContent = ok ? "≈ " + nfT.format(Math.floor(c / 4)) + " extractos Norma 43 leídos y conciliados" : "Entre " + cfg.min + " € y " + cfg.max + " €, sin decimales";
+      var eqMsg = tb.querySelector("[data-topup-eq]"); eqMsg.hidden = ok; eqMsg.textContent = "Entre " + cfg.min + " € y " + cfg.max + " €, sin decimales";
+      tb.querySelector("[data-topup-eqs]").hidden = !ok;
+      tb.querySelectorAll("[data-eq]").forEach(function (el) { el.textContent = "≈ " + nfT.format(Math.floor(c / Number(el.getAttribute("data-eq")))); });
+      if (bonus.getAttribute("data-b") !== String(b)) { bonus.setAttribute("data-b", b); bonus.classList.remove("pop"); void bonus.offsetWidth; bonus.classList.add("pop"); }
+      rng.style.setProperty("--p", Math.max(0, Math.min(100, (Number(rng.value) - Number(rng.min)) / (Number(rng.max) - Number(rng.min)) * 100)) + "%");
       var next = cfg.tiers.filter(function (t) { return t[0] > eur; })[0];
       tb.querySelector("[data-topup-next]").textContent = ok && next
         ? "Con " + next[0] + " € (" + (next[0] - eur) + " € más) recibes " + nfT.format(creditsOf(next[0])) + " créditos: +" + next[1] + " %." : "";
       tb.querySelectorAll("[data-tier-min]").forEach(function (li) {
         var m = Number(li.getAttribute("data-tier-min")), nx = cfg.tiers.filter(function (t) { return t[0] > m; })[0];
         li.classList.toggle("on", ok && eur >= m && (!nx || eur < nx[0]));
+        li.setAttribute("aria-pressed", String(ok && eur === m));
       });
       tb.querySelector("[data-topup-label]").textContent = ok ? "Recargar " + eur + " €" : "Recargar";
       go.disabled = !(ok && waiver.checked && topupLicense);
@@ -201,6 +206,9 @@
     rng.addEventListener("input", function () { amt.value = rng.value; syncTopup(); });
     amt.addEventListener("input", function () { var v = Number(amt.value); if (v >= cfg.min && v <= Number(rng.max)) rng.value = v; syncTopup(); });
     waiver.addEventListener("change", syncTopup);
+    tb.querySelectorAll("[data-preset]").forEach(function (btn) {
+      btn.addEventListener("click", function () { var v = btn.getAttribute("data-preset"); amt.value = v; rng.value = v; syncTopup(); });
+    });
     go.addEventListener("click", function () {
       var eur = Number(amt.value);
       if (!valid(eur) || !waiver.checked || !topupLicense) return;

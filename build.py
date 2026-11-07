@@ -634,7 +634,7 @@ def pricing() -> str:
     common = ["Todos los servidores del catálogo", "Reembolso automático si algo falla", "Factura con NIF/VAT"]
     cards = [f"""<div class="plan">
 <div class="plan-head"><h2 class="h3">Gratis</h2><p class="muted small">Para probar sin compromiso</p></div>
-<p class="price">0 $</p><p class="credits">{SITE['free_credits']} créditos</p>
+<p class="price">0 €</p><p class="credits">{SITE['free_credits']} créditos</p>
 <a class="btn btn-ghost btn-block" href="/probar/">Pedir licencia gratis</a>
 <ul class="checks"><li>{icon("check")}1 equipo</li><li>{icon("check")}Todos los servidores</li><li>{icon("check")}Sin tarjeta</li></ul></div>"""]
     tp = SITE["topup"]
@@ -755,8 +755,9 @@ def start() -> str:
 def balance_page() -> str:
     tp = SITE["topup"]
     pro = SITE["packs"][0]
-    tiers = "".join(f'<li data-tier-min="{a}"><b>{e(n)}</b><span>{a} €+</span><span class="tabnum">{tp["rate"] * (100 + b) // 100} cr/€</span>'
-                    f'<span class="muted">{f"+{b} %" if b else "base"}</span></li>' for a, b, n in tp["tiers"])
+    presets = "".join(f'<button type="button" class="preset" data-preset="{a}" data-tier-min="{a}" aria-pressed="false" title="{e(n)}: {tp["rate"] * (100 + b) // 100} créditos por euro">'
+                      f'<b class="tabnum">{a} €</b><span class="preset-bonus{" base" if not b else ""}">{f"+{b} %" if b else "base"}</span></button>'
+                      for a, b, n in tp["tiers"])
     topup_cfg = e(json.dumps({"min": tp["min"], "max": tp["max"], "rate": tp["rate"],
                               "tiers": [[a, b] for a, b, _ in tp["tiers"]]}))
     body = f"""
@@ -781,11 +782,14 @@ def balance_page() -> str:
 <dl class="saldo-dl"><div><dt>Usados</dt><dd class="tabnum" data-f="consumed"></dd></div><div><dt>Total del plan</dt><dd class="tabnum" data-f="allowance"></dd></div></dl>
 <div class="recharge topup" id="recargar" data-topup='{topup_cfg}'><h3 class="h4">{icon("card")}Recargar créditos</h3>
 <p class="muted small">Elige cuánto pagar. Los créditos se suman a <b>esta misma licencia</b>: no cambias nada en Claude, Cursor ni VS Code. No caducan.</p>
+<div class="topup-presets" role="group" aria-label="Importes rápidos">{presets}</div>
 <div class="topup-amt"><input type="range" min="{tp['min']}" max="{tp['slider_max']}" step="1" value="{tp['default']}" aria-label="Importe en euros" data-topup-range>
 <label class="topup-num"><span class="sr-only">Importe exacto</span><input type="number" inputmode="numeric" min="{tp['min']}" max="{tp['max']}" step="1" value="{tp['default']}" data-topup-amount><span>€</span></label></div>
-<p class="topup-sum"><b class="tabnum" data-topup-credits></b> créditos <span class="topup-badge" data-topup-bonus hidden></span><span class="muted small" data-topup-eq></span></p>
-<p class="muted small" data-topup-next></p>
-<ul class="topup-tiers">{tiers}</ul>
+<div class="topup-result" aria-live="polite">
+<div class="topup-sum"><span class="eyebrow">Recibes</span><p><b class="tabnum" data-topup-credits></b><span class="topup-unit">créditos</span><span class="topup-badge" data-topup-bonus hidden></span></p></div>
+<ul class="topup-eq" data-topup-eqs><li><b class="tabnum" data-eq="4"></b><span>extractos Norma 43 leídos y conciliados</span></li><li><b class="tabnum" data-eq="2"></b><span>diarios A3 convertidos a ContaPlus</span></li><li><b class="tabnum" data-eq="1"></b><span>webs leídas</span></li></ul>
+<p class="muted small" data-topup-eq hidden></p>
+<p class="topup-next small" data-topup-next></p></div>
 <label class="topup-waiver"><input type="checkbox" data-topup-waiver> <span>Quiero los créditos ya. Acepto que, al empezar a usarlos, pierdo el derecho de desistimiento de 14 días sobre la parte usada.</span></label>
 <button class="btn btn-primary" type="button" data-topup-go disabled>{icon("card")}<span data-topup-label>Recargar</span></button>
 <p class="muted small">Pago seguro con Stripe, IVA incluido. De {tp['min']} € a {tp['max']} € por pago. ¿Lo usas a diario? <a href="{e(pro['checkout'])}" rel="nofollow">Pro: {money(pro['credits'])} créditos al mes por {money(pro['price'])} $</a>.</p>
