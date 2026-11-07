@@ -164,16 +164,20 @@ def process_file(path: Path, license_key: str) -> dict:
         inv = data.get("invoice") or data.get("summary") or {}
         seller = inv.get("seller") if isinstance(inv.get("seller"), dict) else {}
         totals = data.get("totals") if isinstance(data.get("totals"), dict) else inv
+        m_nif = re.search(rb"<(?:\w+:)?SellerParty>[\s\S]*?<(?:\w+:)?TaxIdentificationNumber>\s*([^<\s]+)", raw_bytes)
+        m_tot = re.search(rb"<(?:\w+:)?(?:TotalInvoicesAmount|InvoiceTotals)>[\s\S]*?<(?:\w+:)?(?:TotalAmount|InvoiceTotal)>\s*([^<\s]+)", raw_bytes)
+        m_cur = re.search(rb"<(?:\w+:)?InvoiceCurrencyCode>\s*([^<\s]+)", raw_bytes)
+        invs = data.get("invoices")
         return {
             "fecha_proceso": now_str,
             "fichero": path.name,
             "tipo": "Facturae 3.2.2",
             "estado": "OK" if valid else "CON_REPAROS",
-            "iban_o_emisor": seller.get("nif") or inv.get("seller_nif") or inv.get("seller_tax_id") or "",
-            "movimientos_o_facturas": data.get("invoice_count", 1),
+            "iban_o_emisor": seller.get("nif") or inv.get("seller_nif") or (m_nif.group(1).decode("ascii", "ignore") if m_nif else ""),
+            "movimientos_o_facturas": invs if isinstance(invs, int) else data.get("invoice_count", 1),
             "saldo_inicial": "FIRMADA" if data.get("signed") else "SIN_FIRMA",
-            "saldo_final_o_total": totals.get("invoice_total") or totals.get("total") or "",
-            "moneda": inv.get("currency", "EUR"),
+            "saldo_final_o_total": totals.get("invoice_total") or totals.get("total") or (m_tot.group(1).decode("ascii", "ignore") if m_tot else ""),
+            "moneda": inv.get("currency") or (m_cur.group(1).decode("ascii", "ignore") if m_cur else "EUR"),
             "avisos": len(issues),
             "raw": data,
         }

@@ -38,8 +38,8 @@ async function gateway(env, path, init) {
 }
 
 async function balance(request, env, url) {
-  const license = (url.searchParams.get("license") || "").trim();
-  if (!LICENSE_RE.test(license)) return json({ ok: false, error: "Licencia con formato no válido." }, 400);
+  const license = (url.searchParams.get("license") || "").trim(), L = (es, e) => (url.searchParams.get("lang") === "en" ? e : es);
+  if (!LICENSE_RE.test(license)) return json({ ok: false, error: L("Licencia con formato no válido.", "Invalid license format.") }, 400);
   try {
     const r = await gateway(env, "/api/v1/billing/status?license_key=" + encodeURIComponent(license), { method: "GET" });
     if (r.status === 404 || r.status === 401 || r.status === 403 || r.status === 422)
@@ -55,7 +55,7 @@ async function balance(request, env, url) {
       consumed: Number(d.consumed) || 0,
     });
   } catch (e) {
-    return json({ ok: false, error: "KeyFlint no responde ahora mismo. Inténtalo en un minuto." }, 502);
+    return json({ ok: false, error: L("KeyFlint no responde ahora mismo. Inténtalo en un minuto.", "KeyFlint is not responding right now. Please try again in a minute.") }, 502);
   }
 }
 
@@ -79,13 +79,13 @@ async function reveal(request, env, url) {
 
 async function recover(request, env, url) {
   if (!sameOrigin(request, url)) return json({ ok: false }, 403);
-  let email = "";
-  try { email = String((await request.json()).email || "").trim(); } catch (e) { /* cuerpo no válido */ }
+  let email = "", en = false, L = (es, e) => (en ? e : es);
+  try { const b = await request.json(); email = String(b.email || "").trim(); en = b.lang === "en"; } catch (e) { /* cuerpo no válido */ }
   if (!EMAIL_RE.test(email)) return json({ ok: false, error: "Escribe un correo válido." }, 400);
   try {
     await gateway(env, "/api/v1/billing/portal/lookup", { method: "POST", body: JSON.stringify({ query: email }) });
   } catch (e) {
-    return json({ ok: false, error: "KeyFlint no responde ahora mismo. Inténtalo en un minuto." }, 502);
+    return json({ ok: false, error: L("KeyFlint no responde ahora mismo. Inténtalo en un minuto.", "KeyFlint is not responding right now. Please try again in a minute.") }, 502);
   }
   // Misma respuesta exista o no el correo: no revela quién es cliente.
   return json({ ok: true });
@@ -100,8 +100,8 @@ async function trial(request, env, url) {
     const { success } = await env.TRIAL_LIMIT.limit({ key: "trial:" + ip });
     if (!success) return json({ ok: false, error: "Demasiados intentos. Espera un minuto." }, 429);
   }
-  let email = "";
-  try { email = String((await request.json()).email || "").trim(); } catch (e) { /* cuerpo no válido */ }
+  let email = "", en = false, L = (es, e) => (en ? e : es);
+  try { const b = await request.json(); email = String(b.email || "").trim(); en = b.lang === "en"; } catch (e) { /* cuerpo no válido */ }
   if (!EMAIL_RE.test(email) || email.length > 254) return json({ ok: false, error: "Escribe un correo válido." }, 400);
   const db = env.USAGE_DB;
   if (!db) return json({ ok: false, unavailable: true, error: "La prueba gratis no está activa ahora mismo." }, 503);
@@ -127,7 +127,7 @@ async function trial(request, env, url) {
       if (!r.ok || !d || !LICENSE_RE.test(String(d.license_key || ""))) {
         await undo();
         console.error("trial issue failed", r.status);
-        return json({ ok: false, error: "KeyFlint no responde ahora mismo. Inténtalo en un minuto." }, 502);
+        return json({ ok: false, error: L("KeyFlint no responde ahora mismo. Inténtalo en un minuto.", "KeyFlint is not responding right now. Please try again in a minute.") }, 502);
       }
       return json({ ok: true, license: String(d.license_key), tier: "community", credits: 25 });
     }
@@ -137,13 +137,14 @@ async function trial(request, env, url) {
     return json({ ok: true, emailed: true });
   } catch (e) {
     await undo();
-    return json({ ok: false, error: "KeyFlint no responde ahora mismo. Inténtalo en un minuto." }, 502);
+    return json({ ok: false, error: L("KeyFlint no responde ahora mismo. Inténtalo en un minuto.", "KeyFlint is not responding right now. Please try again in a minute.") }, 502);
   }
 }
 
 // Recarga libre: el gateway crea la sesión de Stripe y suma los créditos a ESTA licencia al cobrar.
 // Aquí solo validamos, limitamos por IP y no dejamos que el navegador elija los créditos.
 const TOPUP_MIN = 5, TOPUP_MAX = 500;
+const TOPUP_ERRORS_EN = { 400: "Choose a whole euro amount between €5 and €500.", 404: "We could not find that license. Check that you pasted the full key.", 409: "This license is not active. Email us at support@keyflint.dev.", 429: "You have reached today's top-up limit for this license. Try tomorrow or email us.", 503: "Top-ups are not available right now. Please try again later." };
 const TOPUP_ERRORS = {
   400: "Elige un importe entre 5 € y 500 €, sin decimales.",
   404: "No encontramos esa licencia. Revisa que esté completa.",
@@ -158,17 +159,17 @@ async function topup(request, env, url) {
   try { body = await request.json(); } catch (e) { /* cuerpo no válido */ }
   const license = String(body.license || "").trim();
   const amount = body.amount;
-  const currency = String(body.currency || "eur").toLowerCase();
-  if (!LICENSE_RE.test(license)) return json({ ok: false, error: "Licencia con formato no válido." }, 400);
-  if (!Number.isInteger(amount) || amount < TOPUP_MIN || amount > TOPUP_MAX) return json({ ok: false, error: TOPUP_ERRORS[400] }, 400);
-  if (currency !== "eur" && currency !== "usd") return json({ ok: false, error: "Moneda no admitida." }, 400);
-  if (body.waiver !== true) return json({ ok: false, error: "Marca la casilla para recibir los créditos ya." }, 400);
+  const currency = String(body.currency || "eur").toLowerCase(), en = body.lang === "en", errs = en ? TOPUP_ERRORS_EN : TOPUP_ERRORS, L = (es, e) => (en ? e : es);
+  if (!LICENSE_RE.test(license)) return json({ ok: false, error: L("Licencia con formato no válido.", "Invalid license format.") }, 400);
+  if (!Number.isInteger(amount) || amount < TOPUP_MIN || amount > TOPUP_MAX) return json({ ok: false, error: errs[400] }, 400);
+  if (currency !== "eur" && currency !== "usd") return json({ ok: false, error: L("Moneda no admitida.", "Unsupported currency.") }, 400);
+  if (body.waiver !== true) return json({ ok: false, error: L("Marca la casilla para recibir los créditos ya.", "Tick the box to receive the credits immediately.") }, 400);
   const db = env.USAGE_DB, ip = clientIp(request), day = today();
   let ipKey = null;
   if (db) {
     ipKey = await hash(ip, env.LIMITS_SALT || "kf-hub");
     if (!(await take(db, "topup_ip", ipKey, day, num(env.TOPUP_PER_IP_DAY, 10))))
-      return json({ ok: false, error: "Demasiados intentos de pago desde tu conexión. Inténtalo mañana." }, 429);
+      return json({ ok: false, error: L("Demasiados intentos de pago desde tu conexión. Inténtalo mañana.", "Too many payment attempts from your connection. Try again tomorrow.") }, 429);
   }
   const back = (env.PUBLIC_URL || "https://mcp.keyflint.dev").replace(/\/$/, "") + (body.lang === "en" ? "/en/balance/" : "/saldo/");
   try {
@@ -181,10 +182,10 @@ async function topup(request, env, url) {
       return json({ ok: true, url: d.checkout_url, credits: Number(d.credits) || 0 });
     if (db && ipKey) await giveBack(db, "topup_ip", ipKey, day);
     const st = r.status === 422 ? 400 : r.status;
-    return json({ ok: false, error: TOPUP_ERRORS[st] || "KeyFlint no responde ahora mismo. Inténtalo en un minuto." }, TOPUP_ERRORS[st] ? st : 502);
+    return json({ ok: false, error: errs[st] || L("KeyFlint no responde ahora mismo. Inténtalo en un minuto.", "KeyFlint is not responding right now. Please try again in a minute.") }, errs[st] ? st : 502);
   } catch (e) {
     if (db && ipKey) await giveBack(db, "topup_ip", ipKey, day);
-    return json({ ok: false, error: "KeyFlint no responde ahora mismo. Inténtalo en un minuto." }, 502);
+    return json({ ok: false, error: L("KeyFlint no responde ahora mismo. Inténtalo en un minuto.", "KeyFlint is not responding right now. Please try again in a minute.") }, 502);
   }
 }
 
