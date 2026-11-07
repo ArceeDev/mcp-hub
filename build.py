@@ -1061,7 +1061,7 @@ def balance_page() -> str:
 <span id="saldo-help" class="lic-help">{L('Se consulta a KeyFlint en el momento. ¿Aún sin licencia? <a href="/probar/">Pide 25 créditos gratis</a>.', 'Checked live with KeyFlint. No license yet? <a href="/en/try/">Get 25 free credits</a>.')}</span></label>
 <button class="btn btn-primary btn-lg" type="submit">{icon("gauge")}{L("Consultar saldo", "Check balance")}</button>
 </form>
-<div class="note ok-note" data-topup-done aria-live="polite" hidden>{icon("check")}<span></span></div>
+<div class="note ok-note" data-topup-done aria-live="polite" hidden><img src="/assets/flint-icon.svg" width="20" height="20" alt=""><span></span></div>
 <div class="saldo-out" data-balance-out aria-live="polite" hidden>
 <div class="saldo-card">
 <div class="saldo-head"><span class="eyebrow" data-f="tier"></span><span class="status" data-f="status"></span></div>
@@ -1120,7 +1120,7 @@ def balance_page() -> str:
 def thanks() -> str:
     body = f"""
 <section class="hero hero-sm center"><div class="glow" aria-hidden="true"></div><div class="wrap narrow">
-<span class="tile tile-lg ok-tile">{icon("check")}</span>
+<img class="brand-mark-lg" src="/assets/flint-icon.svg" width="96" height="96" alt="Flint">
 <h1>Pago completado</h1>
 <p class="lead" data-reveal-lead>Tu licencia <code>LIC-…</code> está de camino a tu correo. Suele llegar en menos de un minuto.</p>
 </div></section>
