@@ -6,7 +6,7 @@
     "tagline": "Servidores MCP deterministas para tu agente de IA. Una licencia, todos los servidores, pago por uso.",
     "description": "Catálogo de servidores MCP deterministas para Claude, Cursor y cualquier agente: lectura web y SEO, extractos Norma 43, conciliación bancaria, conversión contable A3/ContaPlus/QuickBooks/Xero y limpieza de CSV y Excel. Pago por uso con créditos.",
     "keyflint_url": "https://licenses.keyflint.dev",
-    "public_keys": "<issuer-public-hex>",
+    "public_keys": "3df634a46651db63e854bf73b09dd3b805193465d4fb231ecd97a831a4a85cf5",
     "contact": "mailto:support@keyflint.dev",
     "legal": {
       "holder": "José Antonio Arce Prieto",
