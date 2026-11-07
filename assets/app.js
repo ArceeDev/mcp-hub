@@ -136,11 +136,85 @@
           m.setAttribute("aria-label", nf.format(d.balance) + " de " + nf.format(d.allowance) + " créditos");
           m.firstElementChild.style.width = pct + "%"; m.classList.toggle("low", pct < 15);
           out.hidden = false;
+          store(KEY, lic);
+          topupLicense = d.status === "active" || d.status === "grace_period" ? lic : "";
+          syncTopup();
           loadUsage(lic);
         })
         .catch(function (e) { err.querySelector("span").textContent = e.message || "No se pudo consultar el saldo."; err.hidden = false; })
         .then(function () { btn.disabled = false; btn.removeAttribute("aria-busy"); });
     });
+  }
+
+  /* recarga libre: mismo cálculo que el gateway (topup_pricing.py); el gateway manda al cobrar */
+  var topupLicense = "";
+  var tb = document.querySelector("[data-topup]");
+  function syncTopup() {}
+  if (tb) {
+    var cfg = JSON.parse(tb.getAttribute("data-topup"));
+    var rng = tb.querySelector("[data-topup-range]"), amt = tb.querySelector("[data-topup-amount]");
+    var waiver = tb.querySelector("[data-topup-waiver]"), go = tb.querySelector("[data-topup-go]"), terr = tb.querySelector("[data-topup-err]");
+    var nfT = new Intl.NumberFormat("es-ES");
+    function bonusOf(eur) { var b = 0; cfg.tiers.forEach(function (t) { if (eur >= t[0]) b = t[1]; }); return b; }
+    function creditsOf(eur) { return eur < cfg.min ? 0 : Math.floor(eur * 100 * cfg.rate * (100 + bonusOf(eur)) / 10000); }
+    function valid(eur) { return Number.isInteger(eur) && eur >= cfg.min && eur <= cfg.max; }
+    syncTopup = function () {
+      var eur = Number(amt.value), ok = valid(eur), b = bonusOf(eur), c = creditsOf(eur);
+      tb.querySelector("[data-topup-credits]").textContent = ok ? nfT.format(c) : "—";
+      var bonus = tb.querySelector("[data-topup-bonus]"); bonus.hidden = !ok || !b; bonus.textContent = "+" + b + " %";
+      tb.querySelector("[data-topup-eq]").textContent = ok ? "≈ " + nfT.format(Math.floor(c / 4)) + " extractos Norma 43 leídos y conciliados" : "Entre " + cfg.min + " € y " + cfg.max + " €, sin decimales";
+      var next = cfg.tiers.filter(function (t) { return t[0] > eur; })[0];
+      tb.querySelector("[data-topup-next]").textContent = ok && next
+        ? "Con " + next[0] + " € (" + (next[0] - eur) + " € más) recibes " + nfT.format(creditsOf(next[0])) + " créditos: +" + next[1] + " %." : "";
+      tb.querySelectorAll("[data-tier-min]").forEach(function (li) {
+        var m = Number(li.getAttribute("data-tier-min")), nx = cfg.tiers.filter(function (t) { return t[0] > m; })[0];
+        li.classList.toggle("on", ok && eur >= m && (!nx || eur < nx[0]));
+      });
+      tb.querySelector("[data-topup-label]").textContent = ok ? "Recargar " + eur + " €" : "Recargar";
+      go.disabled = !(ok && waiver.checked && topupLicense);
+    };
+    rng.addEventListener("input", function () { amt.value = rng.value; syncTopup(); });
+    amt.addEventListener("input", function () { var v = Number(amt.value); if (v >= cfg.min && v <= Number(rng.max)) rng.value = v; syncTopup(); });
+    waiver.addEventListener("change", syncTopup);
+    go.addEventListener("click", function () {
+      var eur = Number(amt.value);
+      if (!valid(eur) || !waiver.checked || !topupLicense) return;
+      terr.hidden = true; go.disabled = true; go.setAttribute("aria-busy", "true");
+      fetch("/api/recarga", { method: "POST", headers: { "content-type": "application/json", accept: "application/json" },
+        body: JSON.stringify({ license: topupLicense, amount: eur, currency: "eur", waiver: true }) })
+        .then(function (r) { return r.json(); })
+        .then(function (d) {
+          if (!d.ok || !/^https:\/\/([a-z0-9-]+\.)*(stripe\.com|link\.com)\//.test(d.url || "")) throw new Error(d.error || "No se pudo iniciar el pago.");
+          location.href = d.url;
+        })
+        .catch(function (e) {
+          terr.querySelector("span").textContent = e.message || "No se pudo iniciar el pago."; terr.hidden = false;
+          go.removeAttribute("aria-busy"); syncTopup();
+        });
+    });
+    syncTopup();
+  }
+  /* vuelta de Stripe: /saldo/?recarga=cs_… */
+  var done = document.querySelector("[data-topup-done]");
+  var rsid = done && (new URLSearchParams(location.search).get("recarga") || "");
+  if (done && /^cs_[A-Za-z0-9_]{10,250}$/.test(rsid)) {
+    var dmsg = done.querySelector("span"), dtries = 0, nfD = new Intl.NumberFormat("es-ES");
+    dmsg.textContent = "Pago recibido. Sumando los créditos a tu licencia…"; done.hidden = false;
+    (function poll() {
+      fetch("/api/recarga?session=" + encodeURIComponent(rsid), { headers: { accept: "application/json" } })
+        .then(function (r) { return r.json(); })
+        .then(function (d) {
+          if (d.ok && d.status === "applied") {
+            dmsg.textContent = "Recarga completada: +" + nfD.format(d.credits) + " créditos. Saldo actual: " + nfD.format(d.balance) + " créditos.";
+            if (bf && bf.license.value) bf.requestSubmit();
+            return;
+          }
+          if (d.ok && d.status === "failed") { dmsg.textContent = "El pago se recibió, pero no pudimos sumar los créditos. Escríbenos a support@keyflint.dev y lo resolvemos o te devolvemos el importe."; return; }
+          if (++dtries < 30) setTimeout(poll, 2000);
+          else dmsg.textContent = "El pago está confirmado y los créditos se están sumando. Vuelve a consultar el saldo en unos minutos.";
+        })
+        .catch(function () { if (++dtries < 30) setTimeout(poll, 2000); });
+    })();
   }
 
   /* historial de uso (solo llamadas por URL remota) */
