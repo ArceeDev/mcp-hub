@@ -1,6 +1,6 @@
 {
   "site": {
-    "name": "KeyFlint MCP",
+    "name": "Flint by KeyFlint",
     "url": "https://mcp.keyflint.dev",
     "lang": "es",
     "tagline": "Servidores MCP deterministas para tu agente de IA. Una licencia, todos los servidores, pago por uso.",
@@ -8,6 +8,14 @@
     "keyflint_url": "https://licenses.keyflint.dev",
     "public_keys": "<issuer-public-hex>",
     "contact": "mailto:support@keyflint.dev",
+    "legal": {
+      "holder": "",
+      "nif": "",
+      "address": "",
+      "email": "legal@keyflint.dev",
+      "updated": "2026-11-07"
+    },
+    "cf_analytics_token": "",
     "free_credits": 25,
     "packs": [
       {

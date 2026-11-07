@@ -528,3 +528,24 @@ td code{color:var(--ink)}
 .topup .btn{align-self:flex-start}
 .ok-note{margin-top:16px}
 @media (max-width:640px){.topup-amt{flex-direction:column;align-items:stretch}.topup-num{align-self:flex-end}}
+.legal h2{font-size:1.25rem;margin:2.25rem 0 .75rem;scroll-margin-top:90px}
+.legal p,.legal li{line-height:1.65;color:var(--ink-2)}
+.legal ul{padding-left:1.25rem;display:grid;gap:.4rem}
+.legal a{color:var(--link)}
+.legal-toc{border:1px solid var(--line);border-radius:12px;padding:14px 18px;background:var(--surface-2)}
+.legal-toc ol{margin:0;padding-left:1.25rem;columns:2;column-gap:2rem;font-size:.9375rem}
+@media (max-width:640px){.legal-toc ol{columns:1}}
+mark.todo{background:#FFE08A;color:#3A2A00;border-radius:4px;padding:0 4px}
+svg.logo{width:30px;height:30px;flex:none;filter:drop-shadow(0 1px 6px rgba(204,255,0,.18))}
+.brand-tag{text-transform:none}
+.en-video{padding:0;overflow:hidden}
+.en-video video{display:block;width:100%;height:auto;aspect-ratio:16/9;background:#0B0D17}
+.flint-glyph{width:44px;height:44px;flex:none}
+.en-tool .card-foot{gap:18px;justify-content:flex-start}
+.install-card > p.muted{margin:10px 4px 14px}
+.st-list{list-style:none;margin:0 0 14px;padding:6px 18px}
+.st-row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid var(--line)}
+.st-row:last-child{border-bottom:0}
+.st{font:600 .8125rem/1 var(--mono);padding:6px 10px;border-radius:999px;background:var(--surface-2);color:var(--ink-2);white-space:nowrap}
+.st-ok{background:#E5F4E4;color:#1E6B34}
+.st-bad{background:#FBEBEB;color:#A1261F}
