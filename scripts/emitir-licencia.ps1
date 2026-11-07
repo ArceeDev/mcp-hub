@@ -8,8 +8,8 @@
   .\scripts\emitir-licencia.ps1 -Email ana@gestoria.es -Plan community -Dias 7
 
 .NOTES
-  Planes y créditos (los fija KeyFlint por plan): community 25, pro 500/mes, indie 10.000, agency 50.000.
-  Por defecto: pro durante 30 días (500 créditos), suficiente para probar todo en serio.
+  Planes y créditos (los fija KeyFlint por plan): community 25, pro 1.000/mes, indie 10.000, agency 50.000.
+  Por defecto: pro durante 30 días (1.000 créditos), suficiente para probar todo en serio.
   La clave de admin se lee de la variable de entorno KEYFLINT_ADMIN_KEY o se pide sin mostrarla. No se guarda en ningún sitio.
 #>
 param(
@@ -51,7 +51,7 @@ $lic = $r.data.license_key
 if (-not $lic) { throw "Respuesta inesperada de KeyFlint: $($r | ConvertTo-Json -Depth 4)" }
 
 try { Set-Clipboard -Value $lic; $clip = " (copiada al portapapeles)" } catch { $clip = "" }
-$credits = @{ community = "25"; pro = "500 al mes"; indie = "10.000"; agency = "50.000" }[$Plan]
+$credits = @{ community = "25"; pro = "1.000 al mes"; indie = "10.000"; agency = "50.000" }[$Plan]
 $vence = if ($Dias -gt 0) { "$Dias días" } else { "sin caducidad" }
 
 Write-Host ""

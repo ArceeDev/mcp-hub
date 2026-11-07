@@ -893,9 +893,7 @@ EN_TOOLS = [
      "Verifies VERI*FACTU fingerprints and chaining, validates the XML against the AEAT schema, builds the tax QR and creates or validates Facturae 3.2.2. It reviews files: it is not a certified invoicing system."),
 ]
 EN_PACKS = {
-    "pro": ("For steady monthly use", "Refills every month, cancel anytime", "/mo"),
-    "indie": ("Freelancers and small firms", "One-off payment, no subscription", ""),
-    "agency": ("Accounting firms and teams", "One-off payment, no subscription", ""),
+    "pro": ("For daily use", "1,000 new credits every month, cancel anytime", "/mo"),
 }
 
 
@@ -921,11 +919,17 @@ def en_plans() -> str:
 <p class="price">$0</p><p class="credits">{SITE['free_credits']} credits</p>
 <a class="btn btn-ghost btn-block" href="/en/try/">Get a free license</a>
 <ul class="checks"><li>{icon("check")}All 5 tools</li><li>{icon("check")}No card</li><li>{icon("check")}1 device</li></ul></div>"""
-    out = [free]
+    tp = SITE["topup"]
+    tiers = "".join(f'<li>{icon("check")}€{a}+: {tp["rate"] * (100 + b) // 100} credits/€{f" (+{b}%)" if b else ""}</li>' for a, b, _ in tp["tiers"])
+    topup = f"""<div class="plan featured"><span class="badge">No subscription</span>
+<div class="plan-head"><h3 class="h3">Pay as you go</h3><p class="muted small">Pay only for what you use</p></div>
+<p class="price">from €{tp['min']}</p><p class="credits">{tp['rate']} credits per euro · up to +40%</p>
+<a class="btn btn-primary btn-block" href="/saldo/#recargar">Top up</a>
+<ul class="checks">{tiers}<li>{icon("check")}Adds to the same license</li><li>{icon("check")}Credits never expire</li></ul></div>"""
+    out = [free, topup]
     for p in SITE["packs"]:
         who, billing, per = EN_PACKS.get(p["id"], ("", "", ""))
-        feat = " featured" if p.get("featured") else ""
-        badge = '<span class="badge">Most popular</span>' if p.get("featured") else ""
+        feat, badge = "", ""
         out.append(f"""<div class="plan{feat}">{badge}
 <div class="plan-head"><h3 class="h3">{e(p['name'])}</h3><p class="muted small">{e(who)}</p></div>
 <p class="price">${p['price']:,}<span class="muted small">{per}</span></p><p class="credits">{p['credits']:,} credits</p>
@@ -955,7 +959,7 @@ def en_home() -> str:
         ("Where are my files processed?", "Locally, if you run the servers with uvx: only the license check and the credit count reach our servers. With the remote connector, files are processed to answer the call and are not stored."),
         ("Is Flint Fiscal a certified invoicing system?", "No. It reviews VeriFactu and Facturae files before you send them. It does not send anything to the Spanish tax agency and does not certify compliance."),
         ("Why so many Spanish formats?", "That is where AI fails most and nobody else covers it: Norma 43 statements, a3 and ContaPlus exports, VeriFactu. Flint Web and Flint Data work for any country."),
-        ("What if I run out of credits or want a refund?", "Tools tell your AI when credits run out and nothing is charged. Within 14 days we refund the full purchase if you used less than 20% of its credits; failed calls are never charged."),
+        ("What if I run out of credits or want a refund?", "Tools tell your AI when credits run out and nothing is charged. Top up from €5 and the credits land on the same license, with no config changes. Within 14 days we refund a top-up or your first Pro month if you used less than 20% of its credits; failed calls are never charged."),
     ]
     body = f"""
 <section class="hero"><div class="glow" aria-hidden="true"></div><div class="wrap hero-grid">
@@ -998,9 +1002,9 @@ def en_home() -> str:
 
 <section class="section alt" id="pricing"><div class="wrap">
 <div class="section-head"><p class="eyebrow">Pricing</p><h2>One credit balance for every tool</h2>
-<p class="lead-sm">A full bank reconciliation costs about 5 credits. Indie covers around 2,000 statements.</p></div>
+<p class="lead-sm">A €{SITE["topup"]["min"]} top-up ({SITE["topup"]["min"] * SITE["topup"]["rate"]} credits) reads and reconciles 25 Norma 43 statements at 4 credits each.</p></div>
 <div class="plans">{en_plans()}</div>
-<p class="muted small center fine">{icon("lock")}Secure checkout with Stripe. Prices in USD, local taxes calculated at checkout. 14-day refund policy.</p>
+<p class="muted small center fine">{icon("lock")}Secure checkout with Stripe. Top-ups in euros with VAT included; Pro in USD plus local taxes. 14-day refund policy.</p>
 </div></section>
 
 <section class="section"><div class="wrap faq-grid">
@@ -1139,17 +1143,16 @@ def terms_page() -> str:
          "las llamadas que fallan no descuentan nada.</p>"),
         ("Tu licencia",
          "<ul><li>La licencia es una clave personal. Quien la tenga puede gastar sus créditos: guárdala como una contraseña.</li>"
-         "<li>Cada plan permite un número de equipos (1 en la prueba gratis, 3 en Pro e Indie, 25 en Agency).</li>"
+         "<li>Cada licencia permite un número de equipos: 1 en la prueba gratis y 3 en Pro.</li>"
          "<li>Si la pierdes, puedes recuperarla con un enlace a tu email desde <a href=\"/saldo/\">Mi saldo</a>.</li>"
          "<li>No puedes revender, alquilar ni compartir públicamente licencias o créditos.</li></ul>"),
         ("Planes, créditos y vigencia",
          "<ul><li><b>Prueba gratis:</b> 25 créditos, una por persona, sin tarjeta. Válida 12 meses.</li>"
-         "<li><b>Pro:</b> suscripción mensual. El saldo se recarga cada mes y los créditos no usados no se acumulan. Puedes cancelar cuando quieras y no se te cobrará el mes siguiente.</li>"
-         "<li><b>Indie y Agency:</b> pago único. Los créditos no caducan mientras el servicio exista.</li>"
-         "<li>Cada compra genera su propia licencia.</li></ul>"),
+         "<li><b>Recarga libre:</b> pagas el importe que eliges (de 5 € a 500 €) y los créditos se suman a tu misma licencia, con más créditos por euro a partir de 20 €. No caducan mientras el servicio exista.</li>"
+         "<li><b>Pro:</b> suscripción mensual con 1.000 créditos nuevos cada mes, que se gastan antes que los de tus recargas. Los créditos mensuales que no uses no pasan al mes siguiente; los recargados se conservan. Puedes cancelar cuando quieras y no se te cobrará el mes siguiente.</li></ul>"),
         ("Precio y pago",
-         "<p>Los precios están en la página de <a href=\"/precios/\">precios</a>, en dólares (USD). El pago lo procesa Stripe, que te muestra el importe final "
-         "con los impuestos de tu país y te envía la factura, en la que puedes añadir tu NIF o número de IVA. Si en tu compra aparece Stripe como vendedor, "
+         "<p>Los precios están en la página de <a href=\"/precios/\">precios</a>. Las recargas se pagan en euros con el IVA incluido; Pro, en dólares (USD) más los impuestos de tu país. "
+         "El pago lo procesa Stripe, que te muestra el importe final y te envía la factura, en la que puedes añadir tu NIF o número de IVA. Si en tu compra aparece Stripe como vendedor, "
          "Stripe gestiona el cobro y los impuestos; el uso de las herramientas se rige por estos términos.</p>"),
         ("Desistimiento y reembolsos",
          "<p>Tienes 14 días para pedir el reembolso completo y, en muchos casos, también después de usar créditos. Lo explicamos en la "
@@ -1188,16 +1191,16 @@ def refunds_page() -> str:
     s = [
         ("Resumen",
          "<ul><li><b>Las llamadas que fallan no se cobran:</b> no tienes que pedir nada.</li>"
-         "<li><b>14 días de garantía:</b> si no te convence, te devolvemos todo si has usado menos del 20 % de los créditos de la compra.</li>"
+         "<li><b>14 días de garantía:</b> si no te convence una recarga o el primer mes de Pro, te devolvemos todo si has usado menos del 20 % de sus créditos.</li>"
          "<li><b>Pro:</b> cancelas cuando quieras y no se te vuelve a cobrar.</li></ul>"),
         ("Cómo pedir un reembolso",
          f"<p>Escribe a <a href=\"mailto:{support}\">{support}</a> desde el email de la compra, en los 14 días siguientes al pago. "
          "No hace falta que expliques el motivo. Lo tramitamos en un máximo de 3 días laborables y Stripe lo devuelve al mismo medio de pago, normalmente en 5 a 10 días.</p>"),
         ("Qué pasa con la licencia",
-         "<p>Cuando se aprueba el reembolso, la licencia de esa compra se desactiva. Si tenías otras licencias, siguen funcionando.</p>"),
+         "<p>Al devolver una recarga se retiran de tu licencia los créditos que aportó; el resto de tu saldo y tu licencia siguen igual. Al devolver Pro se cancela la suscripción.</p>"),
         ("Derecho de desistimiento",
          "<p>Si eres consumidor, la ley te da 14 días para desistir de la compra. Como los créditos son contenido digital que se entrega al momento, "
-         "ese derecho se pierde cuando empiezas a usarlos con tu consentimiento. Nuestra garantía va más allá: mientras hayas usado menos del 20 % de los créditos, te devolvemos todo igualmente.</p>"),
+         "ese derecho se pierde sobre la parte que empiezas a usar con tu consentimiento (lo aceptas al recargar). Nuestra garantía va más allá: mientras hayas usado menos del 20 % de los créditos, te devolvemos todo igualmente.</p>"),
         ("Suscripción Pro",
          "<p>Puedes cancelar en cualquier momento desde el enlace de gestión del correo de Stripe o escribiéndonos. Conservas los créditos hasta el final del mes pagado y no se te cobra el siguiente. "
          "Si cancelas en los 14 días siguientes a un cobro y has usado menos del 20 % de los créditos de ese mes, te devolvemos ese mes.</p>"),
