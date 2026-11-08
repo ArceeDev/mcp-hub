@@ -21,6 +21,8 @@ from pathlib import Path
 SEO_KEYWORDS = {
     "/": "servidores mcp espana, mcp contabilidad, extractos norma 43, verifactu aeat, facturae xsd, conciliacion bancaria claude, claude desktop mcp, cursor mcp espana, keyflint, automatizacion gestorias",
     "/norma43-a-excel/": "convertir norma 43 a excel, norma 43 a excel gratis, pasar c43 a excel, lector norma 43, convertidor cuaderno 43, abrir archivo n43 excel, santander bbva caixabank norma 43 excel, extractos bancarios excel, descargar norma 43 csv",
+    "/norma43-a-a3/": "importar norma 43 en a3, norma 43 a3asesor, suenlace.dat extracto bancario, pasar extracto bancario a a3eco, enlace contable a3 banco",
+    "/norma43-a-contaplus/": "norma 43 contaplus, importar extracto bancario contaplus, xdiario contaplus banco, pasar c43 a contaplus, sage contaplus extractos",
     "/norma43-a-contasol/": "norma 43 contasol, importar extracto bancario contasol, pasar norma 43 a apu contasol, asientos contasol norma 43, conciliacion bancaria contasol delsol, importar bancos contasol, delsol cloud extractos",
     "/asesorias/": "software conciliacion bancaria asesorias, automatizacion gestorias contabilidad, norma 43 asesorias, verifactu gestorias, contabilidad automatica pymes, claude asesorias, programa para asesorias",
     "/precios/": "precios norma 43, tarifa plana conciliacion bancaria, planes gestorias contabilidad, keyflint precios, mcp precios espana, comprar creditos mcp",
@@ -468,7 +470,7 @@ def build_page_ld(path: str, title: str, desc: str, lang: str = "es", custom_ld:
 
     # WebApplication schema for tool & batch pages
     is_tool = any(path.startswith(f"/{m['slug']}/") for m in MCPS)
-    is_app = path in ("/lote/", "/en/batch/", "/norma43-a-excel/", "/norma43-a-contasol/")
+    is_app = path in ("/lote/", "/en/batch/", "/norma43-a-excel/", "/norma43-a-contasol/", "/norma43-a-a3/", "/norma43-a-contaplus/")
     has_app = any(isinstance(x, dict) and x.get("@type") in ("SoftwareApplication", "WebApplication") for x in custom)
     if (is_tool or is_app) and not has_app:
         items.append({
@@ -528,8 +530,10 @@ def page(path: str, title: str, desc: str, body: str, ld: list | None = None, no
 <a class="badge-pill" href="https://stripe.com" rel="noopener"><span class="muted">Pagos con</span>{brand("stripe")}<b>Stripe</b></a>
 <a class="badge-pill kf" href="https://keyflint.dev"><span class="muted">Licencias</span><span class="kf-mark">{icon("logo", "logo")}by&nbsp;KeyFlint</span></a>
 </div></div>
-</div></footer>"""
-    hero_preload = f'<link rel="preload" href="/assets/video/{"flint-launch-en.webp" if en else "flint-lanzamiento-es.webp"}" as="image" type="image/webp" fetchpriority="high">\n' if path in ("/", "/en/") else ""
+</div></footer>"""
+
+    hero_preload = f'<link rel="preload" href="/assets/video/{"flint-launch-en.webp" if en else "flint-lanzamiento-es.webp"}" as="image" type="image/webp" fetchpriority="high">\n' if path in ("/", "/en/") else ""
+
     return f"""<!doctype html>
 <html lang="{lang}" class="no-js">
 <head>
@@ -569,7 +573,8 @@ def page(path: str, title: str, desc: str, body: str, ld: list | None = None, no
 <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="preload" href="/assets/fonts/inter-400.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="/assets/fonts/interdisplay-600.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/assets/fonts/interdisplay-600.woff2" as="font" type="font/woff2" crossorigin>
+
 {hero_preload}<link rel="stylesheet" href="/assets/style.css?v={VERSION}">
 <script defer src="/assets/app.js?v={VERSION}"></script>
 {analytics}{lds}
@@ -737,7 +742,7 @@ def trial_page() -> str:
 <section class="section tight"><div class="wrap narrow">
 <form class="recover glass" data-trial-form novalidate>
 <div><h2 class="h3">Tu licencia de prueba</h2>
-<p class="muted small">Una por correo. No te suscribimos a nada.</p></div>
+<p class="muted small">Una por correo. En tu primera semana te enviamos 3 consejos de uso; te das de baja en 1 clic.</p></div>
 <div class="recover-row"><input type="email" name="email" autocomplete="email" placeholder="tu@correo.com" required aria-label="Correo electrónico">
 <button class="btn btn-primary" type="submit">{icon("key")}Darme la licencia</button></div>
 <p class="lic-help" data-trial-msg aria-live="polite"></p>
@@ -848,7 +853,7 @@ def home() -> str:
 <h2>Procesa 50 extractos Norma 43 o facturas XML de golpe</h2>
 <p class="lead-sm">¿No quieres ir uno por uno en el chat? Arrastra todos los ficheros <code>.n43</code>, <code>.c43</code> y <code>.xml</code> del mes al procesador del navegador y descarga un <code>resumen-flint.csv</code> listo para abrir en Excel. Sin terminal.</p>
 <div class="cta-row"><a class="btn btn-primary btn-lg" href="/lote/">{icon("download")}Abrir el procesador por lotes</a></div>
-<ul class="checks"><li>{icon("check")}<span>¿Prefieres terminal? Con <code>--vigilar</code> procesa cada fichero nuevo en cuanto cae en la carpeta</span></li><li>{icon("check")}<span>Guarda el informe auditable <code>.flint.json</code> junto a cada extracto</span></li><li>{icon("check")}<span>Pack Despacho recomendado: <a href="/saldo/#importe=100"><b class="nowrap">100 € → 2.800 créditos</b> <span class="nowrap">(+40 %)</span></a> sin caducidad</span></li></ul></div>
+<ul class="checks"><li>{icon("check")}<span>¿Prefieres terminal? Con <code>--vigilar</code> procesa cada fichero nuevo en cuanto cae en la carpeta</span></li><li>{icon("check")}<span>Guarda el informe auditable <code>.flint.json</code> junto a cada extracto</span></li><li>{icon("check")}<span>Plan Despacho desde 49 €/mes: <a href="/precios/#despacho"><b class="nowrap">2.500 créditos al mes</b></a>, sin permanencia</span></li></ul></div>
 <div class="card-flat"><p class="small"><b>Windows (PowerShell)</b> — procesa la carpeta actual:</p>
 {code_block("lote-ps", f"irm {SITE['url']}/lote.ps1 | iex", "PowerShell")}
 <p class="small" style="margin-top:14px"><b>macOS y Linux</b> — procesa o deja vigilando una carpeta:</p>
@@ -982,6 +987,31 @@ def roi_calc() -> str:
 </form></div></section>"""
 
 
+CREDITS_PER_STATEMENT = 4  # leer (1) + conciliar (3) un extracto Norma 43
+
+
+def despacho_plans() -> str:
+    """Plan Despacho (suscripción mensual en €) con equivalencia honesta en extractos conciliados."""
+    cards = []
+    for p in (p for p in SITE["packs"] if p["id"].startswith("despacho")):
+        n = p["credits"] // CREDITS_PER_STATEMENT
+        badge = '<span class="badge">Más elegido</span>' if p.get("featured") else ""
+        feats = "".join(f'<li>{icon("check")}<span>{e(f)}</span></li>' for f in p.get("features", []))
+        cards.append(f"""<div class="plan{' featured' if p.get('featured') else ''}">{badge}
+<div class="plan-head"><h3 class="h3">{e(p['name'])}</h3><p class="muted small">{e(p['who'])}</p></div>
+<p class="price">{money(p['price'])} {p.get('currency', '€')}<span class="per">{e(p.get('period', ''))}</span></p>
+<p class="credits">{money(p['credits'])} créditos al mes<span class="muted"> · ≈ {money(n)} extractos conciliados</span></p>
+<a class="btn {'btn-primary' if p.get('featured') else 'btn-ghost'} btn-block" href="{e(p['checkout'])}" rel="nofollow">Contratar {e(p['name'])}</a>
+<p class="muted small">{e(p.get('billing', ''))}</p>
+<ul class="checks">{feats}</ul></div>""")
+    return f"""<section class="section tight" id="despacho"><div class="wrap">
+<div class="section-head center"><p class="eyebrow">Plan Despacho</p><h2>Una cuota fija para todo el despacho</h2>
+<p class="lead-sm">Créditos nuevos cada mes, factura con NIF y sin permanencia. Leer y conciliar un extracto son {CREDITS_PER_STATEMENT} créditos; lo que falla no se cobra.</p></div>
+<div class="plans">{''.join(cards)}</div>
+<p class="muted small center">¿Primero quieres verlo? <a href="/probar/">{SITE['free_credits']} créditos gratis, sin tarjeta</a> · <a href="/confianza/">Protección de datos y encargo de tratamiento (art. 28)</a> · <a href="/asesorias/#alta">Alta en 1 minuto</a></p>
+</div></section>"""
+
+
 def pricing() -> str:
     common = ["Todos los servidores del catálogo", "Reembolso automático si algo falla", "Factura con NIF/VAT"]
     cards = [f"""<div class="plan">
@@ -996,7 +1026,7 @@ def pricing() -> str:
 <p class="price">desde {tp['min']} €</p><p class="credits">{tp['rate']} créditos por euro<span class="muted"> · hasta +40 %</span></p>
 <a class="btn btn-primary btn-block" href="/saldo/#recargar">Elegir importe</a>
 <ul class="checks">{tier_li}<li>{icon("check")}<span>Se suma a tu misma licencia</span></li><li>{icon("check")}<span>Los créditos no caducan</span></li></ul></div>""")
-    for p in SITE["packs"]:
+    for p in (p for p in SITE["packs"] if not p["id"].startswith("despacho")):
         curr = p.get("currency", "€")
         per100 = money(round(p["price"] / p["credits"] * 100, 2))
         feats = p.get("features") or ([p["billing"], f"{p['seats']} equipos"] + common)
@@ -1007,12 +1037,6 @@ def pricing() -> str:
 <p class="credits">{money(p['credits'])} créditos{' al mes' if p.get('period') else ''}<span class="muted"> · {per100} {curr} / 100</span></p>
 <a class="btn {'btn-primary' if p.get('featured') else 'btn-ghost'} btn-block" href="{p['checkout']}" rel="nofollow">Elegir {e(p['name'])}</a>
 <ul class="checks">{''.join(f'<li>{icon("check")}{e(f)}</li>' for f in feats)}</ul></div>""")
-    cards.append(f"""<div class="plan">
-<div class="plan-head"><h2 class="h3">Pack Despacho</h2><p class="muted small">Asesorías, gestorías y cierres de lote</p></div>
-<p class="price">100 €<span class="per"> pago único</span></p>
-<p class="credits">2.800 créditos<span class="muted"> · +40 % bonificación</span></p>
-<a class="btn btn-ghost btn-block" href="/saldo/#importe=100">Cargar Pack Despacho</a>
-<ul class="checks"><li>{icon("check")}≈ 700 extractos Norma 43 conciliados</li><li>{icon("check")}Saldo compartido en el despacho</li><li>{icon("check")}<a href="/lote/">Procesador por lotes</a> en el navegador y Carpeta Vigilada</li><li>{icon("check")}Los créditos no caducan · IVA incluido</li><li>{icon("check")}Factura con NIF al instante</li></ul></div>""")
     usage = [("web-intel", "Leer una web", 1), ("web-intel", "Auditoría SEO completa", 3),
              ("norma43", "Leer un extracto Norma 43", 1), ("norma43", "Conciliar un extracto con facturas", 3),
              ("contabridge", "Convertir un diario de A3 a ContaPlus", 2), ("contabridge", "Validar un diario antes de importar", 1),
@@ -1036,7 +1060,9 @@ def pricing() -> str:
 <h1>Un saldo para todos los servidores</h1>
 <p class="lead">Una licencia, un saldo de créditos y un coste fijo por herramienta. Lo que falla no se cobra.</p>
 </div></section>
+{despacho_plans()}
 <section class="section tight"><div class="wrap">
+<div class="section-head center"><p class="eyebrow">Pago por uso</p><h2>Sin cuota: prueba, recarga o plan de desarrollador</h2></div>
 <div class="plans">{''.join(cards)}</div>
 <p class="muted small center">¿Asesoría o gestoría? <a href="/lote/">Procesa los extractos Norma 43 y XML de VERI*FACTU del mes en el navegador</a>: arrastras, pegas la licencia y descargas el resumen para Excel.</p>
 <p class="muted small center fine">{icon("lock")}Pago seguro con Stripe. Recargas en euros con IVA incluido; Pro en USD más impuestos según tu país. Recibes factura y puedes añadir tu NIF/VAT. Al comprar aceptas los <a href="/terminos/">términos de servicio</a>, la <a href="https://keyflint.dev/privacy.html">política de privacidad</a> y la <a href="/reembolsos/">política de reembolso</a>.</p>
@@ -1053,7 +1079,7 @@ def pricing() -> str:
     ld = [{"@context": "https://schema.org", "@type": "Product", "name": "Créditos KeyFlint MCP",
            "description": "Créditos de uso para todos los servidores MCP de KeyFlint.",
            "brand": {"@type": "Brand", "name": "KeyFlint"},
-           "offers": [{"@type": "Offer", "name": p["name"], "price": p["price"], "priceCurrency": ("EUR" if p.get("currency") == "€" else "USD"),
+           "offers": [{"@type": "Offer", "name": p["name"], "price": p["price"], "priceCurrency": "EUR" if p.get("currency", "$") == "€" else "USD",
                        "url": f"{SITE['url']}/precios/", "availability": "https://schema.org/InStock"} for p in SITE["packs"]]
                      + [{"@type": "Offer", "name": "Recarga libre", "price": SITE["topup"]["min"], "priceCurrency": "EUR",
                          "url": f"{SITE['url']}/saldo/", "availability": "https://schema.org/InStock"}]},
@@ -1079,7 +1105,7 @@ def onboarding_block() -> str:
 <form class="recover" data-trial-form novalidate>
 <div class="recover-row"><input type="email" name="email" autocomplete="email" placeholder="despacho@correo.com" required aria-label="Correo del despacho">
 <button class="btn btn-primary" type="submit">{icon("key")}Darme {SITE['free_credits']} créditos gratis</button></div>
-<p class="lic-help" data-trial-msg aria-live="polite">Sin tarjeta. Una por correo. ¿Ya tienes licencia? Pégala en el paso 2.</p>
+<p class="lic-help" data-trial-msg aria-live="polite">Sin tarjeta. Una por correo, con 3 consejos de uso la primera semana (baja en 1 clic). ¿Ya tienes licencia? Pégala en el paso 2.</p>
 </form>
 <div data-trial-out hidden><p class="small">Lista y guardada en este navegador: el comando del paso 2 ya la lleva.</p>
 {code_block("lic-trial", "LIC-…", "KEYFLINT_LICENSE")}</div></li>
@@ -1108,7 +1134,7 @@ def advisors_page() -> str:
         ("¿Mis datos bancarios salen del despacho?", "Con la instalación local o carpeta vigilada, no: los ficheros se procesan en tu equipo. En el navegador viajan cifrados bajo TLS a la UE, se procesan en memoria volátil y nunca se almacenan (cumplimiento estricto RGPD Art. 28)."),
         ("¿Y si la herramienta se equivoca con un apunte?", "Flint no utiliza IA para el cálculo numérico: aplica el algoritmo matemático oficial del cuaderno AEB 43. Verifica saldo inicial, sumas de debe y haber y saldo final. Error de cálculo: 0%."),
         ("¿Es compatible con ContaSol, A3 y Sage?", "Sí. Exporta ficheros de asientos directamente compatibles con ContaSol (DELSOL), plantillas de diario para A3 y hojas de cálculo normalizadas para Excel y Sage 50."),
-        ("¿Cuánto cuesta?", "Empiezas con 25 créditos totalmente gratuitos. Después dispones de recargas directas desde 5 € o el Pack Despacho recomendado de 100 € (2.800 créditos, sin caducidad y para todo el equipo)."),
+        ("¿Cuánto cuesta?", "Empiezas con 25 créditos totalmente gratuitos. Después eliges: Plan Despacho desde 49 €/mes (2.500 créditos al mes, unos 625 extractos leídos y conciliados, sin permanencia) o recargas sueltas desde 5 € que no caducan."),
     ]
     
     body = f"""
@@ -1137,7 +1163,7 @@ def advisors_page() -> str:
     <span class="tile">{icon("landmark")}</span>
     <h3>Norma 43 a ContaSol</h3>
     <p>Genera directamente el fichero de apuntes contables para importar en DELSOL en segundos, asignando subcuentas 572 y comprobando saldos sin teclear.</p>
-    <div style="margin-top:auto;padding-top:16px"><a class="btn btn-primary" href="/norma43-a-contasol/">{icon("landmark")}<span>Procesar para ContaSol</span></a></div>
+    <div style="margin-top:auto;padding-top:16px"><a class="btn btn-primary" href="/norma43-a-contasol/">{icon("landmark")}<span>Procesar para ContaSol</span></a><p class="muted small" style="margin-top:8px">También para <a href="/norma43-a-a3/">a3</a> y <a href="/norma43-a-contaplus/">ContaPlus</a>.</p></div>
   </div>
   <div class="card glass">
     <span class="tile">{icon("download")}</span>
@@ -1156,7 +1182,7 @@ def advisors_page() -> str:
 <ul class="checks">
 <li>{icon("check")}<span>Windows: un comando en PowerShell y vigila la carpeta de clientes</span></li>
 <li>{icon("check")}<span>Genera el informe auditable <code>.flint.json</code> junto a cada extracto</span></li>
-<li>{icon("check")}<span>Pack Despacho recomendado: <a href="/saldo/#importe=100"><b class="nowrap">100 € → 2.800 créditos</b> <span class="nowrap">(+40 %)</span></a> sin caducidad</span></li>
+<li>{icon("check")}<span>Plan Despacho desde 49 €/mes: <a href="/precios/#despacho"><b class="nowrap">2.500 créditos al mes</b></a>, sin permanencia</span></li>
 </ul>
 <div class="cta-row" style="margin-top:18px"><a class="btn btn-primary" href="/lote/">{icon("download")}<span>Abrir procesador online</span></a></div>
 </div>
@@ -1171,6 +1197,9 @@ def advisors_page() -> str:
 
 <!-- 4. CALCULADORA DE RENTABILIDAD / ROI PARA EL DESPACHO -->
 {roi_calc()}
+
+<!-- 4b. PLAN DESPACHO -->
+{despacho_plans()}
 
 <!-- 5. ALTA EN 1 MINUTO: LICENCIA GRATUITA -->
 {onboarding_block()}
@@ -1334,83 +1363,103 @@ def norma43_excel_page() -> str:
                 body, [faq_ld(faq)])
 
 
-def norma43_contasol_page() -> str:
-    """Landing SEO de alta intención: /norma43-a-contasol/."""
+N43_TARGETS = {
+    "contasol": {
+        "path": "/norma43-a-contasol/", "program": "ContaSol (DELSOL)", "short": "ContaSol", "file": "APU.ods",
+        "import": "En ContaSol: <b>Utilidades &gt; Importaciones</b>, importación Excel/Calc de <b>Apuntes</b>, y eliges el fichero APU.ods.",
+        "title": "Pasar extractos Norma 43 a ContaSol (APU.ods) · Flint",
+        "desc": "Convierte extractos bancarios Norma 43 (.n43, .c43) en el fichero de apuntes APU.ods que importa ContaSol, con la subcuenta 572 de tu banco y sin picar asientos.",
+        "faq_extra": ("¿Qué fichero genera para ContaSol?", "Un APU.ods con el formato de importación Excel/Calc de apuntes de ContaSol (columnas A a Q). Se importa en Utilidades > Importaciones. Antes de pasarlo a una empresa real, haz una primera importación en una empresa de pruebas."),
+    },
+    "a3": {
+        "path": "/norma43-a-a3/", "program": "a3ASESOR, a3ECO y a3CON", "short": "A3", "file": "SUENLACE.DAT",
+        "import": "En a3: <b>Utilidades &gt; Enlace contable / Importar</b> el fichero SUENLACE.DAT (apuntes tipo 0, formato de 5 dígitos por defecto).",
+        "title": "Importar extractos Norma 43 en a3 (SUENLACE.DAT) · Flint",
+        "desc": "Convierte extractos bancarios Norma 43 (.n43, .c43) en un SUENLACE.DAT listo para importar en a3ASESOR, a3ECO o a3CON, con la subcuenta 572 del banco.",
+        "faq_extra": ("¿Qué fichero genera para a3?", "Un SUENLACE.DAT con apuntes tipo 0, el formato estándar de enlace contable de a3ASESOR, a3ECO y a3CON. Por defecto usa el código de empresa 00001; si tu empresa en a3 tiene otro código, cámbialo antes de importar."),
+    },
+    "contaplus_ascii": {
+        "path": "/norma43-a-contaplus/", "program": "Sage ContaPlus y Sage 50", "short": "ContaPlus", "file": "XDiario.txt",
+        "import": "En ContaPlus: <b>Útiles &gt; Importación de ficheros ASCII</b>, eliges Diario y el fichero XDiario.txt.",
+        "title": "Pasar extractos Norma 43 a ContaPlus (XDiario) · Flint",
+        "desc": "Convierte extractos bancarios Norma 43 (.n43, .c43) en un diario XDiario.txt para importar en Sage ContaPlus, con la subcuenta 572 del banco.",
+        "faq_extra": ("¿Qué fichero genera para ContaPlus?", "Un XDiario.txt de ancho fijo, el formato de importación ASCII de diario de Sage ContaPlus. Si usas Sage 50 con importación CSV, Flint también puede generar el diario en CSV desde Claude o Cursor."),
+    },
+}
+
+
+def norma43_target_page(target: str) -> str:
+    """Landing SEO + conversor real: Norma 43 -> fichero de importación del programa contable (contabridge bank_to_journal)."""
+    t = N43_TARGETS[target]
+    short, prog, fname = t["short"], t["program"], t["file"]
     faq = [
-        ("¿Cómo se importan los extractos bancarios en ContaSol?",
-         "Flint genera un fichero de apuntes contables (APU) estructurado y listo para importar en ContaSol. En ContaSol accedes a Utilidades > Importaciones > Archivos de texto / ASCII o al Asistente de conciliación bancaria, seleccionas el archivo generado y los asientos contables se crean automáticamente en segundos."),
-        ("¿Asigna automáticamente las cuentas de banco 572?",
-         "Sí. Puedes definir la subcuenta bancaria de tesorería de tu cliente (por ejemplo, 57200001 para la cuenta principal) para que cada movimiento del extracto tenga su contrapartida contable cuadrada."),
-        ("¿Qué ahorro de tiempo representa para una asesoría o gestoría?",
-         "Un despacho que gestiona 30 empresas o autónomos con una media de 3 cuentas bancarias procesa unos 90 extractos mensuales. Picar manualmente los movimientos en ContaSol requiere entre 20 y 25 horas al mes. Con Flint, la importación masiva se realiza en menos de 5 minutos, eliminando por completo los errores de tecleo y descuadres."),
-        ("¿Es compatible con ContaSol Cloud y la versión de escritorio local?",
-         "Sí, es 100% compatible tanto con ContaSol Cloud (DELSOL Cloud) como con las versiones de escritorio instaladas en local (2024, 2025 y anteriores)."),
-        ("¿Puedo automatizar la conciliación de todas las empresas de mi despacho a la vez?",
-         "Sí. Con el procesamiento masivo por lotes y el agente de carpeta vigilada gratuito, cualquier extracto que caiga en la subcarpeta de una empresa se procesa automáticamente, incluso tras reiniciar el ordenador."),
+        (f"¿Cómo se importan los extractos bancarios en {short}?",
+         f"Flint convierte cada movimiento del extracto en un asiento: abono, Debe banco / Haber contrapartida; cargo, al revés. Descargas {fname} y lo importas. {t['import'].replace('<b>', '').replace('</b>', '').replace('&gt;', '>')}"),
+        t["faq_extra"],
+        ("¿Qué pasa con los movimientos que no sabe a qué cuenta van?",
+         "Van a la 555 (partidas pendientes de aplicación) y se marcan para revisión. Flint nunca adivina una contrapartida. Desde Claude o Cursor puedes darle reglas (por ejemplo, IBERDROLA a la 628) y se aplican siempre igual."),
+        ("¿Cuánto cuesta?",
+         f"Convertir un extracto son 3 créditos (unos 0,15 €). Si el fichero falla, no se cobra. Con la prueba gratis tienes {SITE['free_credits']} créditos y el Plan Despacho empieza en 49 €/mes."),
+        ("¿Puedo procesar todas las empresas del despacho a la vez?",
+         "Sí. Arrastra todos los extractos del mes: los asientos se numeran seguidos y descargas un ZIP con un fichero por extracto. La carpeta vigilada hace lo mismo sin abrir el navegador."),
     ]
-    term = f"curl -LsSf {SITE['url']}/lote.sh | sh -s -- ./extractos --vigilar"
     body = f"""
 <section class="hero"><div class="glow" aria-hidden="true"></div><div class="wrap narrow">
-<nav class="crumbs" aria-label="Ruta"><a href="/">Inicio</a>{icon("chevron-right")}<span aria-current="page">Norma 43 a ContaSol</span></nav>
-<h1>Importar extractos Norma 43 en ContaSol sin picar asientos</h1>
-<p class="lead">Transforma cuadernos bancarios (.n43, .c43) de cualquier banco español en apuntes contables compatibles con ContaSol (DELSOL). Conciliación bancaria matemática, asignación de subcuentas 572 y cuadre de saldos en segundos.</p>
+<nav class="crumbs" aria-label="Ruta"><a href="/">Inicio</a>{icon("chevron-right")}<span aria-current="page">Norma 43 a {e(short)}</span></nav>
+<h1>Importar extractos Norma 43 en {e(short)} sin picar asientos</h1>
+<p class="lead">Arrastra los extractos bancarios (.n43, .c43) de cualquier banco español y descarga el {e(fname)} para {e(prog)}. Saldos comprobados como lo hace el banco, la subcuenta 572 que tú elijas y lo dudoso a la 555 para revisar.</p>
 </div></section>
 
-<section class="section tight"><div class="wrap narrow" data-batch>
+<section class="section tight"><div class="wrap narrow" data-batch data-batch-target="{target}">
 <form class="saldo-form glass batch" data-batch-form novalidate>
 <label class="lic"><span class="lic-label">{icon("key")}Tu licencia</span>
-<span class="lic-field"><input type="text" name="license" autocomplete="off" spellcheck="false" placeholder="LIC-…" required aria-describedby="cs-help" data-batch-lic></span>
-<span id="cs-help" class="lic-help">Se guarda en este navegador. ¿Aún sin licencia? <a href="/probar/">Prueba 25 extractos gratis sin tarjeta</a>.</span></label>
+<span class="lic-field"><input type="text" name="license" autocomplete="off" spellcheck="false" placeholder="LIC-…" required aria-describedby="t-help" data-batch-lic></span>
+<span id="t-help" class="lic-help">Se guarda en este navegador. ¿Aún sin licencia? <a href="/probar/">{SITE['free_credits']} créditos gratis, sin tarjeta</a>.</span></label>
+<label class="lic"><span class="lic-label">{icon("landmark")}Subcuenta del banco</span>
+<span class="lic-field"><input type="text" name="bank" inputmode="numeric" autocomplete="off" value="57200001" pattern="57[0-9]{{2,10}}" required data-batch-bank aria-describedby="b-help"></span>
+<span id="b-help" class="lic-help">La 572 de la cuenta bancaria en {e(short)} (con los dígitos de tu plan de cuentas).</span></label>
 
 <label class="drop" data-batch-drop><input type="file" multiple accept=".n43,.c43,.q43" class="sr-only" data-batch-input>
 <span class="tile">{icon("download")}</span><b>Arrastra aquí tus extractos Norma 43 (.n43, .c43) o haz clic para elegirlos</b>
-<span class="muted small">Ficheros de extracto bancario de cualquier banco español · hasta 10 MB cada uno</span></label>
-<div class="sample-bar"><button type="button" class="btn-sample" data-batch-sample>{icon("refresh")}<span>Cargar extracto de prueba (demo en 1 clic)</span></button></div>
+<span class="muted small">De cualquier banco español · hasta 10 MB cada uno</span></label>
+<div class="sample-bar"><button type="button" class="btn-sample" data-batch-sample>{icon("refresh")}<span>Cargar extracto de prueba</span></button></div>
 
 <div class="tw batch-list" data-batch-list hidden><table class="uso-t"><thead><tr><th>Fichero</th><th>Tipo</th><th>Estado</th><th>Detalle</th><th class="num"></th></tr></thead><tbody data-batch-rows></tbody></table></div>
-<div class="batch-actions"><button class="btn btn-primary btn-lg" type="submit" data-batch-go disabled>{icon("refresh")}<span>Procesar para ContaSol</span></button>
+<div class="batch-actions"><button class="btn btn-primary btn-lg" type="submit" data-batch-go disabled>{icon("refresh")}<span>Convertir para {e(short)}</span></button>
 <button class="btn btn-ghost" type="button" data-batch-stop hidden>Detener</button>
 <button class="btn btn-quiet" type="button" data-batch-clear hidden>Vaciar lista</button>
 <span class="muted small tabnum" data-batch-cost aria-live="polite"></span></div>
 <p class="note" data-batch-msg aria-live="polite" hidden>{icon("info")}<span></span></p>
 
-<div class="batch-out" data-batch-out hidden><h2 class="h4">{icon("check")}Apuntes contables generados</h2>
-<p class="muted small">Descarga el fichero de asientos compatible con ContaSol o el paquete ZIP con todos los extractos procesados.</p>
-<div class="cta-row"><button class="btn btn-primary" type="button" data-batch-csv>{icon("table")}Descargar fichero ContaSol (.csv)</button>
-<button class="btn btn-ghost" type="button" data-batch-zip>{icon("download")}Descargar todo (.zip)</button>
-<a class="btn btn-primary" href="/saldo/#recargar">{icon("arrow-right")}Recargar créditos (desde 5 €)</a>
-<a class="btn btn-quiet" href="/precios/">Ver precios</a></div></div>
+<div class="batch-out" data-batch-out hidden><h2 class="h4">{icon("check")}Asientos generados</h2>
+<p class="muted small">Un extracto: descargas {e(fname)}. Varios: un ZIP con un fichero por extracto, con los asientos numerados seguidos. Revisa los marcados como REVISAR_555 antes de cerrar.</p>
+<div class="cta-row"><button class="btn btn-primary" type="button" data-batch-csv>{icon("download")}Descargar {e(fname)}</button>
+<button class="btn btn-ghost" type="button" data-batch-zip>{icon("table")}Todo con resumen (.zip)</button>
+<a class="btn btn-quiet" href="/precios/#despacho">Plan Despacho</a></div></div>
 </form>
 
 <div class="install-grid batch-info">
-<div><h2 class="h3">Pasos para importar en ContaSol (DELSOL)</h2>
+<div><h2 class="h3">Cómo importarlo en {e(short)}</h2>
 <ol class="steps" style="margin-top:14px">
-<li class="step"><span class="tile tile-sm">{icon("download")}</span><div><h3><span class="step-n">1</span>Arrastra el extracto Norma 43</h3><p>Sube el fichero .n43 o .c43 descargado de la banca online de tu cliente.</p></div></li>
-<li class="step"><span class="tile tile-sm">{icon("refresh")}</span><div><h3><span class="step-n">2</span>Descarga el fichero de asientos</h3><p>Flint valida matemáticamente los saldos inicial y final y genera el fichero de apuntes contables.</p></div></li>
-<li class="step"><span class="tile tile-sm">{icon("landmark")}</span><div><h3><span class="step-n">3</span>Importa en ContaSol</h3><p>En ContaSol: <b>Utilidades > Importaciones > Archivos ASCII / Texto</b>. Selecciona el fichero y los asientos se crean en segundos.</p></div></li>
+<li class="step"><span class="tile tile-sm">{icon("download")}</span><div><h3><span class="step-n">1</span>Arrastra los extractos</h3><p>Los .n43 o .c43 que descargas de la banca online de cada cliente.</p></div></li>
+<li class="step"><span class="tile tile-sm">{icon("refresh")}</span><div><h3><span class="step-n">2</span>Descarga {e(fname)}</h3><p>Flint comprueba los saldos del extracto y genera un asiento por movimiento.</p></div></li>
+<li class="step"><span class="tile tile-sm">{icon("landmark")}</span><div><h3><span class="step-n">3</span>Impórtalo</h3><p>{t['import']} La primera vez, pruébalo en una empresa de pruebas.</p></div></li>
 </ol></div>
-
-<div><h2 class="h3">Rentabilidad para tu Asesoría</h2>
-<div class="tw uso"><table class="uso-t"><thead><tr><th>Concepto</th><th>Manual</th><th>Con Flint</th></tr></thead>
-<tbody>
-<tr><td>Tiempo por extracto</td><td>15 min</td><td>1 seg</td></tr>
-<tr><td>Horas mensuales (30 clientes)</td><td>25 horas</td><td>5 minutos</td></tr>
-<tr><td>Riesgo de descuadre contable</td><td>Alto</td><td>0% (AEB 43)</td></tr>
-<tr><td>Coste mensual</td><td>> 450 € (horas)</td><td>99 € (tarifa plana)</td></tr>
-</tbody></table></div>
-<p class="muted small">Cumplimiento estricto RGPD: tus datos contables nunca se usan para entrenar IA. <a href="/confianza/">Ver garantías de seguridad</a>.</p></div>
+<div><h2 class="h3">Qué cuesta</h2>
+<div class="tw uso"><table class="uso-t"><thead><tr><th>Concepto</th><th class="num">Créditos</th></tr></thead>
+<tbody><tr><td>Convertir un extracto a {e(short)}</td><td class="num">3 cr</td></tr>
+<tr><td>Fichero que falla</td><td class="num">0 cr</td></tr></tbody></table></div>
+<p class="muted small">Con la instalación local, los extractos no salen del despacho. <a href="/confianza/">Cómo tratamos los datos (art. 28)</a>.</p></div>
 </div>
 
-<div class="card-flat batch-term"><p class="small"><b>¿Quieres que los extractos se procesen solos en ContaSol?</b> Activa la carpeta vigilada en tu servidor o puesto de trabajo:</p>
-{code_block("lote-cs", term, "Terminal")}
-<p class="muted small">Windows (PowerShell): <code>irm {SITE['url']}/lote.ps1 | iex</code></p></div>
-
-<div class="faq" style="margin-top:40px"><h2 class="h3" style="margin-bottom:20px">Preguntas frecuentes sobre Norma 43 en ContaSol</h2>{faq_html(faq)}</div>
+<div class="faq" style="margin-top:40px"><h2 class="h3" style="margin-bottom:20px">Preguntas frecuentes sobre Norma 43 en {e(short)}</h2>{faq_html(faq)}</div>
 </div></section>
 <script defer src="/assets/lote.js?v={VERSION}"></script>"""
-    return page("/norma43-a-contasol/", "Pasar extractos Norma 43 a ContaSol (APU) automáticamente · Flint",
-                "Convierte cuadernos bancarios Norma 43 (.n43, .c43) en apuntes contables listos para importar en ContaSol sin picar asientos uno a uno.",
-                body, [faq_ld(faq)])
+    return page(t["path"], t["title"], t["desc"], body, [faq_ld(faq)])
+
+
+def norma43_contasol_page() -> str:
+    return norma43_target_page("contasol")
 
 
 def start() -> str:
@@ -1465,7 +1514,7 @@ def start() -> str:
 
 def balance_page() -> str:
     tp = SITE["topup"]
-    pro = SITE["packs"][0]
+    pro = next(p for p in SITE["packs"] if p["id"] == "pro")
     presets = "".join(f'<button type="button" class="preset" data-preset="{a}" data-tier-min="{a}" aria-pressed="false" title="{e(n)}: {tp["rate"] * (100 + b) // 100} {L("créditos por euro", "credits per euro")}">'
                       f'<b class="tabnum">{L(f"{a} €", f"€{a}")}</b><span class="preset-bonus{" base" if not b else ""}">{(L(f"+{b} %", f"+{b}%")) if b else "base"}</span></button>'
                       for a, b, n in tp["tiers"])
@@ -1602,7 +1651,7 @@ EN_TOOLS = [
 EN_PACKS = {
     "despacho-basico": ("Small accounting firms & solo advisors", "2,500 credits/mo, 3 seats, cancel anytime", "/mo"),
     "despacho-pro": ("Growing accounting firms & gestorías", "6,000 credits/mo, 10 seats, cancel anytime", "/mo"),
-    "despacho-empresa": ("Enterprise accounting practices", "15,000 credits/mo, unlimited seats, SLA", "/mo"),
+    "despacho-empresa": ("Enterprise accounting practices", "15,000 credits/mo, unlimited seats, high availability", "/mo"),
     "pro": ("For developers and single users", "1,000 new credits every month, cancel anytime", "/mo"),
 }
 
@@ -1637,7 +1686,7 @@ def en_plans() -> str:
 <a class="btn btn-primary btn-block" href="/en/balance/#recargar">Top up</a>
 <ul class="checks">{tiers}<li>{icon("check")}Adds to the same license</li><li>{icon("check")}Credits never expire</li></ul></div>"""
     out = [free, topup]
-    for p in SITE["packs"]:
+    for p in (p for p in SITE["packs"] if not p["id"].startswith("despacho")):
         who, billing, per = EN_PACKS.get(p["id"], ("", "", ""))
         feat, badge = "", ""
         out.append(f"""<div class="plan{feat}">{badge}
@@ -2130,6 +2179,8 @@ def main() -> None:
     write("en/batch/index.html", en_batch())
     write("norma43-a-excel/index.html", norma43_excel_page())
     write("norma43-a-contasol/index.html", norma43_contasol_page())
+    write("norma43-a-a3/index.html", norma43_target_page("a3"))
+    write("norma43-a-contaplus/index.html", norma43_target_page("contaplus_ascii"))
     installer_files()
     try:
         import subprocess
@@ -2143,7 +2194,7 @@ def main() -> None:
         print("AVISO: faltan datos del titular en data/catalog.json -> site.legal:", ", ".join(legal_missing()))
     for m in MCPS:
         write(f"{m['slug']}/index.html", mcp_page(m))
-    paths = ["/", "/probar/", "/empezar/", "/precios/", "/terminos/", "/reembolsos/", "/aviso-legal/", "/confianza/", "/norma43-a-excel/", "/norma43-a-contasol/", "/en/", "/en/try/", "/en/start/", "/estado/", "/asesorias/", "/lote/", "/en/batch/"] + [f"/{m['slug']}/" for m in MCPS]
+    paths = ["/", "/probar/", "/empezar/", "/precios/", "/terminos/", "/reembolsos/", "/aviso-legal/", "/confianza/", "/norma43-a-excel/", "/norma43-a-contasol/", "/norma43-a-a3/", "/norma43-a-contaplus/", "/en/", "/en/try/", "/en/start/", "/estado/", "/asesorias/", "/lote/", "/en/batch/"] + [f"/{m['slug']}/" for m in MCPS]
     write("sitemap.xml", '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
           + "".join(f"<url><loc>{SITE['url']}{p}</loc><lastmod>{TODAY}</lastmod></url>\n" for p in paths) + "</urlset>\n")
     write("robots.txt", f"User-agent: *\nAllow: /\nDisallow: /gracias/\nDisallow: /saldo/\nDisallow: /en/balance/\nDisallow: /api/\n\nSitemap: {SITE['url']}/sitemap.xml\n")
