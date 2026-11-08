@@ -1070,6 +1070,164 @@ def en_batch() -> str:
         return batch_page()
 
 
+def norma43_excel_page() -> str:
+    """Landing SEO de alta intención: /norma43-a-excel/."""
+    faq = [
+        ("¿Qué entidades bancarias generan ficheros Norma 43 (.n43 o .c43)?",
+         "Prácticamente todas las entidades financieras que operan en España: Banco Santander, BBVA, CaixaBank, Sabadell, Bankinter, Unicaja, Ibercaja, Kutxabank, Abanca, Cajamar, Laboral Kutxa, Deutsche Bank España y cooperativas de crédito."),
+        ("¿Por qué Excel no abre bien los ficheros .n43 directamente?",
+         "Norma 43 no es una hoja de cálculo ni un CSV común: es un estándar bancario español de registros de longitud fija (80 caracteres por línea) con codificación bancaria CP850/Latin-1. Si lo abres directamente en Excel, todo el contenido queda pegado en una única columna ilegible. Flint lo procesa de forma nativa y genera un fichero CSV con delimitador de punto y coma (;) y coma decimal (,) listo para filtrar, ordenar y conciliar en Excel en español."),
+        ("¿Cómo comprueba Flint el cuadre bancario del extracto?",
+         "Flint aplica el algoritmo matemático oficial del cuaderno AEB 43: verifica el registro 11 (saldo inicial), suma algebraicamente los movimientos de los registros 22 y 23 (debe y haber) y comprueba que coincidan de forma exacta con el registro 33 (saldo final). Si falta un movimiento o el fichero está cortado, te avisa antes de que descuadre tu contabilidad."),
+        ("¿Mis datos bancarios están protegidos (RGPD)?",
+         "Totalmente. Los ficheros viajan cifrados bajo TLS a servidores en la Unión Europea (París), se procesan exclusivamente en memoria volátil y se descartan inmediatamente tras generar el resultado. Nunca se almacenan ni se usan para entrenar modelos de IA (RGPD Art. 28). Para despachos con máxima exigencia de secreto profesional, el modo local con uvx procesa el extracto 100% dentro de tu propio ordenador sin que salga a internet."),
+        ("¿Cuánto cuesta convertir extractos bancarios a Excel?",
+         "Comienzas con 25 créditos totalmente gratuitos (unos 25 extractos bancarios, sin introducir tarjeta). Después puedes recargar saldo desde 5 € (1 céntimo por extracto) o suscribirte al Plan Despacho (49 €, 99 € o 149 € al mes) para procesar de forma ilimitada sin preocuparte por el saldo."),
+    ]
+    term = f"curl -LsSf {SITE['url']}/lote.sh | sh -s -- ./extractos --vigilar"
+    body = f"""
+<section class="hero"><div class="glow" aria-hidden="true"></div><div class="wrap narrow">
+<nav class="crumbs" aria-label="Ruta"><a href="/">Inicio</a>{icon("chevron-right")}<span aria-current="page">Norma 43 a Excel</span></nav>
+<h1>Convertir extractos bancarios Norma 43 a Excel online</h1>
+<p class="lead">Pasa extractos bancarios (.n43, .c43, .q43) de cualquier banco español a Excel o CSV limpio con cuadre de saldos automático. Sin programas pesados, sin errores de tecleo y con 25 conversiones gratuitas.</p>
+</div></section>
+
+<section class="section tight"><div class="wrap narrow" data-batch>
+<form class="saldo-form glass batch" data-batch-form novalidate>
+<label class="lic"><span class="lic-label">{icon("key")}Tu licencia</span>
+<span class="lic-field"><input type="text" name="license" autocomplete="off" spellcheck="false" placeholder="LIC-…" required aria-describedby="n43-help" data-batch-lic></span>
+<span id="n43-help" class="lic-help">Se guarda en este navegador. ¿Aún sin licencia? <a href="/probar/">Consigue 25 créditos gratis en 10 segundos</a>.</span></label>
+
+<label class="drop" data-batch-drop><input type="file" multiple accept=".n43,.c43,.q43" class="sr-only" data-batch-input>
+<span class="tile">{icon("download")}</span><b>Arrastra aquí tus extractos bancarios (.n43, .c43) o haz clic para elegirlos</b>
+<span class="muted small">Santander, BBVA, CaixaBank, Sabadell, Bankinter… hasta 10 MB cada uno</span></label>
+
+<div class="tw batch-list" data-batch-list hidden><table class="uso-t"><thead><tr><th>Fichero</th><th>Tipo</th><th>Estado</th><th>Detalle</th><th class="num"></th></tr></thead><tbody data-batch-rows></tbody></table></div>
+<div class="batch-actions"><button class="btn btn-primary btn-lg" type="submit" data-batch-go disabled>{icon("refresh")}<span>Convertir a Excel</span></button>
+<button class="btn btn-ghost" type="button" data-batch-stop hidden>Detener</button>
+<button class="btn btn-quiet" type="button" data-batch-clear hidden>Vaciar lista</button>
+<span class="muted small tabnum" data-batch-cost aria-live="polite"></span></div>
+<p class="note" data-batch-msg aria-live="polite" hidden>{icon("info")}<span></span></p>
+
+<div class="batch-out" data-batch-out hidden><h2 class="h4">{icon("check")}Extractos convertidos con éxito</h2>
+<p class="muted small">Descarga tu resumen listo para abrir en Excel en español (separador ; y coma decimal) o el archivo comprimido ZIP con el informe auditable de cada cuenta.</p>
+<div class="cta-row"><button class="btn btn-primary" type="button" data-batch-csv>{icon("table")}Descargar resumen Excel (.csv)</button>
+<button class="btn btn-ghost" type="button" data-batch-zip>{icon("download")}Descargar todo (.zip)</button>
+<a class="btn btn-primary" href="https://buy.stripe.com/cNiaEP8cscgb1cg8sPawo0e" target="_blank">{icon("arrow-right")}Plan Despacho Básico (49 €/mes)</a>
+<a class="btn btn-quiet" href="/saldo/#recargar">Recarga 5 €</a></div></div>
+</form>
+
+<div class="install-grid batch-info">
+<div><h2 class="h3">Estructura del libro Excel generado</h2>
+<p class="small muted">Cada fila del fichero Excel corresponde a un movimiento bancario individual, con las columnas normalizadas para su explotación contable:</p>
+<ul class="checks">
+<li>{icon("check")}<b>Fecha operación y Fecha valor:</b> formato estándar AAAA-MM-DD para filtrado cronológico.</li>
+<li>{icon("check")}<b>Concepto común y propio:</b> código de operación bancaria normalizado según el cuaderno 43.</li>
+<li>{icon("check")}<b>Concepto detallado (Registros 23):</b> descripción completa del movimiento (hasta 5 líneas de detalle).</li>
+<li>{icon("check")}<b>Importe (€):</b> debe (-) y haber (+) separados con signo contable exacto.</li>
+<li>{icon("check")}<b>Saldo final comprobado:</b> cuadre matemático garantizado con el saldo bancario real.</li>
+</ul></div>
+
+<div><h2 class="h3">Por qué usar Flint frente a otros métodos</h2>
+<div class="tw uso"><table class="uso-t"><thead><tr><th>Método</th><th>Tiempo</th><th>Riesgo error</th><th>Coste</th></tr></thead>
+<tbody>
+<tr><td>Picar a mano en Excel</td><td>20 min/cuenta</td><td>Muy alto</td><td>Horas perdidas</td></tr>
+<tr><td>Software tradicional de escritorio</td><td>5 min/cuenta</td><td>Medio</td><td>300 €/año + licencias</td></tr>
+<tr><td><b>Flint Norma 43 a Excel</b></td><td><b>1 segundo</b></td><td><b>0% (AEB 43)</b></td><td><b>25 gratis · 49 €/mes ilimitado</b></td></tr>
+</tbody></table></div>
+<p class="muted small">Garantía de privacidad: procesamiento en memoria bajo RGPD Art. 28 en la UE. <a href="/confianza/">Ver informe de confianza</a>.</p></div>
+</div>
+
+<div class="card-flat batch-term"><p class="small"><b>¿Gestionas decenas de extractos bancarios al mes en tu despacho?</b> Deja una carpeta vigilada en tu ordenador: cualquier extracto bancario que guardes se convertirá a Excel automáticamente en segundo plano:</p>
+{code_block("lote-sh", term, "Terminal")}
+<p class="muted small">Windows (PowerShell): <code>irm {SITE['url']}/lote.ps1 | iex</code></p></div>
+
+<div class="faq" style="margin-top:40px"><h2 class="h3" style="margin-bottom:20px">Preguntas frecuentes sobre Norma 43 a Excel</h2>{faq_html(faq)}</div>
+</div></section>
+<script defer src="/assets/lote.js?v={VERSION}"></script>"""
+    return page("/norma43-a-excel/", "Convertir extractos Norma 43 (.n43, .c43) a Excel online · Flint",
+                "Convierte ficheros bancarios Norma 43 a Excel (.csv delimitado por punto y coma) gratis y al instante. Cuadre bancario matemático según cuaderno AEB 43.",
+                body, [faq_ld(faq)])
+
+
+def norma43_contasol_page() -> str:
+    """Landing SEO de alta intención: /norma43-a-contasol/."""
+    faq = [
+        ("¿Cómo se importan los extractos bancarios en ContaSol?",
+         "Flint genera un fichero de apuntes contables (APU) estructurado y listo para importar en ContaSol. En ContaSol accedes a Utilidades > Importaciones > Archivos de texto / ASCII o al Asistente de conciliación bancaria, seleccionas el archivo generado y los asientos contables se crean automáticamente en segundos."),
+        ("¿Asigna automáticamente las cuentas de banco 572?",
+         "Sí. Puedes definir la subcuenta bancaria de tesorería de tu cliente (por ejemplo, 57200001 para la cuenta principal) para que cada movimiento del extracto tenga su contrapartida contable cuadrada."),
+        ("¿Qué ahorro de tiempo representa para una asesoría o gestoría?",
+         "Un despacho que gestiona 30 empresas o autónomos con una media de 3 cuentas bancarias procesa unos 90 extractos mensuales. Picar manualmente los movimientos en ContaSol requiere entre 20 y 25 horas al mes. Con Flint, la importación masiva se realiza en menos de 5 minutos, eliminando por completo los errores de tecleo y descuadres."),
+        ("¿Es compatible con ContaSol Cloud y la versión de escritorio local?",
+         "Sí, es 100% compatible tanto con ContaSol Cloud (DELSOL Cloud) como con las versiones de escritorio instaladas en local (2024, 2025 y anteriores)."),
+        ("¿Puedo automatizar la conciliación de todas las empresas de mi despacho a la vez?",
+         "Sí. El Plan Despacho Pro (99 €/mes) incluye procesamiento masivo por lotes y el agente de carpeta vigilada: cualquier extracto que caiga en la subcarpeta de una empresa se procesa automáticamente, incluso tras reiniciar el ordenador."),
+    ]
+    term = f"curl -LsSf {SITE['url']}/lote.sh | sh -s -- ./extractos --vigilar"
+    body = f"""
+<section class="hero"><div class="glow" aria-hidden="true"></div><div class="wrap narrow">
+<nav class="crumbs" aria-label="Ruta"><a href="/">Inicio</a>{icon("chevron-right")}<span aria-current="page">Norma 43 a ContaSol</span></nav>
+<h1>Importar extractos Norma 43 en ContaSol sin picar asientos</h1>
+<p class="lead">Transforma cuadernos bancarios (.n43, .c43) de cualquier banco español en apuntes contables compatibles con ContaSol (DELSOL). Conciliación bancaria matemática, asignación de subcuentas 572 y cuadre de saldos en segundos.</p>
+</div></section>
+
+<section class="section tight"><div class="wrap narrow" data-batch>
+<form class="saldo-form glass batch" data-batch-form novalidate>
+<label class="lic"><span class="lic-label">{icon("key")}Tu licencia</span>
+<span class="lic-field"><input type="text" name="license" autocomplete="off" spellcheck="false" placeholder="LIC-…" required aria-describedby="cs-help" data-batch-lic></span>
+<span id="cs-help" class="lic-help">Se guarda en este navegador. ¿Aún sin licencia? <a href="/probar/">Prueba 25 extractos gratis sin tarjeta</a>.</span></label>
+
+<label class="drop" data-batch-drop><input type="file" multiple accept=".n43,.c43,.q43" class="sr-only" data-batch-input>
+<span class="tile">{icon("download")}</span><b>Arrastra aquí tus extractos Norma 43 (.n43, .c43) o haz clic para elegirlos</b>
+<span class="muted small">Ficheros de extracto bancario de cualquier banco español · hasta 10 MB cada uno</span></label>
+
+<div class="tw batch-list" data-batch-list hidden><table class="uso-t"><thead><tr><th>Fichero</th><th>Tipo</th><th>Estado</th><th>Detalle</th><th class="num"></th></tr></thead><tbody data-batch-rows></tbody></table></div>
+<div class="batch-actions"><button class="btn btn-primary btn-lg" type="submit" data-batch-go disabled>{icon("refresh")}<span>Procesar para ContaSol</span></button>
+<button class="btn btn-ghost" type="button" data-batch-stop hidden>Detener</button>
+<button class="btn btn-quiet" type="button" data-batch-clear hidden>Vaciar lista</button>
+<span class="muted small tabnum" data-batch-cost aria-live="polite"></span></div>
+<p class="note" data-batch-msg aria-live="polite" hidden>{icon("info")}<span></span></p>
+
+<div class="batch-out" data-batch-out hidden><h2 class="h4">{icon("check")}Apuntes contables generados</h2>
+<p class="muted small">Descarga el fichero de asientos compatible con ContaSol o el paquete ZIP con todos los extractos procesados.</p>
+<div class="cta-row"><button class="btn btn-primary" type="button" data-batch-csv>{icon("table")}Descargar fichero ContaSol (.csv)</button>
+<button class="btn btn-ghost" type="button" data-batch-zip>{icon("download")}Descargar todo (.zip)</button>
+<a class="btn btn-primary" href="https://buy.stripe.com/28EaEPgIYcgbaMQdN9awo0f" target="_blank">{icon("arrow-right")}Plan Despacho Pro (99 €/mes)</a>
+<a class="btn btn-quiet" href="/saldo/#recargar">Recarga 5 €</a></div></div>
+</form>
+
+<div class="install-grid batch-info">
+<div><h2 class="h3">Pasos para importar en ContaSol (DELSOL)</h2>
+<ol class="steps" style="margin-top:14px">
+<li class="step"><span class="tile tile-sm">{icon("download")}</span><div><h3><span class="step-n">1</span>Arrastra el extracto Norma 43</h3><p>Sube el fichero .n43 o .c43 descargado de la banca online de tu cliente.</p></div></li>
+<li class="step"><span class="tile tile-sm">{icon("refresh")}</span><div><h3><span class="step-n">2</span>Descarga el fichero de asientos</h3><p>Flint valida matemáticamente los saldos inicial y final y genera el fichero de apuntes contables.</p></div></li>
+<li class="step"><span class="tile tile-sm">{icon("landmark")}</span><div><h3><span class="step-n">3</span>Importa en ContaSol</h3><p>En ContaSol: <b>Utilidades > Importaciones > Archivos ASCII / Texto</b>. Selecciona el fichero y los asientos se crean en segundos.</p></div></li>
+</ol></div>
+
+<div><h2 class="h3">Rentabilidad para tu Asesoría</h2>
+<div class="tw uso"><table class="uso-t"><thead><tr><th>Concepto</th><th>Manual</th><th>Con Flint</th></tr></thead>
+<tbody>
+<tr><td>Tiempo por extracto</td><td>15 min</td><td>1 seg</td></tr>
+<tr><td>Horas mensuales (30 clientes)</td><td>25 horas</td><td>5 minutos</td></tr>
+<tr><td>Riesgo de descuadre contable</td><td>Alto</td><td>0% (AEB 43)</td></tr>
+<tr><td>Coste mensual</td><td>> 450 € (horas)</td><td>99 € (tarifa plana)</td></tr>
+</tbody></table></div>
+<p class="muted small">Cumplimiento estricto RGPD: tus datos contables nunca se usan para entrenar IA. <a href="/confianza/">Ver garantías de seguridad</a>.</p></div>
+</div>
+
+<div class="card-flat batch-term"><p class="small"><b>¿Quieres que los extractos se procesen solos en ContaSol?</b> Activa la carpeta vigilada en tu servidor o puesto de trabajo:</p>
+{code_block("lote-cs", term, "Terminal")}
+<p class="muted small">Windows (PowerShell): <code>irm {SITE['url']}/lote.ps1 | iex</code></p></div>
+
+<div class="faq" style="margin-top:40px"><h2 class="h3" style="margin-bottom:20px">Preguntas frecuentes sobre Norma 43 en ContaSol</h2>{faq_html(faq)}</div>
+</div></section>
+<script defer src="/assets/lote.js?v={VERSION}"></script>"""
+    return page("/norma43-a-contasol/", "Pasar extractos Norma 43 a ContaSol (APU) automáticamente · Flint",
+                "Convierte cuadernos bancarios Norma 43 (.n43, .c43) en apuntes contables listos para importar en ContaSol sin picar asientos uno a uno.",
+                body, [faq_ld(faq)])
+
+
 def start() -> str:
     mail = (f"{SITE['contact']}?subject=" + urllib.parse.quote("Licencia gratuita KeyFlint MCP")
             + "&body=" + urllib.parse.quote("Hola, quiero probar los servidores MCP.\n\nLo usaré para: \nCliente (Claude, Cursor…): "))
@@ -1762,12 +1920,14 @@ def main() -> None:
     write("asesorias/index.html", advisors_page())
     write("lote/index.html", batch_page())
     write("en/batch/index.html", en_batch())
+    write("norma43-a-excel/index.html", norma43_excel_page())
+    write("norma43-a-contasol/index.html", norma43_contasol_page())
     installer_files()
     if legal_missing():
         print("AVISO: faltan datos del titular en data/catalog.json -> site.legal:", ", ".join(legal_missing()))
     for m in MCPS:
         write(f"{m['slug']}/index.html", mcp_page(m))
-    paths = ["/", "/probar/", "/empezar/", "/precios/", "/terminos/", "/reembolsos/", "/aviso-legal/", "/en/", "/en/try/", "/en/start/", "/estado/", "/asesorias/", "/lote/", "/en/batch/"] + [f"/{m['slug']}/" for m in MCPS]
+    paths = ["/", "/probar/", "/empezar/", "/precios/", "/terminos/", "/reembolsos/", "/aviso-legal/", "/confianza/", "/norma43-a-excel/", "/norma43-a-contasol/", "/en/", "/en/try/", "/en/start/", "/estado/", "/asesorias/", "/lote/", "/en/batch/"] + [f"/{m['slug']}/" for m in MCPS]
     write("sitemap.xml", '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
           + "".join(f"<url><loc>{SITE['url']}{p}</loc><lastmod>{TODAY}</lastmod></url>\n" for p in paths) + "</urlset>\n")
     write("robots.txt", f"User-agent: *\nAllow: /\nDisallow: /gracias/\nDisallow: /saldo/\nDisallow: /en/balance/\nDisallow: /api/\n\nSitemap: {SITE['url']}/sitemap.xml\n")
