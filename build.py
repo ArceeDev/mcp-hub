@@ -616,7 +616,7 @@ def trial_page() -> str:
 <p class="lead-sm">Claude Desktop (extensión .mcpb), Claude Code, Cursor, VS Code y más. Elige servidor y copia.</p></div>
 <div class="install-card glass">{quick_install()}<p class="quick-or muted small">o elige servidor y cliente</p><div class="picker" role="group" aria-label="Elige servidor">{picker}</div>{installers}</div>
 </div></section>"""
-    return page("/probar/", f"Prueba gratis los servidores MCP: {SITE['free_credits']} créditos · Flint",
+    return page("/probar/", f"Prueba gratis los servidores MCP: {SITE['free_credits']} créditos · Flint by KeyFlint",
                 f"Licencia gratis al momento con {SITE['free_credits']} créditos para todos los servidores MCP de KeyFlint. Sin tarjeta.", body)
 
 
@@ -715,7 +715,7 @@ def home() -> str:
 <div class="cta-row"><a class="btn btn-primary btn-lg" href="/precios/">Ver planes</a><a class="btn btn-ghost btn-lg" href="/empezar/">Leer la guía</a></div>
 </div></div></section>"""
     ld = [
-        {"@context": "https://schema.org", "@type": "WebSite", "name": SITE["name"], "url": SITE["url"] + "/",
+        {"@context": "https://schema.org", "@type": "WebSite", "name": SITE["name"], "alternateName": "Flint", "url": SITE["url"] + "/",
          "description": SITE["description"], "inLanguage": "es"},
         {"@context": "https://schema.org", "@type": "Organization", "name": "KeyFlint", "url": "https://keyflint.dev",
          "logo": SITE["url"] + "/assets/flint-icon.svg", "email": CONTACT},
@@ -903,7 +903,7 @@ def pricing() -> str:
                      + [{"@type": "Offer", "name": "Recarga libre", "price": SITE["topup"]["min"], "priceCurrency": "EUR",
                          "url": f"{SITE['url']}/saldo/", "availability": "https://schema.org/InStock"}]},
           faq_ld(faq)]
-    return page("/precios/", "Precios de los servidores MCP · Flint",
+    return page("/precios/", "Precios de los servidores MCP · Flint by KeyFlint",
                 f"Un saldo de créditos para todos los servidores MCP de KeyFlint. Recargas desde {SITE['topup']['min']} € sin suscripción o gratis con {SITE['free_credits']} créditos.",
                 body, ld)
 
@@ -1003,7 +1003,7 @@ def advisors_page() -> str:
 <div><h2>Prueba con tus extractos de este mes</h2><p class="lead-sm">{SITE['free_credits']} créditos gratis: unos 6 extractos conciliados. Sin tarjeta.</p></div>
 <div class="cta-row"><a class="btn btn-primary btn-lg" href="/probar/">Pedir licencia gratis</a><a class="btn btn-ghost btn-lg" href="{SITE['contact']}">Hablar con nosotros</a></div>
 </div></div></section>"""
-    return page("/asesorias/", "Conciliación bancaria y VeriFactu con IA para asesorías · Flint",
+    return page("/asesorias/", "Conciliación bancaria y VeriFactu con IA para asesorías · Flint by KeyFlint",
                 "Concilia extractos Norma 43, convierte diarios de A3 y ContaPlus y revisa VeriFactu desde Claude o Cursor. Resultados exactos, pago por uso y 25 créditos gratis.",
                 body, [faq_ld(faq)])
 
@@ -1057,7 +1057,7 @@ def batch_page() -> str:
 <p class="muted small">Windows: <code>irm {SITE['url']}/lote.ps1 | iex</code></p></div>
 </div></section>
 <script defer src="/assets/lote.js?v={VERSION}"></script>"""
-    return page(U("batch"), L("Procesador por lotes Norma 43, VERI*FACTU y Facturae · Flint", "Batch processor for Norma 43, VERI*FACTU and Facturae · Flint"),
+    return page(U("batch"), L("Procesador por lotes Norma 43, VERI*FACTU y Facturae · Flint by KeyFlint", "Batch processor for Norma 43, VERI*FACTU and Facturae · Flint by KeyFlint"),
                 L("Arrastra extractos Norma 43 y XML de VERI*FACTU o Facturae, pega tu licencia y descarga el resumen .csv para Excel. Sin instalar nada.",
                   "Drop Norma 43 statements and VERI*FACTU or Facturae XML, paste your license and download the Excel .csv summary. Nothing to install."),
                 body, lang=_LANG[-1])
@@ -1113,7 +1113,7 @@ def start() -> str:
            "totalTime": "PT2M",
            "step": [{"@type": "HowToStep", "name": n} for n in
                     ["Consigue tu licencia", "Instala uv", "Añade el servidor a tu cliente MCP", "Compruébalo con tu agente"]]}]
-    return page("/empezar/", "Cómo instalar un servidor MCP en Claude, Cursor o VS Code · Flint",
+    return page("/empezar/", "Cómo instalar un servidor MCP en Claude, Cursor o VS Code · Flint by KeyFlint",
                 "Guía paso a paso para instalar servidores MCP en Claude Desktop, Claude Code, Cursor, VS Code, Codex, Antigravity y Windsurf con una licencia gratuita.",
                 body, ld)
 
@@ -1190,7 +1190,7 @@ def balance_page() -> str:
         ("What if I change my mind?", "If you have not used the credits from a top-up, email us within 14 days and we refund it. The refunded credits are removed."),
     ]))}</div>
 </div></section>"""
-    return page(U("balance"), L("Consulta tu saldo de créditos · Flint", "Check your credit balance · Flint"),
+    return page(U("balance"), L("Consulta tu saldo de créditos · Flint by KeyFlint", "Check your credit balance · Flint by KeyFlint"),
                 L("Consulta los créditos que te quedan en tu licencia de KeyFlint MCP.", "Check the credits left on your Flint license and top up."),
                 body, noindex=True, lang=_LANG[-1])
 
@@ -1224,11 +1224,11 @@ def thanks() -> str:
 </form>
 <p class="muted small center">¿Sigue sin llegar? Escribe a <a href="{SITE['contact']}">{e(CONTACT)}</a>.</p>
 </div></section>"""
-    return page("/gracias/", "Pago completado · Flint", "Tu licencia está de camino.", body, noindex=True)
+    return page("/gracias/", "Pago completado · Flint by KeyFlint", "Tu licencia está de camino.", body, noindex=True)
 
 
 def not_found() -> str:
-    return page("/404", "Página no encontrada · Flint", "Página no encontrada.",
+    return page("/404", "Página no encontrada · Flint by KeyFlint", "Página no encontrada.",
                 f'<section class="hero hero-sm center"><div class="glow" aria-hidden="true"></div><div class="wrap narrow"><p class="eyebrow">Error 404</p>'
                 f'<h1>Esta página no existe</h1><p class="lead">Puede que el enlace haya cambiado.</p>'
                 f'<div class="cta-row center"><a class="btn btn-primary btn-lg" href="/">Ir al inicio</a>'
@@ -1362,7 +1362,7 @@ def en_start() -> str:
 </div></section>"""
     ld = [{"@context": "https://schema.org", "@type": "HowTo", "name": "Install a Flint MCP server", "totalTime": "PT2M", "inLanguage": "en",
            "step": [{"@type": "HowToStep", "name": n} for n in ["Get your license", "Install uv", "Add the server to your MCP client", "Check it with your agent"]]}]
-    return page("/en/start/", "How to install an MCP server in Claude, Cursor or VS Code · Flint",
+    return page("/en/start/", "How to install an MCP server in Claude, Cursor or VS Code · Flint by KeyFlint",
                 "Step-by-step guide to install MCP servers in Claude Desktop, Claude Code, Cursor, VS Code, Codex, Antigravity and Windsurf with a free license.",
                 body, ld, lang="en")
 
@@ -1454,11 +1454,12 @@ def en_home() -> str:
 <div><h2>Try it on your own files</h2><p class="lead-sm">{SITE['free_credits']} free credits, no card. Built solo from Spain.</p></div>
 <div class="cta-row"><a class="btn btn-primary btn-lg" href="/en/try/">Get a free license</a><a class="btn btn-ghost btn-lg" href="https://github.com/ArceeDev" rel="noopener">See the code</a></div>
 </div></div></section>"""
-    ld = [{"@context": "https://schema.org", "@type": "SoftwareApplication", "name": "Flint", "applicationCategory": "BusinessApplication",
+    ld = [{"@context": "https://schema.org", "@type": "SoftwareApplication", "name": "Flint by KeyFlint", "alternateName": "Flint", "applicationCategory": "BusinessApplication",
+           "publisher": {"@type": "Organization", "name": "KeyFlint", "url": "https://keyflint.dev"},
            "operatingSystem": "Windows, macOS, Linux", "url": SITE["url"] + "/en/", "inLanguage": "en",
            "offers": {"@type": "Offer", "price": 0, "priceCurrency": "USD"}},
           faq_ld(faq)]
-    return page("/en/", "Flint: deterministic MCP tools for bank files, accounting and CSVs",
+    return page("/en/", "Flint by KeyFlint: deterministic MCP tools for bank files, accounting and CSVs",
                 "MCP tools for Claude, ChatGPT, Cursor and VS Code that compute instead of guess: Norma 43 reconciliation, A3/ContaPlus/QuickBooks/Xero exports, VeriFactu checks, CSV cleaning and SEO audits.",
                 body, ld, lang="en")
 
@@ -1494,7 +1495,7 @@ def en_try() -> str:
 <p class="muted small">By getting a license you accept the <a href="/terminos/">terms</a> (in Spanish, summarised in the <a href="/en/#pricing">FAQ</a>).</p></div>
 <div class="install-card glass">{quick}<p class="quick-or muted small">or pick a tool and a client</p><div class="picker" role="group" aria-label="Pick a tool">{picker}</div>{installers}</div>
 </div></section>"""
-    return page("/en/try/", f"Try Flint free: {SITE['free_credits']} credits, no card",
+    return page("/en/try/", f"Try Flint by KeyFlint free: {SITE['free_credits']} credits, no card",
                 f"Get a free Flint license with {SITE['free_credits']} credits for all 5 MCP tools. No card.", body, lang="en")
 
 
@@ -1534,7 +1535,7 @@ def status_page() -> str:
 <ul class="st-list glass" data-status>{lis}</ul>
 <p class="muted small">Última comprobación: <span data-st-time>…</span>. Los servidores locales (<code>uvx</code>) solo dependen de las licencias. ¿Algo raro? Escribe a <a href="{SITE['contact']}">{e(CONTACT)}</a>.</p>
 </div></section>"""
-    return page("/estado/", "Estado del servicio · Flint", "Estado en directo de las licencias y de las herramientas remotas de Flint.", body)
+    return page("/estado/", "Estado del servicio · Flint by KeyFlint", "Estado en directo de las licencias y de las herramientas remotas de Flint.", body)
 
 
 # ---------------------------------------------------------------- legal
@@ -1566,7 +1567,7 @@ def legal_page(path: str, crumb: str, title: str, lead: str, sections: list[tupl
 <nav class="legal-toc" aria-label="En esta página"><ol>{toc}</ol></nav>
 {secs}
 </div></section>"""
-    return page(path, f"{title} · Flint", re.sub(r"<[^>]+>", "", lead)[:158], body)
+    return page(path, f"{title} · Flint by KeyFlint", re.sub(r"<[^>]+>", "", lead)[:158], body)
 
 
 def terms_page() -> str:
