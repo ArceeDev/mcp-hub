@@ -1221,8 +1221,8 @@ def batch_page() -> str:
 <p class="muted small">{L("El resumen se abre directamente en Excel (separador ; y coma decimal). El ZIP incluye además el informe auditable .flint.json de cada fichero.", "The summary opens straight in Excel. The ZIP also holds the auditable .flint.json report of each file.")}</p>
 <div class="cta-row"><button class="btn btn-primary" type="button" data-batch-csv>{icon("table")}{L("Descargar resumen Excel (.csv)", "Download Excel summary (.csv)")}</button>
 <button class="btn btn-ghost" type="button" data-batch-zip>{icon("download")}{L("Descargar todo (.zip)", "Download everything (.zip)")}</button>
-<a class="btn btn-primary" href="https://buy.stripe.com/28EaEPgIYcgbaMQdN9awo0f" target="_blank">{icon("arrow-right")}{L("Plan Despacho (99 €)", "Firm Plan (€99)")}</a>
-<a class="btn btn-quiet" href="{U("balance")}#recargar">{L("Recarga 5 €", "Top up €5")}</a></div></div>
+<a class="btn btn-primary" href="{U("balance")}#recargar">{icon("arrow-right")}{L("Recargar saldo (desde 5 €)", "Top up credits (from €5)")}</a>
+<a class="btn btn-quiet" href="{U("pricing")}">{L("Ver precios", "View pricing")}</a></div></div>
 </form>
 <div class="install-grid batch-info">
 <div><h2 class="h3">{L("Qué hace con cada fichero", "What it does with each file")}</h2>
@@ -1264,7 +1264,7 @@ def norma43_excel_page() -> str:
         ("¿Mis datos bancarios están protegidos (RGPD)?",
          "Totalmente. Los ficheros viajan cifrados bajo TLS a servidores en la Unión Europea (París), se procesan exclusivamente en memoria volátil y se descartan inmediatamente tras generar el resultado. Nunca se almacenan ni se usan para entrenar modelos de IA (RGPD Art. 28). Para despachos con máxima exigencia de secreto profesional, el modo local con uvx procesa el extracto 100% dentro de tu propio ordenador sin que salga a internet."),
         ("¿Cuánto cuesta convertir extractos bancarios a Excel?",
-         "Comienzas con 25 créditos totalmente gratuitos (unos 25 extractos bancarios, sin introducir tarjeta). Después puedes recargar saldo desde 5 € (1 céntimo por extracto) o suscribirte al Plan Despacho (49 €, 99 € o 149 € al mes) para procesar de forma ilimitada sin preocuparte por el saldo."),
+         "Comienzas con 25 créditos totalmente gratuitos (unos 25 extractos bancarios, sin tarjeta). Después puedes recargar saldo libremente desde 5 € (1 céntimo por extracto) sin cuotas mensuales fijas obligatorias: pagas solo lo que procesas y los créditos no caducan."),
     ]
     term = f"curl -LsSf {SITE['url']}/lote.sh | sh -s -- ./extractos --vigilar"
     body = f"""
@@ -1296,8 +1296,8 @@ def norma43_excel_page() -> str:
 <p class="muted small">Descarga tu resumen listo para abrir en Excel en español (separador ; y coma decimal) o el archivo comprimido ZIP con el informe auditable de cada cuenta.</p>
 <div class="cta-row"><button class="btn btn-primary" type="button" data-batch-csv>{icon("table")}Descargar resumen Excel (.csv)</button>
 <button class="btn btn-ghost" type="button" data-batch-zip>{icon("download")}Descargar todo (.zip)</button>
-<a class="btn btn-primary" href="https://buy.stripe.com/cNiaEP8cscgb1cg8sPawo0e" target="_blank">{icon("arrow-right")}Plan Despacho Básico (49 €/mes)</a>
-<a class="btn btn-quiet" href="/saldo/#recargar">Recarga 5 €</a></div></div>
+<a class="btn btn-primary" href="/saldo/#recargar">{icon("arrow-right")}Recargar créditos (desde 5 €)</a>
+<a class="btn btn-quiet" href="/precios/">Ver precios</a></div></div>
 </form>
 
 <div class="install-grid batch-info">
@@ -1316,7 +1316,7 @@ def norma43_excel_page() -> str:
 <tbody>
 <tr><td>Picar a mano en Excel</td><td>20 min/cuenta</td><td>Muy alto</td><td>Horas perdidas</td></tr>
 <tr><td>Software tradicional de escritorio</td><td>5 min/cuenta</td><td>Medio</td><td>300 €/año + licencias</td></tr>
-<tr><td><b>Flint Norma 43 a Excel</b></td><td><b>1 segundo</b></td><td><b>0% (AEB 43)</b></td><td><b>25 gratis · 49 €/mes ilimitado</b></td></tr>
+<tr><td><b>Flint Norma 43 a Excel</b></td><td><b>1 segundo</b></td><td><b>0% (AEB 43)</b></td><td><b>25 gratis · Recarga libre desde 5 €</b></td></tr>
 </tbody></table></div>
 <p class="muted small">Garantía de privacidad: procesamiento en memoria bajo RGPD Art. 28 en la UE. <a href="/confianza/">Ver informe de confianza</a>.</p></div>
 </div>
@@ -1345,7 +1345,7 @@ def norma43_contasol_page() -> str:
         ("¿Es compatible con ContaSol Cloud y la versión de escritorio local?",
          "Sí, es 100% compatible tanto con ContaSol Cloud (DELSOL Cloud) como con las versiones de escritorio instaladas en local (2024, 2025 y anteriores)."),
         ("¿Puedo automatizar la conciliación de todas las empresas de mi despacho a la vez?",
-         "Sí. El Plan Despacho Pro (99 €/mes) incluye procesamiento masivo por lotes y el agente de carpeta vigilada: cualquier extracto que caiga en la subcarpeta de una empresa se procesa automáticamente, incluso tras reiniciar el ordenador."),
+         "Sí. Con el procesamiento masivo por lotes y el agente de carpeta vigilada gratuito, cualquier extracto que caiga en la subcarpeta de una empresa se procesa automáticamente, incluso tras reiniciar el ordenador."),
     ]
     term = f"curl -LsSf {SITE['url']}/lote.sh | sh -s -- ./extractos --vigilar"
     body = f"""
@@ -1377,8 +1377,8 @@ def norma43_contasol_page() -> str:
 <p class="muted small">Descarga el fichero de asientos compatible con ContaSol o el paquete ZIP con todos los extractos procesados.</p>
 <div class="cta-row"><button class="btn btn-primary" type="button" data-batch-csv>{icon("table")}Descargar fichero ContaSol (.csv)</button>
 <button class="btn btn-ghost" type="button" data-batch-zip>{icon("download")}Descargar todo (.zip)</button>
-<a class="btn btn-primary" href="https://buy.stripe.com/28EaEPgIYcgbaMQdN9awo0f" target="_blank">{icon("arrow-right")}Plan Despacho Pro (99 €/mes)</a>
-<a class="btn btn-quiet" href="/saldo/#recargar">Recarga 5 €</a></div></div>
+<a class="btn btn-primary" href="/saldo/#recargar">{icon("arrow-right")}Recargar créditos (desde 5 €)</a>
+<a class="btn btn-quiet" href="/precios/">Ver precios</a></div></div>
 </form>
 
 <div class="install-grid batch-info">
