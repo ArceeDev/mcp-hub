@@ -616,3 +616,8 @@ svg.logo{width:30px;height:30px;flex:none;filter:drop-shadow(0 1px 6px rgba(204,
 .batch-term{margin-top:40px}
 .more-links{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;margin:4px 0 8px}
 .panel h5.sub{font:600 .8125rem/1.3 var(--sans);color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin:20px 0 8px}
+.alta-steps{list-style:none;padding:0;margin:0;display:grid;gap:16px}
+.alta-steps>li{min-width:0}
+.alta-steps .code,.alta-steps pre{max-width:100%}
+.alta-steps h3{display:flex;align-items:center;gap:10px;margin:0}
+.alta-steps .code{margin-top:4px}

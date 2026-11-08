@@ -906,6 +906,42 @@ def pricing() -> str:
                 body, ld)
 
 
+def onboarding_block() -> str:
+    """Alta del despacho en un minuto (/asesorias/#alta): licencia al momento + carpeta vigilada que arranca sola."""
+    folder_win, folder_nix = r"$HOME\Documents\Flint Extractos", "$HOME/Flint Extractos"
+    win = (f"$env:KEYFLINT_LICENSE='{LIC_PLACEHOLDER}'; & ([scriptblock]::Create((irm {SITE['url']}/lote.ps1))) "
+           f'"{folder_win}" --subcarpetas --al-iniciar')
+    nix = (f"curl -LsSf {SITE['url']}/lote.sh | KEYFLINT_LICENSE='{LIC_PLACEHOLDER}' sh -s -- "
+           f'"{folder_nix}" --subcarpetas --al-iniciar')
+    return f"""<section class="section" id="alta"><div class="wrap narrow">
+<div class="section-head"><p class="eyebrow">Alta en 1 minuto · Automático desde el primer extracto</p>
+<h2>Deja el despacho conciliando solo</h2>
+<p class="lead-sm">Tu correo, un comando y listo. Cada extracto que caiga en la carpeta de un cliente se procesa solo, también después de reiniciar el ordenador. Sin chat y sin abrir ningún programa.</p></div>
+<ol class="alta-steps">
+<li class="card"><h3><span class="step-n">1</span>Tu licencia, al momento</h3>
+<form class="recover" data-trial-form novalidate>
+<div class="recover-row"><input type="email" name="email" autocomplete="email" placeholder="despacho@correo.com" required aria-label="Correo del despacho">
+<button class="btn btn-primary" type="submit">{icon("key")}Darme {SITE['free_credits']} créditos gratis</button></div>
+<p class="lic-help" data-trial-msg aria-live="polite">Sin tarjeta. Una por correo. ¿Ya tienes licencia? Pégala en el paso 2.</p>
+</form>
+<div data-trial-out hidden><p class="small">Lista y guardada en este navegador: el comando del paso 2 ya la lleva.</p>
+{code_block("lic-trial", "LIC-…", "KEYFLINT_LICENSE")}</div></li>
+<li class="card" data-installer='{{"slug": "alta"}}'><h3><span class="step-n">2</span>Un comando, una sola vez</h3>
+<label class="lic"><span class="lic-field"><input type="text" autocomplete="off" spellcheck="false" placeholder="Pega aquí tu LIC-…" data-license aria-label="Tu licencia"><span class="lic-state" data-license-state aria-live="polite"></span></span>
+<span class="lic-help"></span></label>
+{code_block("alta-win", win, "Windows · PowerShell")}
+{code_block("alta-nix", nix, "macOS / Linux · Terminal")}
+<p class="muted small">Crea la carpeta <b>Flint Extractos</b>, instala el motor si falta y deja la vigilancia arrancando sola al iniciar sesión (Windows: carpeta Inicio; macOS: LaunchAgent; Linux: servicio de usuario). Para quitarlo, repite el comando cambiando <code>--al-iniciar</code> por <code>--quitar-inicio</code>. <a href="/lote.py">Ver el código</a>.</p></li>
+<li class="card"><h3><span class="step-n">3</span>Una subcarpeta por cliente</h3>
+<p>Crea dentro <code>Flint Extractos/García SL</code>, <code>Flint Extractos/Bar Pepe</code>… y suelta ahí los <code>.n43</code>, <code>.c43</code> o facturas <code>.xml</code> que descargas del banco o del cliente.</p>
+<ul class="checks"><li>{icon("check")}<span>En segundos aparece el informe auditable <code>.flint.json</code> junto a cada fichero</span></li>
+<li>{icon("check")}<span>Cada cliente tiene su <code>resumen-flint.csv</code>, listo para Excel</span></li>
+<li>{icon("check")}<span>Si se acaba el saldo, nada se pierde: el fichero espera y se reintenta solo cada 10 minutos. <a href="/saldo/#importe=50">Recarga desde {SITE['topup']['min']} €</a></span></li></ul></li>
+</ol>
+<p class="muted small center">¿Prefieres no instalar nada? Usa el <a href="/lote/">procesador en el navegador</a>: la licencia ya queda guardada.</p>
+</div></section>"""
+
+
 def advisors_page() -> str:
     """Landing no técnica para asesorías y gestorías (/asesorias/)."""
     by = {m["slug"]: m for m in MCPS}
@@ -925,6 +961,7 @@ def advisors_page() -> str:
         ("¿Mis datos salen del despacho?", "Con la instalación local, no: los ficheros se procesan en tu ordenador y a KeyFlint solo llega la licencia y el consumo de créditos."),
         ("¿Y si la IA se equivoca con un apunte?", "Las herramientas no usan IA para calcular: aplican reglas fijas y dan siempre el mismo resultado. Lo que no se puede casar con certeza queda marcado para que lo revises."),
         ("¿Sustituye a mi programa de contabilidad?", "No. Prepara y revisa los ficheros para que entren limpios en A3, ContaPlus, Sage 50, Xero o QuickBooks."),
+        ("¿Se procesa solo aunque apague el ordenador?", "Sí. El alta deja la carpeta vigilada arrancando sola cada vez que inicias sesión. Los ficheros que dejes mientras está apagado se procesan al volver a encenderlo, y ninguno se cobra dos veces."),
         ("¿Cuánto cuesta?", f"Pagas por uso: conciliar un extracto son 4 créditos (unos 0,20 €). Empiezas con {SITE['free_credits']} créditos gratis y recargas desde {SITE['topup']['min']} €, sin cuotas."),
     ]
     body = f"""
@@ -933,7 +970,7 @@ def advisors_page() -> str:
 <h1>La IA que concilia bancos y revisa tus ficheros fiscales, sin inventarse nada</h1>
 <p class="lead">Extractos Norma 43, diarios de A3 o ContaPlus y registros VeriFactu, preparados en segundos desde Claude o Cursor. Con la instalación local, tus datos no salen de tu despacho.</p>
 <div class="cta-row center"><a class="btn btn-primary btn-lg" href="#en-vivo">{icon("arrow-right")}Verlo con un extracto de ejemplo</a>
-<a class="btn btn-ghost btn-lg" href="/probar/">{SITE['free_credits']} créditos gratis</a></div>
+<a class="btn btn-ghost btn-lg" href="#alta">Alta automática en 1 minuto</a></div>
 <ul class="assure center"><li>{icon("check")}Sin cuotas ni permanencia</li><li>{icon("check")}Factura con NIF</li><li>{icon("check")}Soporte en castellano</li></ul>
 </div></section>
 <section class="section"><div class="wrap">
@@ -943,6 +980,7 @@ def advisors_page() -> str:
 </div></section>
 {live_demo(("norma43", "contabridge"), "Míralo funcionar con un ejemplo", "Un extracto bancario y dos asientos de prueba. Pulsa el botón: es la herramienta real, sin instalar nada.")}
 {seal(compact=True)}
+{onboarding_block()}
 <section class="section alt" id="lote"><div class="wrap install-grid">
 <div class="section-head left"><p class="eyebrow">Modo Carpeta Vigilada · Sin abrir el chat</p>
 <h2>Procesa 50 extractos Norma 43 o facturas XML de golpe</h2>
