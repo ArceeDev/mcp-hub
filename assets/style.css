@@ -614,3 +614,5 @@ svg.logo{width:30px;height:30px;flex:none;filter:drop-shadow(0 1px 6px rgba(204,
 .batch-out h2 .i{width:20px;height:20px;color:var(--ok)}
 .batch-info{margin-top:48px}
 .batch-term{margin-top:40px}
+.more-links{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;margin:4px 0 8px}
+.panel h5.sub{font:600 .8125rem/1.3 var(--sans);color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin:20px 0 8px}

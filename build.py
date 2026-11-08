@@ -179,6 +179,8 @@ def remote_snippets(m: dict) -> dict[str, str]:
         "codex_toml": "\n\n".join(f"[mcp_servers.{x['slug']}]\nurl = \"{remote_url(x)}\"\n"
                                    f"http_headers = {{ Authorization = \"Bearer {LIC_PLACEHOLDER}\" }}" for x in ms),
         "headers": dump({"mcpServers": {x["slug"]: {"serverUrl": remote_url(x), "headers": auth} for x in ms}}),
+        "gemini": "\n".join(f"gemini mcp add --transport http --scope user {x['slug']} {remote_url(x)}" for x in ms),
+        "url_headers": dump({"mcpServers": {x["slug"]: {"url": remote_url(x), "headers": auth} for x in ms}}),
     }
 
 
@@ -193,7 +195,8 @@ CLIENTS_REMOTE = [
     ("vscode", "VS Code", "vscode"),
     ("codex", "Codex", "codex"),
     ("antigravity", "Antigravity", "antigravity"),
-    ("windsurf", "Windsurf", "windsurf"),
+    ("windsurf", "Windsurf / Devin", "windsurf"),
+    ("more", ("Más clientes", "More clients"), "icon:plug"),
 ]
 
 CLIENTS = [
@@ -209,6 +212,14 @@ CLIENTS = [
 _cl = {c[0]: c for c in CLIENTS + CLIENTS_REMOTE}
 MARQUEE = [_cl[k] for k in ("desktop", "cursor", "chatgpt", "code", "vscode", "codex", "antigravity", "windsurf")
            if k != "chatgpt" or SITE["remote"]]
+
+
+def client_name(name) -> str:
+    return L(*name) if isinstance(name, tuple) else name
+
+
+def client_icon(ic: str) -> str:
+    return icon(ic[5:], "b") if ic.startswith("icon:") else brand(ic)
 
 
 def installer(m: dict) -> str:
@@ -277,13 +288,13 @@ def installer(m: dict) -> str:
         tabs = "".join(
             f'<button type="button" role="tab" id="tab-{s}-{cid}" aria-controls="pan-{s}-{cid}" '
             f'aria-selected="{"true" if i == 0 else "false"}" tabindex="{0 if i == 0 else -1}" data-client="{cid}">'
-            f'{brand(ic)}<span>{e(name)}</span></button>'
+            f'{client_icon(ic)}<span>{e(client_name(name))}</span></button>'
             for i, (cid, name, ic) in enumerate(clients))
     body = "".join(
         f'<div role="tabpanel" id="pan-{s}-{cid}" aria-labelledby="tab-{s}-{cid}" class="panel"'
-        f'{"" if i == 0 else " data-hidden"}><h4 class="panel-title">{e(name)}</h4>{panels[cid]}</div>'
+        f'{"" if i == 0 else " data-hidden"}><h4 class="panel-title">{e(client_name(name))}</h4>{panels[cid]}</div>'
         for i, (cid, name, _) in enumerate(clients))
-    cfg_json = e(json.dumps({"slug": s, "server": server}, ensure_ascii=False))
+    cfg_json = e(json.dumps({"slug": s, "server": server, "name": m["name"], "desc": m.get("headline", "")}, ensure_ascii=False))
     return f"""<div class="installer" data-installer="{cfg_json}">
 <label class="lic"><span class="lic-label">{icon("key")}{L("Tu licencia", "Your license")} <span class="muted">· {L("opcional", "optional")}</span></span>
 <span class="lic-field"><input type="text" autocomplete="off" spellcheck="false" placeholder="{L("Pega aquí tu LIC-…", "Paste your LIC-… here")}" data-license aria-describedby="lic-help-{s}"><span class="lic-state" data-license-state aria-live="polite"></span></span>
@@ -291,6 +302,32 @@ def installer(m: dict) -> str:
 <div class="tabs" role="tablist" aria-label="{L("Elige tu cliente", "Choose your client")}">{tabs}</div>
 <div class="panels">{body}</div>
 </div>"""
+
+
+MORE_LINKS = [  # (data-deeplink id, brand label, needs license in the link)
+    ("goose", "Goose", False),
+    ("lmstudio", "LM Studio", True),
+    ("kiro", "Kiro", False),
+    ("vscode-insiders", "VS Code Insiders", False),
+]
+
+
+def more_panel(m: dict, sn: dict, multi: bool, oauth: str) -> str:
+    """Clientes con menos cuota: botones de 1 clic (un servidor), Gemini CLI y JSON con cabecera para el resto."""
+    s = m["slug"]
+    if multi:
+        buttons = f'<p class="muted small">{L("Para instalar con un clic, elige un solo servidor.", "For one-click install, pick a single server.")}</p>'
+    else:
+        btn = lambda cid, name, lic: (f'<a class="btn btn-ghost btn-block" data-deeplink="{cid}" href="#" rel="nofollow">{icon("plug")}'
+                                      f'{L("Añadir a", "Add to")} {name}{" *" if lic else ""}</a>')
+        buttons = (f'<div class="more-links">{"".join(btn(*x) for x in MORE_LINKS)}</div>'
+                   f'<p class="muted small">{L("* LM Studio guarda la licencia que pegues arriba en su configuración. El resto inicia sesión con tu licencia al conectar.", "* LM Studio stores the license you paste above in its config. The others sign in with your license when they connect.")}</p>')
+    return f"""{buttons}
+<h5 class="sub">Gemini CLI</h5>{code_block(f"sn-{s}-gemini", sn["gemini"], "Terminal")}
+<p class="muted small">{L("La primera vez, <code>/mcp auth</code> abre la página de KeyFlint para pegar tu licencia.", "The first time, <code>/mcp auth</code> opens the KeyFlint page to paste your license.")}</p>
+<h5 class="sub">Zed · JetBrains Junie · Warp · Cline · Raycast</h5>
+<p class="muted small">{L("Pega el bloque en la configuración MCP de tu cliente (lleva tu licencia). En Zed va dentro de <code>context_servers</code>; en Cline añade <code>\"type\": \"streamableHttp\"</code>.", "Paste the block into your client's MCP config (it carries your license). In Zed it goes inside <code>context_servers</code>; in Cline add <code>\"type\": \"streamableHttp\"</code>.")}</p>
+{code_block(f"sn-{s}-more-json", sn["url_headers"], "mcp.json")}"""
 
 
 def remote_panels(m: dict, local_desktop: str, cards: str) -> dict[str, str]:
@@ -326,10 +363,11 @@ def remote_panels(m: dict, local_desktop: str, cards: str) -> dict[str, str]:
 <p>{L("Pega el bloque en", "Paste the block into")} <code>~/.codex/config.toml</code>.</p>{code_block(f"sn-{s}-codex-toml", sn["codex_toml"], "config.toml")}</details>""",
         "antigravity": f"""<ol class="mini-steps"><li>{L("Antigravity › panel del agente", "Antigravity › agent panel")} › <b>…</b> › <b>MCP Servers</b> › <b>Manage MCP Servers</b> › <b>View raw config</b>.</li>
 <li>{L("Pega el bloque (lleva tu licencia), guarda y pulsa <b>Refresh</b>.", "Paste the block (it carries your license), save and click <b>Refresh</b>.")}</li></ol>
-{code_block(f"sn-{s}-antigravity", sn["headers"], "mcp_config.json")}<p class="path"><code>~/.gemini/antigravity/mcp_config.json</code></p>""",
-        "windsurf": f"""<ol class="mini-steps"><li>Windsurf › <b>Settings</b> › <b>Cascade</b> › <b>MCP Servers</b> › <b>View raw config</b>.</li>
+{code_block(f"sn-{s}-antigravity", sn["headers"], "mcp_config.json")}<p class="path"><code>~/.gemini/config/mcp_config.json</code> · {L("versiones anteriores", "older versions")}: <code>~/.gemini/antigravity/mcp_config.json</code></p>""",
+        "windsurf": f"""<ol class="mini-steps"><li>{L("Windsurf (ahora Devin Desktop)", "Windsurf (now Devin Desktop)")} › <b>Settings</b> › <b>Cascade</b> › <b>MCP Servers</b> › <b>View raw config</b>.</li>
 <li>{L("Pega el bloque (lleva tu licencia), guarda y pulsa <b>Refresh</b>.", "Paste the block (it carries your license), save and click <b>Refresh</b>.")}</li></ol>
-{code_block(f"sn-{s}-windsurf", sn["headers"], "mcp_config.json")}<p class="path"><code>~/.codeium/windsurf/mcp_config.json</code></p>""",
+{code_block(f"sn-{s}-windsurf", sn["headers"], "mcp_config.json")}<p class="path"><code>~/.config/devin/mcp_config.json</code> · Windsurf: <code>~/.codeium/windsurf/mcp_config.json</code></p>""",
+        "more": more_panel(m, sn, multi, oauth),
     }
 
 
