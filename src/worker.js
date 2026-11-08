@@ -121,7 +121,7 @@ async function trial(request, env, url) {
       const r = await gateway(env, "/api/v1/licenses/issue", {
         method: "POST",
         headers: { "x-admin-key": env.KEYFLINT_ADMIN_KEY },
-        body: JSON.stringify({ customer_email: email, tier: "community", metadata: { trial: true, source: "mcp-hub" } }),
+        body: JSON.stringify({ customer_email: email, tier: "community", metadata: { trial: true, source: "mcp-hub", lang: en ? "en" : "es" } }),
       });
       const d = r.data && r.data.data;
       if (!r.ok || !d || !LICENSE_RE.test(String(d.license_key || ""))) {

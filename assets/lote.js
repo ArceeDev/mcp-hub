@@ -9,7 +9,10 @@
   function T(es, en) { return EN ? en : es; }
   var KEY = "kf-mcp-license", LIC_RE = /^LIC-[A-Za-z0-9._~+\/=-]{6,1024}$/;
   var EXTS = [".n43", ".c43", ".q43", ".xml", ".xsig"], MAX_BYTES = 10 * 1024 * 1024;
-  var COST = { parse_norma43: 1, validate_verifactu_xml: 3, validate_facturae: 2 };
+  var COST = { parse_norma43: 1, validate_verifactu_xml: 3, validate_facturae: 2, bank_to_journal: 3 };
+  /* Con data-batch-target (contasol | a3) los Norma 43 se convierten en el fichero de importación del programa contable. */
+  var TARGET = root.getAttribute("data-batch-target") || "";
+  var bankEl = root.querySelector("[data-batch-bank]");
   var VF_TAGS = ["RegFactuSistemaFacturacion", "RegistroAlta", "RegistroAnulacion", "SuministroLR"];
   var SEP = EN ? "," : ";";
   var FIELDS = ["fecha_proceso", "fichero", "tipo", "estado", "iban_o_emisor", "movimientos_o_facturas",
@@ -49,7 +52,7 @@
   }
   function isVerifactu(bytes) { var h = head(bytes); return VF_TAGS.some(function (t) { return h.indexOf(t) >= 0; }); }
   function toolFor(it) {
-    if (it.ext === ".n43" || it.ext === ".c43" || it.ext === ".q43") return ["norma43", "parse_norma43"];
+    if (it.ext === ".n43" || it.ext === ".c43" || it.ext === ".q43") return TARGET ? ["contabridge", "bank_to_journal"] : ["norma43", "parse_norma43"];
     if (it.ext === ".xml" && isVerifactu(it.bytes)) return ["verifactu", "validate_verifactu_xml"];
     return ["verifactu", "validate_facturae"];
   }
@@ -77,7 +80,7 @@
     pending: T("Pendiente", "Pending"), running: T("Procesando…", "Processing…"), ok: "OK",
     warn: T("Con reparos", "With issues"), error: "Error"
   };
-  var TYPE = { parse_norma43: "Norma 43", validate_verifactu_xml: "VERI*FACTU XML", validate_facturae: "Facturae 3.2.2" };
+  var TYPE = { parse_norma43: "Norma 43", validate_verifactu_xml: "VERI*FACTU XML", validate_facturae: "Facturae 3.2.2", bank_to_journal: "Norma 43 → asientos" };
   function render() {
     list.hidden = !items.length;
     rowsEl.innerHTML = items.map(function (it, i) {
@@ -129,7 +132,7 @@
       var blob = new Blob([bytes], { type: "text/plain" });
       var file = new File([blob], "extracto_ejemplo_caixabank.n43", { type: "text/plain" });
       if (!items.some(function (it) { return it.name === file.name; })) {
-        items.push({ file: file, name: file.name, size: file.size, ext: ".n43", state: "pending", bytes: bytes, tool: ["norma43", "parse_norma43"] });
+        items.push({ file: file, name: file.name, size: file.size, ext: ".n43", state: "pending", bytes: bytes, tool: TARGET ? ["contabridge", "bank_to_journal"] : ["norma43", "parse_norma43"] });
       }
       if (!lic.value) {
         lic.value = "LIC-COMMUNITY-eyJjdXN0b21lcl9lbWFpbCI6InRlc3QtZ2VzdG9yaWFAa2V5ZmxpbnQuZGV2IiwiY3VzdG9tZXJfaWQiOiIzNWM3YmZiOC1hOWIxLTRiNDgtYmM4OS1jMjU3NGFhOWQ2OWUiLCJleHBpcmVzX2F0IjpudWxsLCJmZWF0dXJlcyI6WyJjb3JlIl0sImlzc3VlZF9hdCI6MTc5NDE0NDU1MSwibGljZW5zZV9pZCI6Ijg1ZDkxNDYwLTIyYTgtNDBlMS05ZjRmLWRlNjlkZWYwYjdmOSIsIm1heF9zZWF0cyI6MSwibm9uY2UiOiI4YTk5MjM4ZjRmZmVhYmZmIiwidGllciI6ImNvbW11bml0eSJ9.6u1DHTc1_tubd0W_2hPGcx2XnEDAWWqcRYT_CLuEUyB_B0X8qFSUwI6fYrD9GID2GvnSC0nCXL_K-2zE0QvSBw";
@@ -215,6 +218,15 @@
 
   function summarise(it, data) {
     var tool = it.tool[1], base = { fecha_proceso: nowStr(), fichero: it.name, tipo: TYPE[tool] };
+    if (tool === "bank_to_journal") {
+      var bk = data.bank || {}, js = data.summary || {}, pend = bk.unmatched_total || 0;
+      return Object.assign(base, {
+        estado: js.balanced === false ? "DESCUADRADO" : (pend ? "REVISAR_555" : "OK"),
+        iban_o_emisor: (bankEl && bankEl.value) || "", movimientos_o_facturas: bk.movements != null ? bk.movements : (js.entries || ""),
+        saldo_inicial: js.from || "", saldo_final_o_total: js.to || "",
+        moneda: "EUR", avisos: pend + (data.norma43_issues || []).length, ok: js.balanced !== false && !pend
+      });
+    }
     if (tool === "parse_norma43") {
       var acc = (data.accounts || [])[0] || {}, sm = data.summary || {}, valid = data.valid !== false;
       return Object.assign(base, {
@@ -255,6 +267,13 @@
       lic.focus(); return;
     }
     try { localStorage.setItem(KEY, license); } catch (e) { /* sin almacenamiento */ }
+    var bankAcc = bankEl ? bankEl.value.trim() : "";
+    if (TARGET && !/^57\d{2,10}$/.test(bankAcc)) {
+      say(T("Indica la subcuenta del banco (grupo 57, p. ej. 57200001).", "Enter the bank subaccount (group 57, e.g. 57200001)."), true);
+      if (bankEl) bankEl.focus(); return;
+    }
+    var nextEntry = 1;
+    items.forEach(function (x) { if (x.data && x.data.summary && x.data.summary.entries) nextEntry += x.data.summary.entries; });
     running = true; stopFlag = false; stopBtn.disabled = false; say(""); render();
     var fatal = null, fatalCredits = false;
     for (var i = 0; i < items.length; i++) {
@@ -266,8 +285,10 @@
       try {
         var args = { content_base64: b64(it.bytes) };
         if (it.tool[1] === "parse_norma43") args.include_movements = true;
+        if (it.tool[1] === "bank_to_journal") { args.bank_account = bankAcc; args.target_format = TARGET; args.start_entry_number = nextEntry; }
         var data = await callMcp(it.tool[0], it.tool[1], args, license);
         it.data = data; it.row = summarise(it, data); it.state = it.row.ok ? "ok" : "warn";
+        if (data.summary && data.summary.entries) nextEntry += data.summary.entries;
       } catch (e) {
         it.state = "error"; it.err = e.message || String(e);
         if (e.fatal) { fatal = it.err; fatalCredits = e.credits; }
@@ -309,7 +330,22 @@
     setTimeout(function () { URL.revokeObjectURL(a.href); }, 4000);
   }
   var CSV_NAME = EN ? "flint-summary.csv" : "resumen-flint.csv";
-  csvBtn.addEventListener("click", function () { save(CSV_NAME, csvText(), "text/csv"); });
+  function unb64(s) { var b = atob(s), u = new Uint8Array(b.length); for (var i = 0; i < b.length; i++) u[i] = b.charCodeAt(i); return u; }
+  function targetFiles() {
+    var seen = {};
+    return items.filter(function (it) { return it.row && it.data && it.data.content_base64; }).map(function (it) {
+      var fn = it.data.filename || "importar.txt", dot = fn.lastIndexOf("."), stem = it.name.replace(/\.[^.]+$/, "");
+      var n = fn.slice(0, dot) + "-" + stem + fn.slice(dot); seen[n] = (seen[n] || 0) + 1;
+      return { name: seen[n] > 1 ? seen[n] + "-" + n : n, orig: fn, bytes: unb64(it.data.content_base64) };
+    });
+  }
+  csvBtn.addEventListener("click", function () {
+    if (!TARGET) { save(CSV_NAME, csvText(), "text/csv"); return; }
+    var fs = targetFiles();
+    if (!fs.length) return;
+    if (fs.length === 1) save(fs[0].orig, new Blob([fs[0].bytes], { type: "application/octet-stream" }));
+    else save(TARGET + "-" + new Date().toISOString().slice(0, 10) + ".zip", zip(fs));
+  });
 
   /* ZIP sin compresión (método 0): resumen + un .flint.json por fichero, sin librerías externas. */
   var CRC = (function () {
@@ -323,7 +359,7 @@
     var time = (d.getHours() << 11) | (d.getMinutes() << 5) | (d.getSeconds() >> 1);
     var date = ((d.getFullYear() - 1980) << 9) | ((d.getMonth() + 1) << 5) | d.getDate();
     files.forEach(function (f) {
-      var name = enc.encode(f.name), data = enc.encode(f.text), crc = crc32(data);
+      var name = enc.encode(f.name), data = f.bytes || enc.encode(f.text), crc = crc32(data);
       var lh = new DataView(new ArrayBuffer(30));
       lh.setUint32(0, 0x04034b50, true); lh.setUint16(4, 20, true); lh.setUint16(6, 0x0800, true); lh.setUint16(8, 0, true);
       lh.setUint16(10, time, true); lh.setUint16(12, date, true); lh.setUint32(14, crc, true);
@@ -345,7 +381,7 @@
   }
   zipBtn.addEventListener("click", function () {
     var done = items.filter(function (it) { return it.row; }), seen = {};
-    var files = [{ name: CSV_NAME, text: csvText() }].concat(done.map(function (it) {
+    var files = [{ name: CSV_NAME, text: csvText() }].concat(TARGET ? targetFiles() : [], done.map(function (it) {
       var n = it.name + ".flint.json"; seen[n] = (seen[n] || 0) + 1;
       return { name: seen[n] > 1 ? it.name + "." + seen[n] + ".flint.json" : n, text: jsonText(it) };
     }));
