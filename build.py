@@ -398,7 +398,7 @@ def page(path: str, title: str, desc: str, body: str, ld: list | None = None, no
 <p class="muted small">Servidores MCP deterministas para agentes de IA, con licencias criptográficas y pago por uso.</p></div>
 <div><h3>Servidores</h3><ul>{''.join(f'<li><a href="/{m["slug"]}/">{e(m["name"])}</a></li>' for m in MCPS)}</ul></div>
 <div><h3>Recursos</h3><ul><li><a href="/empezar/">Guía de instalación</a></li><li><a href="/saldo/">Consultar saldo</a></li><li><a href="/precios/">Precios</a></li><li><a href="/asesorias/">Para asesorías</a></li><li><a href="/lote/">Procesar por lotes</a></li><li><a href="https://keyflint.dev">KeyFlint</a></li></ul></div>
-<div><h3>Legal y soporte</h3><ul><li><a href="/terminos/">Términos de uso</a></li><li><a href="/reembolsos/">Reembolsos</a></li><li><a href="/aviso-legal/">Aviso legal</a></li><li><a href="/estado/">Estado del servicio</a></li><li><a href="https://keyflint.dev/privacy.html">Privacidad</a></li><li><a href="https://keyflint.dev/dpa.html">Encargo de tratamiento</a></li><li><a href="{SITE['contact']}">{e(CONTACT)}</a></li></ul></div>
+<div><h3>Legal y soporte</h3><ul><li><a href="/terminos/">Términos de uso</a></li><li><a href="/reembolsos/">Reembolsos</a></li><li><a href="/aviso-legal/">Aviso legal</a></li><li><a href="/estado/">Estado del servicio</a></li><li><a href="https://keyflint.dev/privacy.html">Privacidad</a></li><li><a href="/confianza/">Confianza y datos</a></li><li><a href="https://keyflint.dev/dpa.html">Encargo de tratamiento</a></li><li><a href="{SITE['contact']}">{e(CONTACT)}</a></li></ul></div>
 </div>
 <div class="foot-base">
 <p class="muted small">© {dt.date.today().year} KeyFlint · Los servidores se ejecutan en tu equipo y no guardan tus datos.</p>
@@ -654,11 +654,13 @@ def home() -> str:
     body = f"""
 <section class="hero"><div class="glow" aria-hidden="true"></div><div class="wrap hero-grid">
 <div class="hero-copy">
-<p class="kicker"><a class="pill" href="/asesorias/"><span class="pill-dot" aria-hidden="true"></span>Nuevo: Flint para asesorías y gestorías{icon("arrow-right")}</a></p>
-<h1>Herramientas MCP fiables para tu agente de IA</h1>
-<p class="lead">{e(SITE['tagline'])} Funcionan en Claude, Cursor, VS Code, Codex, Antigravity y cualquier cliente compatible, con resultados en tarjetas visuales.</p>
-<div class="cta-row"><a class="btn btn-primary btn-lg" href="#instalar">{icon("download")}Instalar en 2 minutos</a>
-<a class="btn btn-ghost btn-lg" href="#en-vivo">{icon("arrow-right")}Probar en vivo, sin instalar</a></div>
+<h1>Herramientas para tu IA que no se inventan nada</h1>
+<p class="lead">{e(SITE['tagline'])} Funcionan en Claude, Cursor, VS Code, Codex, Antigravity y 10 clientes más.</p>
+<nav class="doors" aria-label="Elige tu camino">
+<a class="door door-main" href="/asesorias/">{icon("ledger")}<span><strong>Soy asesoría o gestoría</strong><small>Extractos Norma 43, diarios y facturas de todos tus clientes, en lote</small></span>{icon("arrow-right")}</a>
+<a class="door" href="#instalar">{icon("terminal")}<span><strong>Soy desarrollador</strong><small>Instala los servidores en tu cliente de IA en 2 minutos</small></span>{icon("arrow-right")}</a>
+</nav>
+<p class="hero-alt"><a href="#en-vivo">Probar en vivo, sin instalar</a> · <a href="/confianza/">Qué datos salen de tu equipo</a></p>
 <ul class="assure">
 <li>{icon("check")}{SITE['free_credits']} créditos gratis</li><li>{icon("check")}Sin permanencia</li><li>{icon("check")}Se ejecuta en tu equipo</li></ul>
 </div>
@@ -958,7 +960,7 @@ def advisors_page() -> str:
                          for n, (i, t, d) in enumerate(steps, 1))
     faq = [
         ("¿Tengo que saber de informática?", "No. Se instala una vez con un comando que copias y pegas (o con un clic en Claude Desktop). Después solo hablas con el asistente."),
-        ("¿Mis datos salen del despacho?", "Con la instalación local, no: los ficheros se procesan en tu ordenador y a KeyFlint solo llega la licencia y el consumo de créditos."),
+        ("¿Mis datos salen del despacho?", "Con la instalación local, no: los ficheros se procesan en tu ordenador y a KeyFlint solo llega la licencia y el consumo de créditos. En el modo remoto (navegador o carpeta vigilada) el fichero viaja cifrado, se procesa en memoria y no se guarda. Detalle y encargo de tratamiento en /confianza/."),
         ("¿Y si la IA se equivoca con un apunte?", "Las herramientas no usan IA para calcular: aplican reglas fijas y dan siempre el mismo resultado. Lo que no se puede casar con certeza queda marcado para que lo revises."),
         ("¿Sustituye a mi programa de contabilidad?", "No. Prepara y revisa los ficheros para que entren limpios en A3, ContaPlus, Sage 50, Xero o QuickBooks."),
         ("¿Se procesa solo aunque apague el ordenador?", "Sí. El alta deja la carpeta vigilada arrancando sola cada vez que inicias sesión. Los ficheros que dejes mientras está apagado se procesan al volver a encenderlo, y ninguno se cobra dos veces."),
@@ -971,7 +973,7 @@ def advisors_page() -> str:
 <p class="lead">Extractos Norma 43, diarios de A3 o ContaPlus y registros VeriFactu, preparados en segundos desde Claude o Cursor. Con la instalación local, tus datos no salen de tu despacho.</p>
 <div class="cta-row center"><a class="btn btn-primary btn-lg" href="#en-vivo">{icon("arrow-right")}Verlo con un extracto de ejemplo</a>
 <a class="btn btn-ghost btn-lg" href="#alta">Alta automática en 1 minuto</a></div>
-<ul class="assure center"><li>{icon("check")}Sin cuotas ni permanencia</li><li>{icon("check")}Factura con NIF</li><li>{icon("check")}Soporte en castellano</li></ul>
+<ul class="assure center"><li>{icon("check")}Sin cuotas ni permanencia</li><li>{icon("check")}<a href="/confianza/">Modo local: tus datos no salen</a></li><li>{icon("check")}Factura con NIF</li><li>{icon("check")}Soporte en castellano</li></ul>
 </div></section>
 <section class="section"><div class="wrap">
 <div class="section-head"><p class="eyebrow">Lo que te quita de encima</p><h2>Menos horas picando datos, menos sustos con Hacienda</h2></div>
@@ -1648,6 +1650,49 @@ def refunds_page() -> str:
                       "Si algo no funciona, no pagas. Y si no te convence, te devolvemos el dinero.", s)
 
 
+def trust_page() -> str:
+    """/confianza/: qué datos salen del despacho en cada modo, subencargados y encargo de tratamiento (art. 28 RGPD)."""
+    mail, support = e(LEGAL["email"]), e(CONTACT)
+    s = [
+        ("Qué sale de tu ordenador en cada modo",
+         '<div class="table-wrap"><table><thead><tr><th>Cómo lo usas</th><th>Dónde se procesa el fichero</th><th>Qué recibe Flint</th></tr></thead><tbody>'
+         '<tr><td><b>Modo local</b>: Claude Desktop (.mcpb), Cursor, VS Code o Claude Code con <code>uvx</code></td>'
+         '<td>En tu ordenador. El fichero no sale del despacho.</td><td>La licencia y el número de créditos gastados.</td></tr>'
+         '<tr><td><b>Modo remoto</b>: conector por URL, <a href="/lote/">procesador en el navegador</a> o carpeta vigilada</td>'
+         '<td>Viaja cifrado (HTTPS) a <code>mcp.keyflint.dev</code>, se procesa en memoria y se descarta al responder. No se guarda.</td>'
+         '<td>Además: un registro de uso con la huella SHA-256 truncada de la licencia, la herramienta, si salió bien, los créditos y la duración. Nunca el contenido.</td></tr>'
+         '<tr><td><b>Tu asistente de IA</b> (Claude, ChatGPT, Cursor…)</td><td>Lo que escribas o pegues en el chat lo trata ese proveedor, según tu contrato con él.</td>'
+         '<td>Nada. Las herramientas de Flint no usan IA ni envían datos a ningún modelo.</td></tr>'
+         '</tbody></table></div>'
+         '<p><b>Para datos sujetos a secreto profesional, usa el modo local.</b> Así el fichero del cliente no sale del despacho y solo viaja la licencia.</p>'),
+        ("Garantías técnicas",
+         '<ul><li><b>Sin IA en el cálculo:</b> las herramientas aplican reglas fijas. El mismo fichero da siempre el mismo resultado, y lo que no se puede casar con certeza queda marcado para que lo revises.</li>'
+         '<li><b>Sin entrenamiento:</b> no usamos tus ficheros para entrenar nada, ni propio ni de terceros.</li>'
+         '<li><b>Código a la vista:</b> los servidores están publicados en GitHub y PyPI, así que tu informático puede revisar qué hacen. También el <a href="/lote.py">script de la carpeta vigilada</a>.</li>'
+         '<li><b>Cobro justo:</b> si una herramienta falla, los créditos se devuelven solos.</li>'
+         '<li><b>Licencia verificada sin conexión</b> (firma Ed25519): el modo local funciona aunque nuestro servidor no responda en ese momento.</li></ul>'),
+        ("Subencargados",
+         '<div class="table-wrap"><table><thead><tr><th>Proveedor</th><th>Para qué</th><th>Dónde</th></tr></thead><tbody>'
+         '<tr><td>Cloudflare, Inc.</td><td>Web, inicio de sesión de los conectores y ejecución remota de las herramientas (en memoria, sin guardar contenido); registro de uso sin contenido</td><td>Red de Cloudflare</td></tr>'
+         '<tr><td>Fly.io, Inc.</td><td>Servidor de licencias y créditos</td><td>UE (París)</td></tr>'
+         '<tr><td>Cloudflare R2</td><td>Copias de seguridad cifradas del servidor de licencias</td><td>UE</td></tr>'
+         '<tr><td>Resend</td><td>Correos con la licencia y avisos de saldo</td><td>Transferencia con DPF / cláusulas tipo</td></tr>'
+         '<tr><td>Stripe</td><td>Pagos con tarjeta. Flint nunca ve los datos de la tarjeta.</td><td>Stripe Payments Europe</td></tr>'
+         '</tbody></table></div>'
+         f'<p>Avisamos por correo antes de añadir o cambiar un subencargado. Si te opones, puedes dejar de usar el servicio y pedir el reembolso del saldo no consumido según los <a href="/reembolsos/">reembolsos</a>.</p>'),
+        ("Encargo de tratamiento (art. 28 RGPD)",
+         f'<p>Cuando usas el modo remoto con datos de tus clientes, tu despacho es el responsable (o encargado) y Flint actúa como encargado (o subencargado) del tratamiento. '
+         f'El modelo de contrato está en <a href="https://keyflint.dev/dpa.html">keyflint.dev/dpa.html</a>. Si tu despacho usa su propio modelo, envíalo a <a href="mailto:{mail}">{mail}</a> y lo firmamos.</p>'
+         '<p>En modo local Flint no accede a los datos de tus clientes, así que no hace falta encargo para el contenido de los ficheros.</p>'),
+        ("Contacto",
+         f'<p>Protección de datos: <a href="mailto:{mail}">{mail}</a>. Soporte: <a href="mailto:{support}">{support}</a>. '
+         'Titular y datos fiscales en el <a href="/aviso-legal/">aviso legal</a>.</p>'),
+    ]
+    return legal_page("/confianza/", "Confianza", "Confianza y protección de datos para despachos",
+                      "Qué sale de tu despacho en cada modo, quién lo trata y cómo firmamos el encargo de tratamiento. Para datos con secreto profesional, el modo local procesa todo en tu ordenador.",
+                      s)
+
+
 def notice_page() -> str:
     mail = e(LEGAL["email"])
     support = e(CONTACT)
@@ -1708,6 +1753,7 @@ def main() -> None:
     write("en/start/index.html", en_start())
     write("reembolsos/index.html", refunds_page())
     write("aviso-legal/index.html", notice_page())
+    write("confianza/index.html", trust_page())
     write("asesorias/index.html", advisors_page())
     write("lote/index.html", batch_page())
     write("en/batch/index.html", en_batch())
