@@ -93,7 +93,7 @@ Puede ver la herramienta funcionando directamente en su navegador en:
 Un cordial saludo,
 
 Jose Arce · Fundador de KeyFlint
-Email: joseanto1362@gmail.com / support@keyflint.dev
+Email: arceesbusiness@gmail.com / support@keyflint.dev
 Web: https://mcp.keyflint.dev/asesorias/
 """
     return asunto, cuerpo
