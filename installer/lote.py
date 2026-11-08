@@ -16,6 +16,8 @@ import datetime as dt
 import json
 import os
 import re
+import shutil
+import subprocess
 from pathlib import Path
 import sys
 import time
@@ -25,6 +27,9 @@ import urllib.request
 SITE = "__SITE__"
 LIC_FILE = Path.home() / ".keyflint" / "license"
 SUPPORTED_EXTS = (".n43", ".c43", ".q43", ".xml", ".xsig")
+RETRY_AFTER_S = 600  # un fichero que falla (sin saldo, red, formato) se reintenta a los 10 min, no cada 10 s
+FAILED: dict[Path, float] = {}
+AUTOSTART_ID = "dev.keyflint.flint-lote"
 
 
 def get_license(cli_lic: str | None) -> str:
@@ -41,6 +46,7 @@ def get_license(cli_lic: str | None) -> str:
     try:
         LIC_FILE.parent.mkdir(parents=True, exist_ok=True)
         LIC_FILE.write_text(lic + "\n", encoding="utf-8")
+        os.chmod(LIC_FILE, 0o600)
     except OSError:
         pass
     return lic
@@ -211,6 +217,8 @@ def scan_once(folder: Path, license_key: str, seen: set[Path]) -> int:
         if p in seen or out_json.exists():
             seen.add(p)
             continue
+        if time.time() < FAILED.get(p, 0):
+            continue
         print(f"-> Procesando {p.name} ...", end=" ", flush=True)
         try:
             res = process_file(p, license_key)
@@ -220,8 +228,109 @@ def scan_once(folder: Path, license_key: str, seen: set[Path]) -> int:
             print(f"[{res['estado']}] ({res['movimientos_o_facturas']} reg, {res['avisos']} avisos)")
             count += 1
         except Exception as exc:
-            print(f"[ERROR] {exc}")
+            FAILED[p] = time.time() + RETRY_AFTER_S
+            print(f"[ERROR] {exc} (se reintenta en {RETRY_AFTER_S // 60} min)")
     return count
+
+
+def client_folders(folder: Path, subfolders: bool) -> list[Path]:
+    """La carpeta y, con --subcarpetas, una subcarpeta por cliente (cada una con su resumen-flint.csv)."""
+    if not subfolders:
+        return [folder]
+    subs = sorted(d for d in folder.iterdir() if d.is_dir() and not d.name.startswith((".", "_")))
+    return [folder, *subs]
+
+
+def autostart_files(folder: Path, script: Path, uv: str, subfolders: bool, home: Path, platform: str) -> dict[Path, str]:
+    """Ficheros que dejan la carpeta vigilada arrancando sola al iniciar sesión (sin la licencia: va en ~/.keyflint/license)."""
+    args = [uv, "run", "--no-project", "--python", "3.12", "--quiet", str(script), str(folder), "--vigilar"]
+    if subfolders:
+        args.append("--subcarpetas")
+    log = home / ".keyflint" / "lote.log"
+    if platform == "win32":
+        startup = home / "AppData" / "Roaming" / "Microsoft" / "Windows" / "Start Menu" / "Programs" / "Startup"
+        cmd = " ".join(f'"{a}"' for a in args)
+        runner_cmd = home / ".keyflint" / "flint-carpeta-vigilada.cmd"
+        vbs_launcher = startup / "flint-carpeta-vigilada.vbs"
+        cmd_content = f"@echo off\r\nrem Flint - Monitor de extractos bancarios en segundo plano\r\n{cmd} >> \"{log}\" 2>&1\r\n"
+        vbs_content = (
+            'Set WshShell = CreateObject("WScript.Shell")\r\n'
+            f'WshShell.Run chr(34) & "{runner_cmd}" & chr(34), 0, False\r\n'
+            'Set WshShell = Nothing\r\n'
+        )
+        return {vbs_launcher: vbs_content, runner_cmd: cmd_content}
+    if platform == "darwin":
+        items = "".join(f"\n    <string>{a.replace('&', '&amp;').replace('<', '&lt;')}</string>" for a in args)
+        plist = f"""<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+  <key>Label</key><string>{AUTOSTART_ID}</string>
+  <key>ProgramArguments</key><array>{items}
+  </array>
+  <key>RunAtLoad</key><true/>
+  <key>KeepAlive</key><true/>
+  <key>StandardOutPath</key><string>{log}</string>
+  <key>StandardErrorPath</key><string>{log}</string>
+</dict></plist>
+"""
+        return {home / "Library" / "LaunchAgents" / f"{AUTOSTART_ID}.plist": plist}
+    exec_line = " ".join(f'"{a}"' for a in args)
+    unit = f"""[Unit]
+Description=Flint carpeta vigilada ({folder})
+
+[Service]
+ExecStart={exec_line}
+Restart=on-failure
+RestartSec=30
+
+[Install]
+WantedBy=default.target
+"""
+    return {home / ".config" / "systemd" / "user" / "flint-lote.service": unit}
+
+
+def install_autostart(folder: Path, subfolders: bool) -> None:
+    home = Path.home()
+    uv = (shutil.which("uv") or shutil.which("uv.exe") or
+          (str(home / ".local" / "bin" / "uv.exe") if (home / ".local" / "bin" / "uv.exe").exists() else None) or
+          (str(home / ".cargo" / "bin" / "uv.exe") if (home / ".cargo" / "bin" / "uv.exe").exists() else None))
+    if not uv:
+        sys.exit("Error: no encuentro uv. Ejecuta antes el instalador de " + SITE + "/lote.ps1 o /lote.sh.")
+    home = Path.home()
+    script = home / ".keyflint" / "flint-lote.py"
+    script.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(Path(__file__).resolve(), script)
+    files = autostart_files(folder, script, uv, subfolders, home, sys.platform)
+    for path, text in files.items():
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(text, encoding="utf-8", newline="")
+        print(f"Creado: {path}")
+    if sys.platform == "win32":
+        os.startfile(str(next(iter(files))))  # type: ignore[attr-defined]  # arranca ya, sin esperar al próximo inicio
+    elif sys.platform == "darwin":
+        plist = next(iter(files))
+        subprocess.run(["launchctl", "unload", str(plist)], capture_output=True)
+        subprocess.run(["launchctl", "load", "-w", str(plist)], check=False)
+    elif sys.platform != "win32":
+        if not shutil.which("systemctl") or subprocess.run(
+                ["systemctl", "--user", "enable", "--now", "flint-lote.service"], capture_output=True).returncode:
+            print("Aviso: no pude activar el servicio de usuario. Arráncalo a mano: systemctl --user enable --now flint-lote.service")
+            return
+    print(f"Listo: la carpeta {folder} se vigila sola cada vez que inicias sesión. Registro: {home / '.keyflint' / 'lote.log'}")
+    print("Para quitarlo: vuelve a ejecutar con --quitar-inicio.")
+
+
+def remove_autostart() -> None:
+    home = Path.home()
+    for path in autostart_files(Path("."), Path("."), "uv", False, home, sys.platform):
+        if sys.platform == "darwin" and path.exists():
+            subprocess.run(["launchctl", "unload", "-w", str(path)], capture_output=True)
+        elif sys.platform not in ("win32", "darwin") and shutil.which("systemctl"):
+            subprocess.run(["systemctl", "--user", "disable", "--now", "flint-lote.service"], capture_output=True)
+        if path.exists():
+            path.unlink()
+            print(f"Quitado: {path}")
+    print("La carpeta vigilada ya no arranca sola.")
 
 
 def main() -> None:
@@ -229,27 +338,39 @@ def main() -> None:
     ap.add_argument("carpeta", nargs="?", default=".", help="Carpeta con los ficheros (por defecto: carpeta actual)")
     ap.add_argument("--licencia", "-l", default=None, help="Licencia KeyFlint (LIC-...)")
     ap.add_argument("--vigilar", "--watch", "-w", action="store_true", help="Vigila la carpeta continuamente cada 10 s")
+    ap.add_argument("--subcarpetas", "--clientes", action="store_true", help="Procesa también cada subcarpeta (una por cliente)")
+    ap.add_argument("--al-iniciar", "--autostart", action="store_true", help="Deja la carpeta vigilada arrancando sola al iniciar sesión")
+    ap.add_argument("--quitar-inicio", "--remove-autostart", action="store_true", help="Quita el arranque automático")
     args = ap.parse_args()
+    if args.quitar_inicio:
+        remove_autostart()
+        return
 
     folder = Path(args.carpeta).expanduser().resolve()
+    if args.al_iniciar:
+        folder.mkdir(parents=True, exist_ok=True)
     if not folder.is_dir():
         sys.exit(f"Error: la carpeta {folder} no existe.")
     lic = get_license(args.licencia)
+    if args.al_iniciar:
+        install_autostart(folder, args.subcarpetas)
+        return
     seen: set[Path] = set()
 
-    print(f"Flint Lote · Carpeta: {folder}")
-    n = scan_once(folder, lic, seen)
+    print(f"Flint Lote · Carpeta: {folder}" + (" (y subcarpetas de clientes)" if args.subcarpetas else ""))
+    n = sum(scan_once(f, lic, seen) for f in client_folders(folder, args.subcarpetas))
     if n:
-        print(f"Listo: {n} fichero(s) procesados. Resumen Excel en: {folder / 'resumen-flint.csv'}")
+        print(f"Listo: {n} fichero(s) procesados. Resumen Excel en cada carpeta: resumen-flint.csv")
     else:
-        print("No hay ficheros nuevos (.n43, .c43, .q43, .xml, .xsig) pendientes en esta carpeta.")
+        print("No hay ficheros nuevos (.n43, .c43, .q43, .xml, .xsig) pendientes.")
 
     if args.vigilar:
         print("Modo carpeta vigilada activo (Ctrl+C para salir)...")
         try:
             while True:
                 time.sleep(10)
-                scan_once(folder, lic, seen)
+                for f in client_folders(folder, args.subcarpetas):
+                    scan_once(f, lic, seen)
         except KeyboardInterrupt:
             print("\nCarpeta vigilada detenida.")
 

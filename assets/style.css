@@ -614,3 +614,23 @@ svg.logo{width:30px;height:30px;flex:none;filter:drop-shadow(0 1px 6px rgba(204,
 .batch-out h2 .i{width:20px;height:20px;color:var(--ok)}
 .batch-info{margin-top:48px}
 .batch-term{margin-top:40px}
+.more-links{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;margin:4px 0 8px}
+.panel h5.sub{font:600 .8125rem/1.3 var(--sans);color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin:20px 0 8px}
+.alta-steps{list-style:none;padding:0;margin:0;display:grid;gap:16px}
+.alta-steps>li{min-width:0}
+.alta-steps .code,.alta-steps pre{max-width:100%}
+.alta-steps h3{display:flex;align-items:center;gap:10px;margin:0}
+.alta-steps .code{margin-top:4px}
+
+/* Portada: dos puertas por público */
+.doors{display:grid;gap:12px;margin-top:32px;max-width:560px}
+.door{display:flex;align-items:center;gap:16px;padding:16px 20px;border:1px solid var(--line);border-radius:var(--r);background:var(--surface);box-shadow:var(--shadow);color:var(--ink);text-decoration:none;min-width:0;transition:border-color .15s,transform .15s}
+.door:hover,.door:focus-visible{border-color:var(--brand-line);transform:translateY(-1px)}
+.door>span{display:flex;flex-direction:column;gap:4px;flex:1;min-width:0}
+.door strong{font-size:1.0625rem}
+.door small{color:var(--muted);font-size:.875rem;line-height:1.4}
+.door>.i{width:22px;height:22px;flex:none}
+.door>.i:last-child{width:18px;height:18px;color:var(--muted)}
+.door-main{border-color:var(--brand-line);background:linear-gradient(var(--brand-soft),var(--brand-soft)),var(--surface)}
+.hero-alt{margin-top:16px;font-size:.9375rem;color:var(--ink-2)}
+.hero-alt a{color:inherit;text-decoration:underline;text-underline-offset:3px}
