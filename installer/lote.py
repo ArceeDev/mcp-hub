@@ -252,7 +252,8 @@ def autostart_files(folder: Path, script: Path, uv: str, subfolders: bool, home:
         cmd = " ".join(f'"{a}"' for a in args)
         runner_cmd = home / ".keyflint" / "flint-carpeta-vigilada.cmd"
         vbs_launcher = startup / "flint-carpeta-vigilada.vbs"
-        cmd_content = f"@echo off\r\nrem Flint - Monitor de extractos bancarios en segundo plano\r\n{cmd} >> \"{log}\" 2>&1\r\n"
+        # chcp 65001: rutas con tildes o ñ (C:\\Users\\José) se leen bien en UTF-8.
+        cmd_content = f"@echo off\r\nchcp 65001 >nul\r\nrem Flint - Monitor de extractos bancarios en segundo plano\r\n{cmd} >> \"{log}\" 2>&1\r\n"
         vbs_content = (
             'Set WshShell = CreateObject("WScript.Shell")\r\n'
             f'WshShell.Run chr(34) & "{runner_cmd}" & chr(34), 0, False\r\n'
@@ -303,7 +304,8 @@ def install_autostart(folder: Path, subfolders: bool) -> None:
     files = autostart_files(folder, script, uv, subfolders, home, sys.platform)
     for path, text in files.items():
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(text, encoding="utf-8", newline="")
+        # Windows Script Host solo lee bien rutas no ASCII en UTF-16 con BOM.
+        path.write_text(text, encoding="utf-16" if path.suffix == ".vbs" else "utf-8", newline="")
         print(f"Creado: {path}")
     if sys.platform == "win32":
         os.startfile(str(next(iter(files))))  # type: ignore[attr-defined]  # arranca ya, sin esperar al próximo inicio
@@ -361,7 +363,9 @@ def main() -> None:
     n = sum(scan_once(f, lic, seen) for f in client_folders(folder, args.subcarpetas))
     if n:
         print(f"Listo: {n} fichero(s) procesados. Resumen Excel en cada carpeta: resumen-flint.csv")
-    else:
+    if FAILED:
+        print(f"{len(FAILED)} fichero(s) con error (no se han cobrado). Revisa los mensajes de arriba.")
+    elif not n:
         print("No hay ficheros nuevos (.n43, .c43, .q43, .xml, .xsig) pendientes.")
 
     if args.vigilar:

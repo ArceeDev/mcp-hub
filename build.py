@@ -420,7 +420,7 @@ def page(path: str, title: str, desc: str, body: str, ld: list | None = None, no
 <meta property="og:title" content="{e(title)}">
 <meta property="og:description" content="{e(desc)}">
 <meta property="og:url" content="{url}">
-<meta property="og:image" content="{SITE['url']}/assets/og-flint.png">
+<meta property="og:image" content="{SITE['url']}/assets/{'og-flint-en.png' if T['locale'].startswith('en') else 'og-flint.png'}">
 <meta property="og:locale" content="{T['locale']}">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#F7F8FA">
