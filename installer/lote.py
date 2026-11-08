@@ -250,7 +250,15 @@ def autostart_files(folder: Path, script: Path, uv: str, subfolders: bool, home:
     if platform == "win32":
         startup = home / "AppData" / "Roaming" / "Microsoft" / "Windows" / "Start Menu" / "Programs" / "Startup"
         cmd = " ".join(f'"{a}"' for a in args)
-        return {startup / "flint-carpeta-vigilada.cmd": f'@echo off\r\nstart "Flint carpeta vigilada" /min cmd /c "{cmd} >> "{log}" 2>&1"\r\n'}
+        runner_cmd = home / ".keyflint" / "flint-carpeta-vigilada.cmd"
+        vbs_launcher = startup / "flint-carpeta-vigilada.vbs"
+        cmd_content = f"@echo off\r\nrem Flint - Monitor de extractos bancarios en segundo plano\r\n{cmd} >> \"{log}\" 2>&1\r\n"
+        vbs_content = (
+            'Set WshShell = CreateObject("WScript.Shell")\r\n'
+            f'WshShell.Run chr(34) & "{runner_cmd}" & chr(34), 0, False\r\n'
+            'Set WshShell = Nothing\r\n'
+        )
+        return {vbs_launcher: vbs_content, runner_cmd: cmd_content}
     if platform == "darwin":
         items = "".join(f"\n    <string>{a.replace('&', '&amp;').replace('<', '&lt;')}</string>" for a in args)
         plist = f"""<?xml version="1.0" encoding="UTF-8"?>
@@ -282,7 +290,10 @@ WantedBy=default.target
 
 
 def install_autostart(folder: Path, subfolders: bool) -> None:
-    uv = shutil.which("uv") or shutil.which("uv.exe")
+    home = Path.home()
+    uv = (shutil.which("uv") or shutil.which("uv.exe") or
+          (str(home / ".local" / "bin" / "uv.exe") if (home / ".local" / "bin" / "uv.exe").exists() else None) or
+          (str(home / ".cargo" / "bin" / "uv.exe") if (home / ".cargo" / "bin" / "uv.exe").exists() else None))
     if not uv:
         sys.exit("Error: no encuentro uv. Ejecuta antes el instalador de " + SITE + "/lote.ps1 o /lote.sh.")
     home = Path.home()
