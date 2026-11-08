@@ -179,6 +179,8 @@ def remote_snippets(m: dict) -> dict[str, str]:
         "codex_toml": "\n\n".join(f"[mcp_servers.{x['slug']}]\nurl = \"{remote_url(x)}\"\n"
                                    f"http_headers = {{ Authorization = \"Bearer {LIC_PLACEHOLDER}\" }}" for x in ms),
         "headers": dump({"mcpServers": {x["slug"]: {"serverUrl": remote_url(x), "headers": auth} for x in ms}}),
+        "gemini": "\n".join(f"gemini mcp add --transport http --scope user {x['slug']} {remote_url(x)}" for x in ms),
+        "url_headers": dump({"mcpServers": {x["slug"]: {"url": remote_url(x), "headers": auth} for x in ms}}),
     }
 
 
@@ -193,7 +195,8 @@ CLIENTS_REMOTE = [
     ("vscode", "VS Code", "vscode"),
     ("codex", "Codex", "codex"),
     ("antigravity", "Antigravity", "antigravity"),
-    ("windsurf", "Windsurf", "windsurf"),
+    ("windsurf", "Windsurf / Devin", "windsurf"),
+    ("more", ("Más clientes", "More clients"), "icon:plug"),
 ]
 
 CLIENTS = [
@@ -209,6 +212,14 @@ CLIENTS = [
 _cl = {c[0]: c for c in CLIENTS + CLIENTS_REMOTE}
 MARQUEE = [_cl[k] for k in ("desktop", "cursor", "chatgpt", "code", "vscode", "codex", "antigravity", "windsurf")
            if k != "chatgpt" or SITE["remote"]]
+
+
+def client_name(name) -> str:
+    return L(*name) if isinstance(name, tuple) else name
+
+
+def client_icon(ic: str) -> str:
+    return icon(ic[5:], "b") if ic.startswith("icon:") else brand(ic)
 
 
 def installer(m: dict) -> str:
@@ -277,13 +288,13 @@ def installer(m: dict) -> str:
         tabs = "".join(
             f'<button type="button" role="tab" id="tab-{s}-{cid}" aria-controls="pan-{s}-{cid}" '
             f'aria-selected="{"true" if i == 0 else "false"}" tabindex="{0 if i == 0 else -1}" data-client="{cid}">'
-            f'{brand(ic)}<span>{e(name)}</span></button>'
+            f'{client_icon(ic)}<span>{e(client_name(name))}</span></button>'
             for i, (cid, name, ic) in enumerate(clients))
     body = "".join(
         f'<div role="tabpanel" id="pan-{s}-{cid}" aria-labelledby="tab-{s}-{cid}" class="panel"'
-        f'{"" if i == 0 else " data-hidden"}><h4 class="panel-title">{e(name)}</h4>{panels[cid]}</div>'
+        f'{"" if i == 0 else " data-hidden"}><h4 class="panel-title">{e(client_name(name))}</h4>{panels[cid]}</div>'
         for i, (cid, name, _) in enumerate(clients))
-    cfg_json = e(json.dumps({"slug": s, "server": server}, ensure_ascii=False))
+    cfg_json = e(json.dumps({"slug": s, "server": server, "name": m["name"], "desc": m.get("headline", "")}, ensure_ascii=False))
     return f"""<div class="installer" data-installer="{cfg_json}">
 <label class="lic"><span class="lic-label">{icon("key")}{L("Tu licencia", "Your license")} <span class="muted">· {L("opcional", "optional")}</span></span>
 <span class="lic-field"><input type="text" autocomplete="off" spellcheck="false" placeholder="{L("Pega aquí tu LIC-…", "Paste your LIC-… here")}" data-license aria-describedby="lic-help-{s}"><span class="lic-state" data-license-state aria-live="polite"></span></span>
@@ -291,6 +302,32 @@ def installer(m: dict) -> str:
 <div class="tabs" role="tablist" aria-label="{L("Elige tu cliente", "Choose your client")}">{tabs}</div>
 <div class="panels">{body}</div>
 </div>"""
+
+
+MORE_LINKS = [  # (data-deeplink id, brand label, needs license in the link)
+    ("goose", "Goose", False),
+    ("lmstudio", "LM Studio", True),
+    ("kiro", "Kiro", False),
+    ("vscode-insiders", "VS Code Insiders", False),
+]
+
+
+def more_panel(m: dict, sn: dict, multi: bool, oauth: str) -> str:
+    """Clientes con menos cuota: botones de 1 clic (un servidor), Gemini CLI y JSON con cabecera para el resto."""
+    s = m["slug"]
+    if multi:
+        buttons = f'<p class="muted small">{L("Para instalar con un clic, elige un solo servidor.", "For one-click install, pick a single server.")}</p>'
+    else:
+        btn = lambda cid, name, lic: (f'<a class="btn btn-ghost btn-block" data-deeplink="{cid}" href="#" rel="nofollow">{icon("plug")}'
+                                      f'{L("Añadir a", "Add to")} {name}{" *" if lic else ""}</a>')
+        buttons = (f'<div class="more-links">{"".join(btn(*x) for x in MORE_LINKS)}</div>'
+                   f'<p class="muted small">{L("* LM Studio guarda la licencia que pegues arriba en su configuración. El resto inicia sesión con tu licencia al conectar.", "* LM Studio stores the license you paste above in its config. The others sign in with your license when they connect.")}</p>')
+    return f"""{buttons}
+<h5 class="sub">Gemini CLI</h5>{code_block(f"sn-{s}-gemini", sn["gemini"], "Terminal")}
+<p class="muted small">{L("La primera vez, <code>/mcp auth</code> abre la página de KeyFlint para pegar tu licencia.", "The first time, <code>/mcp auth</code> opens the KeyFlint page to paste your license.")}</p>
+<h5 class="sub">Zed · JetBrains Junie · Warp · Cline · Raycast</h5>
+<p class="muted small">{L("Pega el bloque en la configuración MCP de tu cliente (lleva tu licencia). En Zed va dentro de <code>context_servers</code>; en Cline añade <code>\"type\": \"streamableHttp\"</code>.", "Paste the block into your client's MCP config (it carries your license). In Zed it goes inside <code>context_servers</code>; in Cline add <code>\"type\": \"streamableHttp\"</code>.")}</p>
+{code_block(f"sn-{s}-more-json", sn["url_headers"], "mcp.json")}"""
 
 
 def remote_panels(m: dict, local_desktop: str, cards: str) -> dict[str, str]:
@@ -326,10 +363,11 @@ def remote_panels(m: dict, local_desktop: str, cards: str) -> dict[str, str]:
 <p>{L("Pega el bloque en", "Paste the block into")} <code>~/.codex/config.toml</code>.</p>{code_block(f"sn-{s}-codex-toml", sn["codex_toml"], "config.toml")}</details>""",
         "antigravity": f"""<ol class="mini-steps"><li>{L("Antigravity › panel del agente", "Antigravity › agent panel")} › <b>…</b> › <b>MCP Servers</b> › <b>Manage MCP Servers</b> › <b>View raw config</b>.</li>
 <li>{L("Pega el bloque (lleva tu licencia), guarda y pulsa <b>Refresh</b>.", "Paste the block (it carries your license), save and click <b>Refresh</b>.")}</li></ol>
-{code_block(f"sn-{s}-antigravity", sn["headers"], "mcp_config.json")}<p class="path"><code>~/.gemini/antigravity/mcp_config.json</code></p>""",
-        "windsurf": f"""<ol class="mini-steps"><li>Windsurf › <b>Settings</b> › <b>Cascade</b> › <b>MCP Servers</b> › <b>View raw config</b>.</li>
+{code_block(f"sn-{s}-antigravity", sn["headers"], "mcp_config.json")}<p class="path"><code>~/.gemini/config/mcp_config.json</code> · {L("versiones anteriores", "older versions")}: <code>~/.gemini/antigravity/mcp_config.json</code></p>""",
+        "windsurf": f"""<ol class="mini-steps"><li>{L("Windsurf (ahora Devin Desktop)", "Windsurf (now Devin Desktop)")} › <b>Settings</b> › <b>Cascade</b> › <b>MCP Servers</b> › <b>View raw config</b>.</li>
 <li>{L("Pega el bloque (lleva tu licencia), guarda y pulsa <b>Refresh</b>.", "Paste the block (it carries your license), save and click <b>Refresh</b>.")}</li></ol>
-{code_block(f"sn-{s}-windsurf", sn["headers"], "mcp_config.json")}<p class="path"><code>~/.codeium/windsurf/mcp_config.json</code></p>""",
+{code_block(f"sn-{s}-windsurf", sn["headers"], "mcp_config.json")}<p class="path"><code>~/.config/devin/mcp_config.json</code> · Windsurf: <code>~/.codeium/windsurf/mcp_config.json</code></p>""",
+        "more": more_panel(m, sn, multi, oauth),
     }
 
 
@@ -360,7 +398,7 @@ def page(path: str, title: str, desc: str, body: str, ld: list | None = None, no
 <p class="muted small">Servidores MCP deterministas para agentes de IA, con licencias criptográficas y pago por uso.</p></div>
 <div><h3>Servidores</h3><ul>{''.join(f'<li><a href="/{m["slug"]}/">{e(m["name"])}</a></li>' for m in MCPS)}</ul></div>
 <div><h3>Recursos</h3><ul><li><a href="/empezar/">Guía de instalación</a></li><li><a href="/saldo/">Consultar saldo</a></li><li><a href="/precios/">Precios</a></li><li><a href="/asesorias/">Para asesorías</a></li><li><a href="/lote/">Procesar por lotes</a></li><li><a href="https://keyflint.dev">KeyFlint</a></li></ul></div>
-<div><h3>Legal y soporte</h3><ul><li><a href="/terminos/">Términos de uso</a></li><li><a href="/reembolsos/">Reembolsos</a></li><li><a href="/aviso-legal/">Aviso legal</a></li><li><a href="/estado/">Estado del servicio</a></li><li><a href="https://keyflint.dev/privacy.html">Privacidad</a></li><li><a href="https://keyflint.dev/dpa.html">Encargo de tratamiento</a></li><li><a href="{SITE['contact']}">{e(CONTACT)}</a></li></ul></div>
+<div><h3>Legal y soporte</h3><ul><li><a href="/terminos/">Términos de uso</a></li><li><a href="/reembolsos/">Reembolsos</a></li><li><a href="/aviso-legal/">Aviso legal</a></li><li><a href="/estado/">Estado del servicio</a></li><li><a href="https://keyflint.dev/privacy.html">Privacidad</a></li><li><a href="/confianza/">Confianza y datos</a></li><li><a href="https://keyflint.dev/dpa.html">Encargo de tratamiento</a></li><li><a href="{SITE['contact']}">{e(CONTACT)}</a></li></ul></div>
 </div>
 <div class="foot-base">
 <p class="muted small">© {dt.date.today().year} KeyFlint · Los servidores se ejecutan en tu equipo y no guardan tus datos.</p>
@@ -616,11 +654,13 @@ def home() -> str:
     body = f"""
 <section class="hero"><div class="glow" aria-hidden="true"></div><div class="wrap hero-grid">
 <div class="hero-copy">
-<p class="kicker"><a class="pill" href="/asesorias/"><span class="pill-dot" aria-hidden="true"></span>Nuevo: Flint para asesorías y gestorías{icon("arrow-right")}</a></p>
-<h1>Herramientas MCP fiables para tu agente de IA</h1>
-<p class="lead">{e(SITE['tagline'])} Funcionan en Claude, Cursor, VS Code, Codex, Antigravity y cualquier cliente compatible, con resultados en tarjetas visuales.</p>
-<div class="cta-row"><a class="btn btn-primary btn-lg" href="#instalar">{icon("download")}Instalar en 2 minutos</a>
-<a class="btn btn-ghost btn-lg" href="#en-vivo">{icon("arrow-right")}Probar en vivo, sin instalar</a></div>
+<h1>Herramientas para tu IA que no se inventan nada</h1>
+<p class="lead">{e(SITE['tagline'])} Funcionan en Claude, Cursor, VS Code, Codex, Antigravity y 10 clientes más.</p>
+<nav class="doors" aria-label="Elige tu camino">
+<a class="door door-main" href="/asesorias/">{icon("ledger")}<span><strong>Soy asesoría o gestoría</strong><small>Extractos Norma 43, diarios y facturas de todos tus clientes, en lote</small></span>{icon("arrow-right")}</a>
+<a class="door" href="#instalar">{icon("terminal")}<span><strong>Soy desarrollador</strong><small>Instala los servidores en tu cliente de IA en 2 minutos</small></span>{icon("arrow-right")}</a>
+</nav>
+<p class="hero-alt"><a href="#en-vivo">Probar en vivo, sin instalar</a> · <a href="/confianza/">Qué datos salen de tu equipo</a></p>
 <ul class="assure">
 <li>{icon("check")}{SITE['free_credits']} créditos gratis</li><li>{icon("check")}Sin permanencia</li><li>{icon("check")}Se ejecuta en tu equipo</li></ul>
 </div>
@@ -868,6 +908,42 @@ def pricing() -> str:
                 body, ld)
 
 
+def onboarding_block() -> str:
+    """Alta del despacho en un minuto (/asesorias/#alta): licencia al momento + carpeta vigilada que arranca sola."""
+    folder_win, folder_nix = r"$HOME\Documents\Flint Extractos", "$HOME/Flint Extractos"
+    win = (f"$env:KEYFLINT_LICENSE='{LIC_PLACEHOLDER}'; & ([scriptblock]::Create((irm {SITE['url']}/lote.ps1))) "
+           f'"{folder_win}" --subcarpetas --al-iniciar')
+    nix = (f"curl -LsSf {SITE['url']}/lote.sh | KEYFLINT_LICENSE='{LIC_PLACEHOLDER}' sh -s -- "
+           f'"{folder_nix}" --subcarpetas --al-iniciar')
+    return f"""<section class="section" id="alta"><div class="wrap narrow">
+<div class="section-head"><p class="eyebrow">Alta en 1 minuto · Automático desde el primer extracto</p>
+<h2>Deja el despacho conciliando solo</h2>
+<p class="lead-sm">Tu correo, un comando y listo. Cada extracto que caiga en la carpeta de un cliente se procesa solo, también después de reiniciar el ordenador. Sin chat y sin abrir ningún programa.</p></div>
+<ol class="alta-steps">
+<li class="card"><h3><span class="step-n">1</span>Tu licencia, al momento</h3>
+<form class="recover" data-trial-form novalidate>
+<div class="recover-row"><input type="email" name="email" autocomplete="email" placeholder="despacho@correo.com" required aria-label="Correo del despacho">
+<button class="btn btn-primary" type="submit">{icon("key")}Darme {SITE['free_credits']} créditos gratis</button></div>
+<p class="lic-help" data-trial-msg aria-live="polite">Sin tarjeta. Una por correo. ¿Ya tienes licencia? Pégala en el paso 2.</p>
+</form>
+<div data-trial-out hidden><p class="small">Lista y guardada en este navegador: el comando del paso 2 ya la lleva.</p>
+{code_block("lic-trial", "LIC-…", "KEYFLINT_LICENSE")}</div></li>
+<li class="card" data-installer='{{"slug": "alta"}}'><h3><span class="step-n">2</span>Un comando, una sola vez</h3>
+<label class="lic"><span class="lic-field"><input type="text" autocomplete="off" spellcheck="false" placeholder="Pega aquí tu LIC-…" data-license aria-label="Tu licencia"><span class="lic-state" data-license-state aria-live="polite"></span></span>
+<span class="lic-help"></span></label>
+{code_block("alta-win", win, "Windows · PowerShell")}
+{code_block("alta-nix", nix, "macOS / Linux · Terminal")}
+<p class="muted small">Crea la carpeta <b>Flint Extractos</b>, instala el motor si falta y deja la vigilancia arrancando sola al iniciar sesión (Windows: carpeta Inicio; macOS: LaunchAgent; Linux: servicio de usuario). Para quitarlo, repite el comando cambiando <code>--al-iniciar</code> por <code>--quitar-inicio</code>. <a href="/lote.py">Ver el código</a>.</p></li>
+<li class="card"><h3><span class="step-n">3</span>Una subcarpeta por cliente</h3>
+<p>Crea dentro <code>Flint Extractos/García SL</code>, <code>Flint Extractos/Bar Pepe</code>… y suelta ahí los <code>.n43</code>, <code>.c43</code> o facturas <code>.xml</code> que descargas del banco o del cliente.</p>
+<ul class="checks"><li>{icon("check")}<span>En segundos aparece el informe auditable <code>.flint.json</code> junto a cada fichero</span></li>
+<li>{icon("check")}<span>Cada cliente tiene su <code>resumen-flint.csv</code>, listo para Excel</span></li>
+<li>{icon("check")}<span>Si se acaba el saldo, nada se pierde: el fichero espera y se reintenta solo cada 10 minutos. <a href="/saldo/#importe=50">Recarga desde {SITE['topup']['min']} €</a></span></li></ul></li>
+</ol>
+<p class="muted small center">¿Prefieres no instalar nada? Usa el <a href="/lote/">procesador en el navegador</a>: la licencia ya queda guardada.</p>
+</div></section>"""
+
+
 def advisors_page() -> str:
     """Landing no técnica para asesorías y gestorías (/asesorias/)."""
     by = {m["slug"]: m for m in MCPS}
@@ -884,9 +960,10 @@ def advisors_page() -> str:
                          for n, (i, t, d) in enumerate(steps, 1))
     faq = [
         ("¿Tengo que saber de informática?", "No. Se instala una vez con un comando que copias y pegas (o con un clic en Claude Desktop). Después solo hablas con el asistente."),
-        ("¿Mis datos salen del despacho?", "Con la instalación local, no: los ficheros se procesan en tu ordenador y a KeyFlint solo llega la licencia y el consumo de créditos."),
+        ("¿Mis datos salen del despacho?", "Con la instalación local, no: los ficheros se procesan en tu ordenador y a KeyFlint solo llega la licencia y el consumo de créditos. En el modo remoto (navegador o carpeta vigilada) el fichero viaja cifrado, se procesa en memoria y no se guarda. Detalle y encargo de tratamiento en /confianza/."),
         ("¿Y si la IA se equivoca con un apunte?", "Las herramientas no usan IA para calcular: aplican reglas fijas y dan siempre el mismo resultado. Lo que no se puede casar con certeza queda marcado para que lo revises."),
         ("¿Sustituye a mi programa de contabilidad?", "No. Prepara y revisa los ficheros para que entren limpios en A3, ContaPlus, Sage 50, Xero o QuickBooks."),
+        ("¿Se procesa solo aunque apague el ordenador?", "Sí. El alta deja la carpeta vigilada arrancando sola cada vez que inicias sesión. Los ficheros que dejes mientras está apagado se procesan al volver a encenderlo, y ninguno se cobra dos veces."),
         ("¿Cuánto cuesta?", f"Pagas por uso: conciliar un extracto son 4 créditos (unos 0,20 €). Empiezas con {SITE['free_credits']} créditos gratis y recargas desde {SITE['topup']['min']} €, sin cuotas."),
     ]
     body = f"""
@@ -895,8 +972,8 @@ def advisors_page() -> str:
 <h1>La IA que concilia bancos y revisa tus ficheros fiscales, sin inventarse nada</h1>
 <p class="lead">Extractos Norma 43, diarios de A3 o ContaPlus y registros VeriFactu, preparados en segundos desde Claude o Cursor. Con la instalación local, tus datos no salen de tu despacho.</p>
 <div class="cta-row center"><a class="btn btn-primary btn-lg" href="#en-vivo">{icon("arrow-right")}Verlo con un extracto de ejemplo</a>
-<a class="btn btn-ghost btn-lg" href="/probar/">{SITE['free_credits']} créditos gratis</a></div>
-<ul class="assure center"><li>{icon("check")}Sin cuotas ni permanencia</li><li>{icon("check")}Factura con NIF</li><li>{icon("check")}Soporte en castellano</li></ul>
+<a class="btn btn-ghost btn-lg" href="#alta">Alta automática en 1 minuto</a></div>
+<ul class="assure center"><li>{icon("check")}Sin cuotas ni permanencia</li><li>{icon("check")}<a href="/confianza/">Modo local: tus datos no salen</a></li><li>{icon("check")}Factura con NIF</li><li>{icon("check")}Soporte en castellano</li></ul>
 </div></section>
 <section class="section"><div class="wrap">
 <div class="section-head"><p class="eyebrow">Lo que te quita de encima</p><h2>Menos horas picando datos, menos sustos con Hacienda</h2></div>
@@ -905,6 +982,7 @@ def advisors_page() -> str:
 </div></section>
 {live_demo(("norma43", "contabridge"), "Míralo funcionar con un ejemplo", "Un extracto bancario y dos asientos de prueba. Pulsa el botón: es la herramienta real, sin instalar nada.")}
 {seal(compact=True)}
+{onboarding_block()}
 <section class="section alt" id="lote"><div class="wrap install-grid">
 <div class="section-head left"><p class="eyebrow">Modo Carpeta Vigilada · Sin abrir el chat</p>
 <h2>Procesa 50 extractos Norma 43 o facturas XML de golpe</h2>
@@ -1572,6 +1650,49 @@ def refunds_page() -> str:
                       "Si algo no funciona, no pagas. Y si no te convence, te devolvemos el dinero.", s)
 
 
+def trust_page() -> str:
+    """/confianza/: qué datos salen del despacho en cada modo, subencargados y encargo de tratamiento (art. 28 RGPD)."""
+    mail, support = e(LEGAL["email"]), e(CONTACT)
+    s = [
+        ("Qué sale de tu ordenador en cada modo",
+         '<div class="table-wrap"><table><thead><tr><th>Cómo lo usas</th><th>Dónde se procesa el fichero</th><th>Qué recibe Flint</th></tr></thead><tbody>'
+         '<tr><td><b>Modo local</b>: Claude Desktop (.mcpb), Cursor, VS Code o Claude Code con <code>uvx</code></td>'
+         '<td>En tu ordenador. El fichero no sale del despacho.</td><td>La licencia y el número de créditos gastados.</td></tr>'
+         '<tr><td><b>Modo remoto</b>: conector por URL, <a href="/lote/">procesador en el navegador</a> o carpeta vigilada</td>'
+         '<td>Viaja cifrado (HTTPS) a <code>mcp.keyflint.dev</code>, se procesa en memoria y se descarta al responder. No se guarda.</td>'
+         '<td>Además: un registro de uso con la huella SHA-256 truncada de la licencia, la herramienta, si salió bien, los créditos y la duración. Nunca el contenido.</td></tr>'
+         '<tr><td><b>Tu asistente de IA</b> (Claude, ChatGPT, Cursor…)</td><td>Lo que escribas o pegues en el chat lo trata ese proveedor, según tu contrato con él.</td>'
+         '<td>Nada. Las herramientas de Flint no usan IA ni envían datos a ningún modelo.</td></tr>'
+         '</tbody></table></div>'
+         '<p><b>Para datos sujetos a secreto profesional, usa el modo local.</b> Así el fichero del cliente no sale del despacho y solo viaja la licencia.</p>'),
+        ("Garantías técnicas",
+         '<ul><li><b>Sin IA en el cálculo:</b> las herramientas aplican reglas fijas. El mismo fichero da siempre el mismo resultado, y lo que no se puede casar con certeza queda marcado para que lo revises.</li>'
+         '<li><b>Sin entrenamiento:</b> no usamos tus ficheros para entrenar nada, ni propio ni de terceros.</li>'
+         '<li><b>Código a la vista:</b> los servidores están publicados en GitHub y PyPI, así que tu informático puede revisar qué hacen. También el <a href="/lote.py">script de la carpeta vigilada</a>.</li>'
+         '<li><b>Cobro justo:</b> si una herramienta falla, los créditos se devuelven solos.</li>'
+         '<li><b>Licencia verificada sin conexión</b> (firma Ed25519): el modo local funciona aunque nuestro servidor no responda en ese momento.</li></ul>'),
+        ("Subencargados",
+         '<div class="table-wrap"><table><thead><tr><th>Proveedor</th><th>Para qué</th><th>Dónde</th></tr></thead><tbody>'
+         '<tr><td>Cloudflare, Inc.</td><td>Web, inicio de sesión de los conectores y ejecución remota de las herramientas (en memoria, sin guardar contenido); registro de uso sin contenido</td><td>Red de Cloudflare</td></tr>'
+         '<tr><td>Fly.io, Inc.</td><td>Servidor de licencias y créditos</td><td>UE (París)</td></tr>'
+         '<tr><td>Cloudflare R2</td><td>Copias de seguridad cifradas del servidor de licencias</td><td>UE</td></tr>'
+         '<tr><td>Resend</td><td>Correos con la licencia y avisos de saldo</td><td>Transferencia con DPF / cláusulas tipo</td></tr>'
+         '<tr><td>Stripe</td><td>Pagos con tarjeta. Flint nunca ve los datos de la tarjeta.</td><td>Stripe Payments Europe</td></tr>'
+         '</tbody></table></div>'
+         f'<p>Avisamos por correo antes de añadir o cambiar un subencargado. Si te opones, puedes dejar de usar el servicio y pedir el reembolso del saldo no consumido según los <a href="/reembolsos/">reembolsos</a>.</p>'),
+        ("Encargo de tratamiento (art. 28 RGPD)",
+         f'<p>Cuando usas el modo remoto con datos de tus clientes, tu despacho es el responsable (o encargado) y Flint actúa como encargado (o subencargado) del tratamiento. '
+         f'El modelo de contrato está en <a href="https://keyflint.dev/dpa.html">keyflint.dev/dpa.html</a>. Si tu despacho usa su propio modelo, envíalo a <a href="mailto:{mail}">{mail}</a> y lo firmamos.</p>'
+         '<p>En modo local Flint no accede a los datos de tus clientes, así que no hace falta encargo para el contenido de los ficheros.</p>'),
+        ("Contacto",
+         f'<p>Protección de datos: <a href="mailto:{mail}">{mail}</a>. Soporte: <a href="mailto:{support}">{support}</a>. '
+         'Titular y datos fiscales en el <a href="/aviso-legal/">aviso legal</a>.</p>'),
+    ]
+    return legal_page("/confianza/", "Confianza", "Confianza y protección de datos para despachos",
+                      "Qué sale de tu despacho en cada modo, quién lo trata y cómo firmamos el encargo de tratamiento. Para datos con secreto profesional, el modo local procesa todo en tu ordenador.",
+                      s)
+
+
 def notice_page() -> str:
     mail = e(LEGAL["email"])
     support = e(CONTACT)
@@ -1632,6 +1753,7 @@ def main() -> None:
     write("en/start/index.html", en_start())
     write("reembolsos/index.html", refunds_page())
     write("aviso-legal/index.html", notice_page())
+    write("confianza/index.html", trust_page())
     write("asesorias/index.html", advisors_page())
     write("lote/index.html", batch_page())
     write("en/batch/index.html", en_batch())
