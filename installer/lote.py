@@ -304,6 +304,7 @@ def install_autostart(folder: Path, subfolders: bool) -> None:
         if not shutil.which("systemctl") or subprocess.run(
                 ["systemctl", "--user", "enable", "--now", "flint-lote.service"], capture_output=True).returncode:
             print("Aviso: no pude activar el servicio de usuario. Arráncalo a mano: systemctl --user enable --now flint-lote.service")
+            return
     print(f"Listo: la carpeta {folder} se vigila sola cada vez que inicias sesión. Registro: {home / '.keyflint' / 'lote.log'}")
     print("Para quitarlo: vuelve a ejecutar con --quitar-inicio.")
 
