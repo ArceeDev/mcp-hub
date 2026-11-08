@@ -542,14 +542,14 @@ def page(path: str, title: str, desc: str, body: str, ld: list | None = None, no
 <meta http-equiv="content-language" content="{lang}">
 {robots}<link rel="canonical" href="{url}">
 {alts}<meta property="og:type" content="website">
-<meta property="og:site_name" content="Flint by KeyFlint">
+<meta property="og:site_name" content="Flint">
 <meta property="og:title" content="{e(title)}">
 <meta property="og:description" content="{e(desc)}">
 <meta property="og:url" content="{url}">
-<meta property="og:image" content="{SITE['url']}/assets/og-flint.png">
+<meta property="og:image" content="{SITE['url']}/assets/{'og-flint-en.png' if T['locale'].startswith('en') else 'og-flint.png'}">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="Flint by KeyFlint">
+<meta property="og:image:alt" content="Flint">
 <meta property="og:locale" content="{T['locale']}">
 <meta property="og:locale:alternate" content="{T['alt_locale']}">
 <meta name="twitter:card" content="summary_large_image">
@@ -557,8 +557,8 @@ def page(path: str, title: str, desc: str, body: str, ld: list | None = None, no
 <meta name="twitter:creator" content="@keyflint">
 <meta name="twitter:title" content="{e(title)}">
 <meta name="twitter:description" content="{e(desc)}">
-<meta name="twitter:image" content="{SITE['url']}/assets/og-flint.png">
-<meta name="twitter:image:alt" content="Flint by KeyFlint">
+<meta name="twitter:image" content="{SITE['url']}/assets/{'og-flint-en.png' if T['locale'].startswith('en') else 'og-flint.png'}">
+<meta name="twitter:image:alt" content="Flint">
 <meta name="theme-color" content="#0B0D17">
 <meta name="color-scheme" content="light">
 <script>document.documentElement.className="js"</script>
