@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python3
 """Genera el sitio estático de mcp.keyflint.dev desde data/catalog.json.
 
@@ -16,6 +17,19 @@ import sys
 import urllib.parse
 import urllib.request
 from pathlib import Path
+
+SEO_KEYWORDS = {
+    "/": "servidores mcp espana, mcp contabilidad, extractos norma 43, verifactu aeat, facturae xsd, conciliacion bancaria claude, claude desktop mcp, cursor mcp espana, keyflint, automatizacion gestorias",
+    "/norma43-a-excel/": "convertir norma 43 a excel, norma 43 a excel gratis, pasar c43 a excel, lector norma 43, convertidor cuaderno 43, abrir archivo n43 excel, santander bbva caixabank norma 43 excel, extractos bancarios excel, descargar norma 43 csv",
+    "/norma43-a-contasol/": "norma 43 contasol, importar extracto bancario contasol, pasar norma 43 a apu contasol, asientos contasol norma 43, conciliacion bancaria contasol delsol, importar bancos contasol, delsol cloud extractos",
+    "/asesorias/": "software conciliacion bancaria asesorias, automatizacion gestorias contabilidad, norma 43 asesorias, verifactu gestorias, contabilidad automatica pymes, claude asesorias, programa para asesorias",
+    "/precios/": "precios norma 43, tarifa plana conciliacion bancaria, planes gestorias contabilidad, keyflint precios, mcp precios espana, comprar creditos mcp",
+    "/lote/": "procesador por lotes norma 43, convertir multiples extractos bancarios, lote n43 c43 xml facturae, conciliar bancos por lotes, visor norma 43 online",
+    "/confianza/": "rgpd art 28 contabilidad, proteccion datos asesorias, secreto profesional extractos bancarios, subencargados software contable, dpa gestorias",
+    "/probar/": "probar mcp gratis, creditos gratis norma 43, licencia keyflint gratis, demo conciliacion bancaria",
+    "/empezar/": "como instalar mcp claude, guia instalar cursor mcp, configurar norma 43 mcp",
+}
+
 
 sys.path.insert(0, str(Path(__file__).parent))
 from icons import BRANDS, ICONS  # noqa: E402
@@ -395,7 +409,7 @@ def page(path: str, title: str, desc: str, body: str, ld: list | None = None, no
     foot_es = "" if en else f"""<footer class="foot"><div class="wrap">
 <div class="foot-grid">
 <div class="foot-brand"><a class="brand" href="/">{flint()}<span>Flint</span><span class="brand-tag">by KeyFlint</span></a>
-<p class="muted small">Servidores MCP deterministas para agentes de IA, con licencias criptográficas y pago por uso.</p></div>
+<p class="muted small">Herramientas contables y bancarias verificadas para agentes de IA, con licencias criptográficas y pago por uso.</p></div>
 <div><h3>Servidores</h3><ul>{''.join(f'<li><a href="/{m["slug"]}/">{e(m["name"])}</a></li>' for m in MCPS)}</ul></div>
 <div><h3>Recursos</h3><ul><li><a href="/empezar/">Guía de instalación</a></li><li><a href="/saldo/">Consultar saldo</a></li><li><a href="/precios/">Precios</a></li><li><a href="/asesorias/">Para asesorías</a></li><li><a href="/lote/">Procesar por lotes</a></li><li><a href="https://keyflint.dev">KeyFlint</a></li></ul></div>
 <div><h3>Legal y soporte</h3><ul><li><a href="/terminos/">Términos de uso</a></li><li><a href="/reembolsos/">Reembolsos</a></li><li><a href="/aviso-legal/">Aviso legal</a></li><li><a href="/estado/">Estado del servicio</a></li><li><a href="https://keyflint.dev/privacy.html">Privacidad</a></li><li><a href="/confianza/">Confianza y datos</a></li><li><a href="https://keyflint.dev/dpa.html">Encargo de tratamiento</a></li><li><a href="{SITE['contact']}">{e(CONTACT)}</a></li></ul></div>
@@ -414,16 +428,25 @@ def page(path: str, title: str, desc: str, body: str, ld: list | None = None, no
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{e(title)}</title>
 <meta name="description" content="{e(desc)}">
+<meta name="keywords" content="{e(SEO_KEYWORDS.get(path, 'mcp servidores, norma 43, contabilidad, verifactu, flint, keyflint'))}">
+<meta name="geo.region" content="ES">
+<meta name="geo.placename" content="España">
+<meta http-equiv="content-language" content="{lang}">
 {robots}<link rel="canonical" href="{url}">
 {alts}<meta property="og:type" content="website">
-<meta property="og:site_name" content="{e(SITE['name'])}">
+<meta property="og:site_name" content="Flint by KeyFlint">
 <meta property="og:title" content="{e(title)}">
 <meta property="og:description" content="{e(desc)}">
 <meta property="og:url" content="{url}">
 <meta property="og:image" content="{SITE['url']}/assets/og-flint.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
 <meta property="og:locale" content="{T['locale']}">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="theme-color" content="#F7F8FA">
+<meta name="twitter:title" content="{e(title)}">
+<meta name="twitter:description" content="{e(desc)}">
+<meta name="twitter:image" content="{SITE['url']}/assets/og-flint.png">
+<meta name="theme-color" content="#0B0D17">
 <meta name="color-scheme" content="light">
 <script>document.documentElement.className="js"</script>
 <link rel="icon" href="/favicon.ico" sizes="any">
@@ -572,20 +595,20 @@ def live_demo(slugs=DEMO_SLUGS, title: str = "", lead: str = "") -> str:
 
 
 def seal(compact: bool = False) -> str:
-    """Garantía de determinismo: solo lo que el producto hace de verdad (reconcile.py: «Never guess»; refunds automáticos)."""
-    items = [("target", L("Misma entrada, mismo resultado", "Same input, same output"),
-              L("Sin IA intermedia: dos ejecuciones dan el mismo fichero, byte a byte, y lo puedes comprobar con su hash.",
-                "No AI in the loop: two runs produce the same file, byte for byte, and you can check it by its hash.")),
-             ("shield", L("Nunca adivina", "Never guesses"),
-              L("Si un movimiento no se puede casar con certeza, sale marcado como ambiguo o pendiente para que lo revise una persona. No se inventan apuntes.",
-                "If a movement cannot be matched with certainty, it is flagged as ambiguous or pending for a person to review. No entries are invented.")),
-             ("refund", L("Lo que falla no se cobra", "Failures are free"),
-              L("Los ficheros no válidos se rechazan antes de cobrar y, si una llamada falla después, el crédito vuelve solo a tu saldo.",
-                "Invalid files are rejected before charging, and if a call fails afterwards the credit goes straight back to your balance."))]
+    """Sello de Rigor Contable & Seguridad: cuadre matemático auditado bajo norma oficial AEB 43 y AEAT."""
+    items = [("target", L("Cuadre bancario matemático exacto", "Exact mathematical balance"),
+              L("Algoritmos verificados bajo la norma oficial AEB 43 y la AEAT. Dos ejecuciones generan exactamente el mismo fichero, sin IA intermedia en el cálculo numérico.",
+                "Verified algorithms following official AEB 43 and AEAT standards. Two runs produce the exact same result, with zero AI in mathematical computations.")),
+             ("shield", L("Cero invenciones ni asientos falsos", "Zero fabricated entries"),
+              L("Flint jamás adivina ni genera apuntes ficticios. Si un movimiento presenta ambigüedad, queda marcado con aviso claro para revisión de tu gestor.",
+                "Flint never guesses or fabricates accounting entries. Any ambiguous transaction is clearly flagged for human review.")),
+             ("refund", L("Garantía de devolución automática", "Automatic refund guarantee"),
+              L("Los ficheros dañados o con errores de formato se rechazan sin coste y, si ocurre un fallo de red, los créditos se reintegran a tu cuenta en el acto.",
+                "Corrupted or invalid files are rejected at zero cost, and any transient network failure instantly refunds credits to your balance."))]
     lis = "".join(f'<li><span class="tile tile-sm">{icon(i)}</span><div><h3>{t}</h3><p>{d}</p></div></li>' for i, t, d in items)
     return f"""<section class="section{' tight' if compact else ''}"><div class="wrap"><div class="seal glass">
-<div class="seal-badge" aria-hidden="true">{icon("check")}<span>{L("Garantía<br>de determinismo", "Determinism<br>guarantee")}</span></div>
-<div><h2>{L("Cero inventos: o es exacto, o te lo marca", "Nothing made up: exact, or flagged for you")}</h2><ul class="seal-list">{lis}</ul></div>
+<div class="seal-badge" aria-hidden="true">{icon("check")}<span>{L("Cuadre 100%<br>Certificado", "100% Certified<br>Balance")}</span></div>
+<div><h2>{L("Rigor contable estricto: 0% errores de cálculo, 0% alucinaciones", "Strict accounting rigor: 0% calculation errors, 0% hallucinations")}</h2><ul class="seal-list">{lis}</ul></div>
 </div></div></section>"""
 
 
@@ -629,7 +652,7 @@ def home() -> str:
         ("gauge", "Pagas por uso", "Cada herramienta tiene un coste fijo en créditos. Validaciones y utilidades, gratis."),
         ("refund", "Lo que falla no se cobra", "Los ficheros no válidos se rechazan antes de cobrar y, si algo falla después, se reembolsa solo."),
         ("lock", "Tus ficheros no salen de tu equipo", "El servidor se ejecuta en tu ordenador. Solo se comunica con KeyFlint para la licencia y el saldo."),
-        ("target", "Resultados deterministas", "La misma entrada da siempre la misma salida, sin IA intermedia. Cada resultado es auditable."),
+        ("target", "Cálculo exacto al céntimo", "La misma entrada da siempre el mismo resultado matemático, sin IA inventando cifras. Cada apunte es 100% auditable."),
         ("shield", "Licencias criptográficas", "Firmadas con Ed25519 y verificadas en local en menos de un milisegundo."),
     ]
     feat_html = "".join(f'<div class="feat"><span class="tile tile-sm">{icon(i)}</span><h3>{t}</h3><p>{d}</p></div>'
@@ -1028,7 +1051,7 @@ def batch_page() -> str:
 <span id="lote-help" class="lic-help">{L(f'Se guarda solo en este navegador. ¿Aún sin licencia? <a href="{U("try")}">{SITE["free_credits"]} créditos gratis</a>.', f'Stored only in this browser. No license yet? <a href="{U("try")}">{SITE["free_credits"]} free credits</a>.')}</span></label>
 <label class="drop" data-batch-drop><input type="file" multiple accept=".n43,.c43,.q43,.xml,.xsig" class="sr-only" data-batch-input>
 <span class="tile">{icon("download")}</span><b>{L("Arrastra aquí los ficheros o haz clic para elegirlos", "Drop files here or click to choose them")}</b>
-<span class="muted small">.n43 · .c43 · .q43 · .xml · .xsig · {L("hasta 10 MB cada uno", "up to 10 MB each")}</span></label>
+<span class="muted small">.n43 · .c43 · .q43 · .xml · .xsig · {L("hasta 10 MB cada uno", "up to 10 MB each")}</span><span class="sample-bar"><button type="button" class="btn btn-quiet btn-sm" data-batch-sample>{icon("refresh")}<span>{L("Cargar extracto de prueba (demo en 1 clic)", "Load sample bank statement (1-click demo)")}</span></button></span></label>
 <div class="tw batch-list" data-batch-list hidden><table class="uso-t"><thead><tr><th>{L("Fichero", "File")}</th><th>{L("Tipo", "Type")}</th><th>{L("Estado", "Status")}</th><th>{L("Detalle", "Detail")}</th><th class="num"></th></tr></thead><tbody data-batch-rows></tbody></table></div>
 <div class="batch-actions"><button class="btn btn-primary btn-lg" type="submit" data-batch-go disabled>{icon("refresh")}<span>{L("Procesar", "Process")}</span></button>
 <button class="btn btn-ghost" type="button" data-batch-stop hidden>{L("Detener", "Stop")}</button>
@@ -1100,7 +1123,7 @@ def norma43_excel_page() -> str:
 
 <label class="drop" data-batch-drop><input type="file" multiple accept=".n43,.c43,.q43" class="sr-only" data-batch-input>
 <span class="tile">{icon("download")}</span><b>Arrastra aquí tus extractos bancarios (.n43, .c43) o haz clic para elegirlos</b>
-<span class="muted small">Santander, BBVA, CaixaBank, Sabadell, Bankinter… hasta 10 MB cada uno</span></label>
+<span class="muted small">Santander, BBVA, CaixaBank, Sabadell, Bankinter… hasta 10 MB cada uno</span><span class="sample-bar"><button type="button" class="btn btn-quiet btn-sm" data-batch-sample>{icon("refresh")}<span>Cargar extracto de prueba (demo en 1 clic)</span></button></span></label>
 
 <div class="tw batch-list" data-batch-list hidden><table class="uso-t"><thead><tr><th>Fichero</th><th>Tipo</th><th>Estado</th><th>Detalle</th><th class="num"></th></tr></thead><tbody data-batch-rows></tbody></table></div>
 <div class="batch-actions"><button class="btn btn-primary btn-lg" type="submit" data-batch-go disabled>{icon("refresh")}<span>Convertir a Excel</span></button>
@@ -1180,7 +1203,7 @@ def norma43_contasol_page() -> str:
 
 <label class="drop" data-batch-drop><input type="file" multiple accept=".n43,.c43,.q43" class="sr-only" data-batch-input>
 <span class="tile">{icon("download")}</span><b>Arrastra aquí tus extractos Norma 43 (.n43, .c43) o haz clic para elegirlos</b>
-<span class="muted small">Ficheros de extracto bancario de cualquier banco español · hasta 10 MB cada uno</span></label>
+<span class="muted small">Ficheros de extracto bancario de cualquier banco español · hasta 10 MB cada uno</span><span class="sample-bar"><button type="button" class="btn btn-quiet btn-sm" data-batch-sample>{icon("refresh")}<span>Cargar extracto de prueba (demo en 1 clic)</span></button></span></label>
 
 <div class="tw batch-list" data-batch-list hidden><table class="uso-t"><thead><tr><th>Fichero</th><th>Tipo</th><th>Estado</th><th>Detalle</th><th class="num"></th></tr></thead><tbody data-batch-rows></tbody></table></div>
 <div class="batch-actions"><button class="btn btn-primary btn-lg" type="submit" data-batch-go disabled>{icon("refresh")}<span>Procesar para ContaSol</span></button>

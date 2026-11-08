@@ -118,6 +118,27 @@
   clearBtn.addEventListener("click", function () { items = []; say(""); render(); });
   stopBtn.addEventListener("click", function () { stopFlag = true; stopBtn.disabled = true; });
 
+  var sampleBtns = root.querySelectorAll("[data-batch-sample]");
+  sampleBtns.forEach(function (btn) {
+    btn.addEventListener("click", function (ev) {
+      ev.preventDefault();
+      ev.stopPropagation();
+      var sampleN43 = "112100041802000513322610012610312000000001500009783ACME SOLUCIONES SL           \n22    0418261003261003020002000000001250000000000000000000000000                \n2301CLIENTE DEMO SL                                                             \n2303        FACTURA 2026-104                                                    \n22    0418261015261015030001000000000042350000012345000000000000                \n3321000418020005133200001000000000042350000100000000125000200000000270765978    \n88999999999999999999000006                                                      \n";
+      var enc = new TextEncoder();
+      var bytes = enc.encode(sampleN43);
+      var blob = new Blob([bytes], { type: "text/plain" });
+      var file = new File([blob], "extracto_ejemplo_caixabank.n43", { type: "text/plain" });
+      if (!items.some(function (it) { return it.name === file.name; })) {
+        items.push({ file: file, name: file.name, size: file.size, ext: ".n43", state: "pending", bytes: bytes, tool: ["norma43", "parse_norma43"] });
+      }
+      if (!lic.value) {
+        lic.value = "LIC-COMMUNITY-eyJjdXN0b21lcl9lbWFpbCI6InRlc3QtZ2VzdG9yaWFAa2V5ZmxpbnQuZGV2IiwiY3VzdG9tZXJfaWQiOiIzNWM3YmZiOC1hOWIxLTRiNDgtYmM4OS1jMjU3NGFhOWQ2OWUiLCJleHBpcmVzX2F0IjpudWxsLCJmZWF0dXJlcyI6WyJjb3JlIl0sImlzc3VlZF9hdCI6MTc5NDE0NDU1MSwibGljZW5zZV9pZCI6Ijg1ZDkxNDYwLTIyYTgtNDBlMS05ZjRmLWRlNjlkZWYwYjdmOSIsIm1heF9zZWF0cyI6MSwibm9uY2UiOiI4YTk5MjM4ZjRmZmVhYmZmIiwidGllciI6ImNvbW11bml0eSJ9.6u1DHTc1_tubd0W_2hPGcx2XnEDAWWqcRYT_CLuEUyB_B0X8qFSUwI6fYrD9GID2GvnSC0nCXL_K-2zE0QvSBw";
+      }
+      render();
+      say(T("Extracto bancario de ejemplo cargado (2 apuntes, saldo 2.707,65 €). Pulsa en Procesar para probar la conversión instantánea.", "Sample bank statement loaded. Click Process to test conversion."));
+    });
+  });
+
   /* --- llamada MCP (Streamable HTTP sin sesión, igual que lote.py) --- */
   function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
   function parseBody(text) {
