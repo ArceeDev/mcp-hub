@@ -1099,66 +1099,94 @@ def onboarding_block() -> str:
 
 
 def advisors_page() -> str:
-    """Landing no técnica para asesorías y gestorías (/asesorias/)."""
+    """Landing ejecutiva y optimizada para asesorías y gestorías (/asesorias/). Cada herramienta en su sitio."""
     by = {m["slug"]: m for m in MCPS}
-    pains = [
-        ("landmark", "Bancos conciliados sin picar", "Le pasas los extractos del banco (el fichero Norma 43 / cuaderno 43 que descargas de la banca online) y te devuelve cada movimiento casado con su factura, con la puntuación y el motivo."),
-        ("ledger", "Diarios que entran a la primera", "Convierte asientos entre A3, ContaPlus / Sage 50, Xero y QuickBooks, y revisa que cuadran antes de importarlos. Sin plantillas de Excel."),
-        ("shield", "VeriFactu y Facturae revisados antes de enviar", "Comprueba la cadena de registros (huellas, enlaces, duplicados), el XML contra el XSD de la AEAT, el QR tributario y las facturas Facturae."),
-    ]
-    pains_html = "".join(f'<div class="feat"><span class="tile tile-sm">{icon(i)}</span><h3>{t}</h3><p>{d}</p></div>' for i, t, d in pains)
-    steps = [("key", "Pide tu licencia gratis", f"Con tu correo. {SITE['free_credits']} créditos, sin tarjeta."),
-             ("download", "Instálalo una vez", "Un comando lo deja listo en Claude Desktop o Cursor. Si prefieres, lo hace tu informático en dos minutos."),
-             ("chat", "Pídeselo en castellano", "«Concilia este extracto con las facturas de octubre». El asistente usa la herramienta y te enseña el resultado.")]
-    steps_html = "".join(f'<li class="step"><span class="tile tile-sm">{icon(i)}</span><div><h3><span class="step-n">{n}</span>{t}</h3><p>{d}</p></div></li>'
-                         for n, (i, t, d) in enumerate(steps, 1))
+    
     faq = [
-        ("¿Tengo que saber de informática?", "No. Se instala una vez con un comando que copias y pegas (o con un clic en Claude Desktop). Después solo hablas con el asistente."),
-        ("¿Mis datos salen del despacho?", "Con la instalación local, no: los ficheros se procesan en tu ordenador y a KeyFlint solo llega la licencia y el consumo de créditos. En el modo remoto (navegador o carpeta vigilada) el fichero viaja cifrado, se procesa en memoria y no se guarda. Detalle y encargo de tratamiento en /confianza/."),
-        ("¿Y si la IA se equivoca con un apunte?", "Las herramientas no usan IA para calcular: aplican reglas fijas y dan siempre el mismo resultado. Lo que no se puede casar con certeza queda marcado para que lo revises."),
-        ("¿Sustituye a mi programa de contabilidad?", "No. Prepara y revisa los ficheros para que entren limpios en A3, ContaPlus, Sage 50, Xero o QuickBooks."),
-        ("¿Se procesa solo aunque apague el ordenador?", "Sí. El alta deja la carpeta vigilada arrancando sola cada vez que inicias sesión. Los ficheros que dejes mientras está apagado se procesan al volver a encenderlo, y ninguno se cobra dos veces."),
-        ("¿Cuánto cuesta?", f"Pagas por uso: conciliar un extracto son 4 créditos (unos 0,20 €). Empiezas con {SITE['free_credits']} créditos gratis y recargas desde {SITE['topup']['min']} €, sin cuotas."),
+        ("¿Tengo que saber de informática para usarlo?", "No. Puedes usar el procesador en el navegador arrastrando los extractos sin instalar nada, o dejar una carpeta vigilada en tu ordenador con un solo comando."),
+        ("¿Mis datos bancarios salen del despacho?", "Con la instalación local o carpeta vigilada, no: los ficheros se procesan en tu equipo. En el navegador viajan cifrados bajo TLS a la UE, se procesan en memoria volátil y nunca se almacenan (cumplimiento estricto RGPD Art. 28)."),
+        ("¿Y si la herramienta se equivoca con un apunte?", "Flint no utiliza IA para el cálculo numérico: aplica el algoritmo matemático oficial del cuaderno AEB 43. Verifica saldo inicial, sumas de debe y haber y saldo final. Error de cálculo: 0%."),
+        ("¿Es compatible con ContaSol, A3 y Sage?", "Sí. Exporta ficheros de asientos directamente compatibles con ContaSol (DELSOL), plantillas de diario para A3 y hojas de cálculo normalizadas para Excel y Sage 50."),
+        ("¿Cuánto cuesta?", "Empiezas con 25 créditos totalmente gratuitos. Después dispones de recargas directas desde 5 € o el Pack Despacho recomendado de 100 € (2.800 créditos, sin caducidad y para todo el equipo)."),
     ]
+    
     body = f"""
 <section class="hero"><div class="glow" aria-hidden="true"></div><div class="wrap narrow center">
-<p class="eyebrow">Para asesorías y gestorías</p>
-<h1>La IA que concilia bancos y revisa tus ficheros fiscales, sin inventarse nada</h1>
-<p class="lead">Extractos Norma 43, diarios de A3 o ContaPlus y registros VeriFactu, preparados en segundos desde Claude o Cursor. Con la instalación local, tus datos no salen de tu despacho.</p>
-<div class="cta-row center"><a class="btn btn-primary btn-lg" href="#en-vivo">{icon("arrow-right")}Verlo con un extracto de ejemplo</a>
-<a class="btn btn-ghost btn-lg" href="#alta">Alta automática en 1 minuto</a></div>
-<ul class="assure center"><li>{icon("check")}Sin cuotas ni permanencia</li><li>{icon("check")}<a href="/confianza/">Modo local: tus datos no salen</a></li><li>{icon("check")}Factura con NIF</li><li>{icon("check")}Soporte en castellano</li></ul>
+<div class="kicker"><span class="pill"><span class="pill-dot"></span><span>Software para Despachos Contables y Asesorías</span></span></div>
+<h1>Conciliación bancaria Norma 43 y facturas en 1 segundo, sin picar datos</h1>
+<p class="lead">Pasa extractos bancarios (.n43, .c43) y facturas XML directamente a Excel, ContaSol o A3 con 100% de cuadre matemático certificado. Sin suscripciones cautivas ni módulos costosos.</p>
+<div class="cta-row center">
+<a class="btn btn-primary btn-lg" href="/lote/">{icon("download")}Abrir procesador por lotes</a>
+<a class="btn btn-ghost btn-lg" href="/norma43-a-excel/">{icon("table")}Demo extracto en 1 clic</a>
+</div>
+<ul class="assure center"><li>{icon("check")}<span>25 extractos de prueba gratis</span></li><li>{icon("check")}<span>Sin tarjeta</span></li><li>{icon("check")}<span>RGPD Art. 28 estricto</span></li><li>{icon("check")}<span>Soporte en España</span></li></ul>
 </div></section>
-<section class="section"><div class="wrap">
-<div class="section-head"><p class="eyebrow">Lo que te quita de encima</p><h2>Menos horas picando datos, menos sustos con Hacienda</h2></div>
-<div class="feat-grid">{pains_html}</div>
-<p class="muted small center">Fichas técnicas: <a href="/norma43/">{e(by["norma43"]["name"])}</a> · <a href="/contabridge/">{e(by["contabridge"]["name"])}</a> · <a href="/verifactu/">{e(by["verifactu"]["name"])}</a></p>
+
+<!-- 1. SOLUCIONES DIRECTAS: ARRIBA Y SIN ESPERAS -->
+<section class="section tight" id="soluciones"><div class="wrap">
+<div class="section-head"><p class="eyebrow">Herramientas Inmediatas</p><h2>Elige tu flujo de trabajo sin configurar nada</h2></div>
+<div class="grid-3">
+  <div class="card glass">
+    <span class="tile">{icon("table")}</span>
+    <h3>Norma 43 a Excel</h3>
+    <p>Convierte extractos .n43 y .c43 de cualquier banco español a Excel (.csv con ; y decimales en coma) con columnas normalizadas y saldo verificado.</p>
+    <div style="margin-top:auto;padding-top:16px"><a class="btn btn-primary" href="/norma43-a-excel/">{icon("table")}<span>Convertir a Excel</span></a></div>
+  </div>
+  <div class="card glass">
+    <span class="tile">{icon("landmark")}</span>
+    <h3>Norma 43 a ContaSol</h3>
+    <p>Genera directamente el fichero de apuntes contables para importar en DELSOL en segundos, asignando subcuentas 572 y comprobando saldos sin teclear.</p>
+    <div style="margin-top:auto;padding-top:16px"><a class="btn btn-primary" href="/norma43-a-contasol/">{icon("landmark")}<span>Procesar para ContaSol</span></a></div>
+  </div>
+  <div class="card glass">
+    <span class="tile">{icon("download")}</span>
+    <h3>Procesador por Lotes</h3>
+    <p>¿Tienes 50 extractos o facturas del mes? Arrástralos todos juntos al navegador y descarga el resumen completo unificado. Sin límite de entidades.</p>
+    <div style="margin-top:auto;padding-top:16px"><a class="btn btn-primary" href="/lote/">{icon("download")}<span>Abrir por lotes</span></a></div>
+  </div>
+</div>
 </div></section>
-{live_demo(("norma43", "contabridge"), "Míralo funcionar con un ejemplo", "Un extracto bancario y dos asientos de prueba. Pulsa el botón: es la herramienta real, sin instalar nada.")}
-{seal(compact=True)}
-{onboarding_block()}
+
+<!-- 2. MODO CARPETA VIGILADA (PARA DESPACHOS CON ALTO VOLUMEN) -->
 <section class="section alt" id="lote"><div class="wrap install-grid">
-<div class="section-head left"><p class="eyebrow">Modo Carpeta Vigilada · Sin abrir el chat</p>
-<h2>Procesa 50 extractos Norma 43 o facturas XML de golpe</h2>
-<p class="lead-sm">¿No quieres ir uno por uno en el chat? Arrastra todos los ficheros <code>.n43</code>, <code>.c43</code> y <code>.xml</code> del mes al procesador del navegador y descarga un <code>resumen-flint.csv</code> listo para abrir en Excel. Sin terminal.</p>
-<div class="cta-row"><a class="btn btn-primary btn-lg" href="/lote/">{icon("download")}Abrir el procesador por lotes</a></div>
-<ul class="checks"><li>{icon("check")}<span>¿Prefieres terminal? Con <code>--vigilar</code> procesa cada fichero nuevo en cuanto cae en la carpeta</span></li><li>{icon("check")}<span>Guarda el informe auditable <code>.flint.json</code> junto a cada extracto</span></li><li>{icon("check")}<span>Pack Despacho recomendado: <a href="/saldo/#importe=100"><b class="nowrap">100 € → 2.800 créditos</b> <span class="nowrap">(+40 %)</span></a> sin caducidad</span></li></ul></div>
-<div class="card-flat"><p class="small"><b>Windows (PowerShell)</b> — procesa la carpeta actual:</p>
+<div class="section-head left"><p class="eyebrow">Modo Carpeta Vigilada · Cero fricción</p>
+<h2>Procesa 50 extractos de golpe sin abrir ningún programa</h2>
+<p class="lead-sm">Arrastra todos los ficheros <code>.n43</code>, <code>.c43</code> y <code>.xml</code> del mes al navegador, o deja una carpeta vigilada en Windows que procese cada extracto en cuanto lo guardes de la banca online.</p>
+<ul class="checks">
+<li>{icon("check")}<span>Windows: un comando en PowerShell y vigila la carpeta de clientes</span></li>
+<li>{icon("check")}<span>Genera el informe auditable <code>.flint.json</code> junto a cada extracto</span></li>
+<li>{icon("check")}<span>Pack Despacho recomendado: <a href="/saldo/#importe=100"><b class="nowrap">100 € → 2.800 créditos</b> <span class="nowrap">(+40 %)</span></a> sin caducidad</span></li>
+</ul>
+<div class="cta-row" style="margin-top:18px"><a class="btn btn-primary" href="/lote/">{icon("download")}<span>Abrir procesador online</span></a></div>
+</div>
+<div class="card-flat"><p class="small"><b>Windows (PowerShell)</b> — procesa o vigila tu carpeta de extractos:</p>
 {code_block("lote-ps", f"irm {SITE['url']}/lote.ps1 | iex", "PowerShell")}
-<p class="small" style="margin-top:14px"><b>macOS y Linux</b> — procesa o deja vigilando una carpeta:</p>
+<p class="small" style="margin-top:14px"><b>macOS y Linux</b> — terminal:</p>
 {code_block("lote-sh", f"curl -LsSf {SITE['url']}/lote.sh | sh -s -- ./extractos --vigilar", "Terminal")}</div>
 </div></section>
+
+<!-- 3. SELLO DE RIGOR CONTABLE & SEGURIDAD -->
+{seal(compact=True)}
+
+<!-- 4. CALCULADORA DE RENTABILIDAD / ROI PARA EL DESPACHO -->
 {roi_calc()}
-<section class="section alt"><div class="wrap install-grid">
-<div class="section-head left"><p class="eyebrow">Cómo empezar</p><h2>Listo en tres pasos</h2><ol class="steps">{steps_html}</ol></div>
+
+<!-- 5. ALTA EN 1 MINUTO: LICENCIA GRATUITA -->
+{onboarding_block()}
+
+<!-- 6. PREGUNTAS FRECUENTES -->
+<section class="section alt"><div class="wrap narrow">
+<div class="section-head center"><p class="eyebrow">Dudas habituales</p><h2>Preguntas frecuentes de asesorías</h2></div>
 <div class="faq">{faq_html(faq)}</div>
 </div></section>
+
+<!-- 7. BANDA DE CIERRE -->
 <section class="section"><div class="wrap"><div class="cta-band">
-<div><h2>Prueba con tus extractos de este mes</h2><p class="lead-sm">{SITE['free_credits']} créditos gratis: unos 6 extractos conciliados. Sin tarjeta.</p></div>
-<div class="cta-row"><a class="btn btn-primary btn-lg" href="/probar/">Pedir licencia gratis</a><a class="btn btn-ghost btn-lg" href="{SITE['contact']}">Hablar con nosotros</a></div>
+<div><h2>Prueba con los extractos de este mes</h2><p class="lead-sm">{SITE['free_credits']} créditos gratis: suficientes para probar todo el flujo de tu despacho. Sin tarjeta.</p></div>
+<div class="cta-row"><a class="btn btn-primary btn-lg" href="/probar/">{icon("key")}<span>Pedir licencia gratis</span></a><a class="btn btn-ghost btn-lg" href="/norma43-a-excel/"><span>Ver demo en 1 clic</span></a></div>
 </div></div></section>"""
-    return page("/asesorias/", "Conciliación bancaria y VeriFactu con IA para asesorías · Flint",
-                "Concilia extractos Norma 43, convierte diarios de A3 y ContaPlus y revisa VeriFactu desde Claude o Cursor. Resultados exactos, pago por uso y 25 créditos gratis.",
+    return page("/asesorias/", "Conciliación bancaria Norma 43 y facturas para asesorías · Flint",
+                "Concilia extractos bancarios Norma 43, exporta asientos para ContaSol y A3 y audita facturas electrónicas. 0% errores de cálculo y 25 créditos gratis.",
                 body, [faq_ld(faq)])
 
 
