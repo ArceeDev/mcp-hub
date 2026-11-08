@@ -528,7 +528,8 @@ def page(path: str, title: str, desc: str, body: str, ld: list | None = None, no
 <a class="badge-pill" href="https://stripe.com" rel="noopener"><span class="muted">Pagos con</span>{brand("stripe")}<b>Stripe</b></a>
 <a class="badge-pill kf" href="https://keyflint.dev"><span class="muted">Licencias</span><span class="kf-mark">{icon("logo", "logo")}by&nbsp;KeyFlint</span></a>
 </div></div>
-</div></footer>"""
+</div></footer>"""
+    hero_preload = f'<link rel="preload" href="/assets/video/{"flint-launch-en.webp" if en else "flint-lanzamiento-es.webp"}" as="image" type="image/webp" fetchpriority="high">\n' if path in ("/", "/en/") else ""
     return f"""<!doctype html>
 <html lang="{lang}" class="no-js">
 <head>
@@ -568,8 +569,8 @@ def page(path: str, title: str, desc: str, body: str, ld: list | None = None, no
 <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="preload" href="/assets/fonts/inter-400.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="/assets/fonts/interdisplay-600.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="/assets/style.css?v={VERSION}">
+<link rel="preload" href="/assets/fonts/interdisplay-600.woff2" as="font" type="font/woff2" crossorigin>
+{hero_preload}<link rel="stylesheet" href="/assets/style.css?v={VERSION}">
 <script defer src="/assets/app.js?v={VERSION}"></script>
 {analytics}{lds}
 </head>
@@ -821,7 +822,7 @@ def home() -> str:
 <ul class="assure">
 <li>{icon("check")}{SITE['free_credits']} créditos gratis sin tarjeta</li><li>{icon("check")}Sin permanencia ni suscripción obligatoria</li><li>{icon("check")}Tus datos contables nunca salen de tu equipo</li></ul>
 </div>
-<figure class="demo glass en-video"><video controls preload="none" playsinline poster="/assets/video/flint-lanzamiento-es.jpg" width="1280" height="720">
+<figure class="demo glass en-video"><video controls preload="none" playsinline poster="/assets/video/flint-lanzamiento-es.webp" width="1280" height="720">
 <source src="/assets/video/flint-lanzamiento-es.mp4" type="video/mp4"></video>
 <figcaption class="demo-foot"><span>{icon("shield")}Salida real de Flint Bank, dos ejecuciones: mismo hash</span><span class="tabnum">70 s</span></figcaption></figure>
 </div></section>
@@ -1052,7 +1053,7 @@ def pricing() -> str:
     ld = [{"@context": "https://schema.org", "@type": "Product", "name": "Créditos KeyFlint MCP",
            "description": "Créditos de uso para todos los servidores MCP de KeyFlint.",
            "brand": {"@type": "Brand", "name": "KeyFlint"},
-           "offers": [{"@type": "Offer", "name": p["name"], "price": p["price"], "priceCurrency": "USD",
+           "offers": [{"@type": "Offer", "name": p["name"], "price": p["price"], "priceCurrency": ("EUR" if p.get("currency") == "€" else "USD"),
                        "url": f"{SITE['url']}/precios/", "availability": "https://schema.org/InStock"} for p in SITE["packs"]]
                      + [{"@type": "Offer", "name": "Recarga libre", "price": SITE["topup"]["min"], "priceCurrency": "EUR",
                          "url": f"{SITE['url']}/saldo/", "availability": "https://schema.org/InStock"}]},
@@ -1771,7 +1772,7 @@ def en_home() -> str:
 <a class="btn btn-ghost btn-lg" href="#live">{icon("arrow-right")}Try it live, no install</a></div>
 <ul class="assure"><li>{icon("check")}No card</li><li>{icon("check")}Pay per successful call</li><li>{icon("check")}Source on GitHub</li></ul>
 </div>
-<figure class="demo glass en-video"><video controls preload="none" playsinline poster="/assets/video/flint-launch-en.jpg" width="1280" height="720">
+<figure class="demo glass en-video"><video controls preload="none" playsinline poster="/assets/video/flint-launch-en.webp" width="1280" height="720">
 <source src="/assets/video/flint-launch-en.mp4" type="video/mp4"></video>
 <figcaption class="demo-foot"><span>{icon("shield")}Real output from Flint Bank, run twice: same hash</span><span class="tabnum">63 s</span></figcaption></figure>
 </div></section>
@@ -2130,6 +2131,14 @@ def main() -> None:
     write("norma43-a-excel/index.html", norma43_excel_page())
     write("norma43-a-contasol/index.html", norma43_contasol_page())
     installer_files()
+    try:
+        import subprocess
+        for _f in [OUT / "assets" / "app.js", OUT / "assets" / "lote.js", OUT / "assets" / "style.css"]:
+            if _f.exists():
+                subprocess.run(["npx", "esbuild", str(_f), "--minify", f"--outfile={_f}", "--allow-overwrite"],
+                               check=True, shell=True, capture_output=True)
+    except Exception as _e:
+        print(f"Aviso esbuild: {_e}")
     if legal_missing():
         print("AVISO: faltan datos del titular en data/catalog.json -> site.legal:", ", ".join(legal_missing()))
     for m in MCPS:

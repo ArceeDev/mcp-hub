@@ -213,7 +213,7 @@
       var eqMsg = tb.querySelector("[data-topup-eq]"); eqMsg.hidden = ok; eqMsg.textContent = T("Entre ", "Between ") + EUR(cfg.min) + T(" y ", " and ") + EUR(cfg.max) + T(", sin decimales", ", whole euros");
       tb.querySelector("[data-topup-eqs]").hidden = !ok;
       tb.querySelectorAll("[data-eq]").forEach(function (el) { el.textContent = "≈ " + nfT.format(Math.floor(c / Number(el.getAttribute("data-eq")))); });
-      if (bonus.getAttribute("data-b") !== String(b)) { bonus.setAttribute("data-b", b); bonus.classList.remove("pop"); void bonus.offsetWidth; bonus.classList.add("pop"); }
+      if (bonus.getAttribute("data-b") !== String(b)) { bonus.setAttribute("data-b", b); bonus.classList.remove("pop"); requestAnimationFrame(function () { bonus.classList.add("pop"); }); }
       rng.style.setProperty("--p", Math.max(0, Math.min(100, (Number(rng.value) - Number(rng.min)) / (Number(rng.max) - Number(rng.min)) * 100)) + "%");
       var next = cfg.tiers.filter(function (t) { return t[0] > eur; })[0];
       tb.querySelector("[data-topup-next]").textContent = ok && next
