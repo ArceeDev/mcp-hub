@@ -30,7 +30,7 @@
         "who": "Asesores y pequeños despachos (hasta 3 puestos)",
         "billing": "49 €/mes + IVA · 3 puestos · Factura con NIF/CIF",
         "features": [
-          "2.500 movimientos / mes",
+          "2.500 créditos al mes (≈ 625 extractos conciliados)",
           "Norma 43 (.n43, .c43) y Facturae",
           "ContaSol (APU.ods), A3 y Sage",
           "Carpetas vigiladas automáticas",
@@ -51,7 +51,7 @@
         "who": "Gestorías con volumen continuo de clientes",
         "billing": "99 €/mes + IVA · 10 puestos · Cancela cuando quieras",
         "features": [
-          "6.000 movimientos / mes",
+          "6.000 créditos al mes (≈ 1.500 extractos conciliados)",
           "Todo lo de Básico",
           "Veri*factu y Facturae (XML AEAT)",
           "Conciliación bancaria multicuenta",
@@ -72,9 +72,9 @@
         "who": "Despachos medianos y firmas de asesoría integral",
         "billing": "149 €/mes + IVA · Puestos ilimitados · Facturación mensual",
         "features": [
-          "15.000 movimientos / mes",
+          "15.000 créditos al mes (≈ 3.750 extractos conciliados)",
           "Todo lo de Pro",
-          "Puestos ilimitados (hasta 99 asesores)",
+          "Hasta 99 puestos de asesor",
           "SLA del 99,9% garantizado",
           "Onboarding e instalación técnica asistida",
           "Integración con servidor local o NAS del despacho",

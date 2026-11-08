@@ -847,7 +847,7 @@ def home() -> str:
 <h2>Procesa 50 extractos Norma 43 o facturas XML de golpe</h2>
 <p class="lead-sm">¿No quieres ir uno por uno en el chat? Arrastra todos los ficheros <code>.n43</code>, <code>.c43</code> y <code>.xml</code> del mes al procesador del navegador y descarga un <code>resumen-flint.csv</code> listo para abrir en Excel. Sin terminal.</p>
 <div class="cta-row"><a class="btn btn-primary btn-lg" href="/lote/">{icon("download")}Abrir el procesador por lotes</a></div>
-<ul class="checks"><li>{icon("check")}<span>¿Prefieres terminal? Con <code>--vigilar</code> procesa cada fichero nuevo en cuanto cae en la carpeta</span></li><li>{icon("check")}<span>Guarda el informe auditable <code>.flint.json</code> junto a cada extracto</span></li><li>{icon("check")}<span>Pack Despacho recomendado: <a href="/saldo/#importe=100"><b class="nowrap">100 € → 2.800 créditos</b> <span class="nowrap">(+40 %)</span></a> sin caducidad</span></li></ul></div>
+<ul class="checks"><li>{icon("check")}<span>¿Prefieres terminal? Con <code>--vigilar</code> procesa cada fichero nuevo en cuanto cae en la carpeta</span></li><li>{icon("check")}<span>Guarda el informe auditable <code>.flint.json</code> junto a cada extracto</span></li><li>{icon("check")}<span>Plan Despacho desde 49 €/mes: <a href="/precios/#despacho"><b class="nowrap">2.500 créditos al mes</b></a>, sin permanencia</span></li></ul></div>
 <div class="card-flat"><p class="small"><b>Windows (PowerShell)</b> — procesa la carpeta actual:</p>
 {code_block("lote-ps", f"irm {SITE['url']}/lote.ps1 | iex", "PowerShell")}
 <p class="small" style="margin-top:14px"><b>macOS y Linux</b> — procesa o deja vigilando una carpeta:</p>
@@ -981,6 +981,31 @@ def roi_calc() -> str:
 </form></div></section>"""
 
 
+CREDITS_PER_STATEMENT = 4  # leer (1) + conciliar (3) un extracto Norma 43
+
+
+def despacho_plans() -> str:
+    """Plan Despacho (suscripción mensual en €) con equivalencia honesta en extractos conciliados."""
+    cards = []
+    for p in (p for p in SITE["packs"] if p["id"].startswith("despacho")):
+        n = p["credits"] // CREDITS_PER_STATEMENT
+        badge = '<span class="badge">Más elegido</span>' if p.get("featured") else ""
+        feats = "".join(f'<li>{icon("check")}<span>{e(f)}</span></li>' for f in p.get("features", []))
+        cards.append(f"""<div class="plan{' featured' if p.get('featured') else ''}">{badge}
+<div class="plan-head"><h3 class="h3">{e(p['name'])}</h3><p class="muted small">{e(p['who'])}</p></div>
+<p class="price">{money(p['price'])} {p.get('currency', '€')}<span class="per">{e(p.get('period', ''))}</span></p>
+<p class="credits">{money(p['credits'])} créditos al mes<span class="muted"> · ≈ {money(n)} extractos conciliados</span></p>
+<a class="btn {'btn-primary' if p.get('featured') else 'btn-ghost'} btn-block" href="{e(p['checkout'])}" rel="nofollow">Contratar {e(p['name'])}</a>
+<p class="muted small">{e(p.get('billing', ''))}</p>
+<ul class="checks">{feats}</ul></div>""")
+    return f"""<section class="section tight" id="despacho"><div class="wrap">
+<div class="section-head center"><p class="eyebrow">Plan Despacho</p><h2>Una cuota fija para todo el despacho</h2>
+<p class="lead-sm">Créditos nuevos cada mes, factura con NIF y sin permanencia. Leer y conciliar un extracto son {CREDITS_PER_STATEMENT} créditos; lo que falla no se cobra.</p></div>
+<div class="plans">{''.join(cards)}</div>
+<p class="muted small center">¿Primero quieres verlo? <a href="/probar/">{SITE['free_credits']} créditos gratis, sin tarjeta</a> · <a href="/confianza/">Protección de datos y encargo de tratamiento (art. 28)</a> · <a href="/asesorias/#alta">Alta en 1 minuto</a></p>
+</div></section>"""
+
+
 def pricing() -> str:
     common = ["Todos los servidores del catálogo", "Reembolso automático si algo falla", "Factura con NIF/VAT"]
     cards = [f"""<div class="plan">
@@ -995,7 +1020,7 @@ def pricing() -> str:
 <p class="price">desde {tp['min']} €</p><p class="credits">{tp['rate']} créditos por euro<span class="muted"> · hasta +40 %</span></p>
 <a class="btn btn-primary btn-block" href="/saldo/#recargar">Elegir importe</a>
 <ul class="checks">{tier_li}<li>{icon("check")}<span>Se suma a tu misma licencia</span></li><li>{icon("check")}<span>Los créditos no caducan</span></li></ul></div>""")
-    for p in SITE["packs"]:
+    for p in (p for p in SITE["packs"] if not p["id"].startswith("despacho")):
         curr = p.get("currency", "€")
         per100 = money(round(p["price"] / p["credits"] * 100, 2))
         feats = p.get("features") or ([p["billing"], f"{p['seats']} equipos"] + common)
@@ -1006,12 +1031,6 @@ def pricing() -> str:
 <p class="credits">{money(p['credits'])} créditos{' al mes' if p.get('period') else ''}<span class="muted"> · {per100} {curr} / 100</span></p>
 <a class="btn {'btn-primary' if p.get('featured') else 'btn-ghost'} btn-block" href="{p['checkout']}" rel="nofollow">Elegir {e(p['name'])}</a>
 <ul class="checks">{''.join(f'<li>{icon("check")}{e(f)}</li>' for f in feats)}</ul></div>""")
-    cards.append(f"""<div class="plan">
-<div class="plan-head"><h2 class="h3">Pack Despacho</h2><p class="muted small">Asesorías, gestorías y cierres de lote</p></div>
-<p class="price">100 €<span class="per"> pago único</span></p>
-<p class="credits">2.800 créditos<span class="muted"> · +40 % bonificación</span></p>
-<a class="btn btn-ghost btn-block" href="/saldo/#importe=100">Cargar Pack Despacho</a>
-<ul class="checks"><li>{icon("check")}≈ 700 extractos Norma 43 conciliados</li><li>{icon("check")}Saldo compartido en el despacho</li><li>{icon("check")}<a href="/lote/">Procesador por lotes</a> en el navegador y Carpeta Vigilada</li><li>{icon("check")}Los créditos no caducan · IVA incluido</li><li>{icon("check")}Factura con NIF al instante</li></ul></div>""")
     usage = [("web-intel", "Leer una web", 1), ("web-intel", "Auditoría SEO completa", 3),
              ("norma43", "Leer un extracto Norma 43", 1), ("norma43", "Conciliar un extracto con facturas", 3),
              ("contabridge", "Convertir un diario de A3 a ContaPlus", 2), ("contabridge", "Validar un diario antes de importar", 1),
@@ -1035,7 +1054,9 @@ def pricing() -> str:
 <h1>Un saldo para todos los servidores</h1>
 <p class="lead">Una licencia, un saldo de créditos y un coste fijo por herramienta. Lo que falla no se cobra.</p>
 </div></section>
+{despacho_plans()}
 <section class="section tight"><div class="wrap">
+<div class="section-head center"><p class="eyebrow">Pago por uso</p><h2>Sin cuota: prueba, recarga o plan de desarrollador</h2></div>
 <div class="plans">{''.join(cards)}</div>
 <p class="muted small center">¿Asesoría o gestoría? <a href="/lote/">Procesa los extractos Norma 43 y XML de VERI*FACTU del mes en el navegador</a>: arrastras, pegas la licencia y descargas el resumen para Excel.</p>
 <p class="muted small center fine">{icon("lock")}Pago seguro con Stripe. Recargas en euros con IVA incluido; Pro en USD más impuestos según tu país. Recibes factura y puedes añadir tu NIF/VAT. Al comprar aceptas los <a href="/terminos/">términos de servicio</a>, la <a href="https://keyflint.dev/privacy.html">política de privacidad</a> y la <a href="/reembolsos/">política de reembolso</a>.</p>
@@ -1052,7 +1073,7 @@ def pricing() -> str:
     ld = [{"@context": "https://schema.org", "@type": "Product", "name": "Créditos KeyFlint MCP",
            "description": "Créditos de uso para todos los servidores MCP de KeyFlint.",
            "brand": {"@type": "Brand", "name": "KeyFlint"},
-           "offers": [{"@type": "Offer", "name": p["name"], "price": p["price"], "priceCurrency": "USD",
+           "offers": [{"@type": "Offer", "name": p["name"], "price": p["price"], "priceCurrency": "EUR" if p.get("currency", "$") == "€" else "USD",
                        "url": f"{SITE['url']}/precios/", "availability": "https://schema.org/InStock"} for p in SITE["packs"]]
                      + [{"@type": "Offer", "name": "Recarga libre", "price": SITE["topup"]["min"], "priceCurrency": "EUR",
                          "url": f"{SITE['url']}/saldo/", "availability": "https://schema.org/InStock"}]},
@@ -1107,7 +1128,7 @@ def advisors_page() -> str:
         ("¿Mis datos bancarios salen del despacho?", "Con la instalación local o carpeta vigilada, no: los ficheros se procesan en tu equipo. En el navegador viajan cifrados bajo TLS a la UE, se procesan en memoria volátil y nunca se almacenan (cumplimiento estricto RGPD Art. 28)."),
         ("¿Y si la herramienta se equivoca con un apunte?", "Flint no utiliza IA para el cálculo numérico: aplica el algoritmo matemático oficial del cuaderno AEB 43. Verifica saldo inicial, sumas de debe y haber y saldo final. Error de cálculo: 0%."),
         ("¿Es compatible con ContaSol, A3 y Sage?", "Sí. Exporta ficheros de asientos directamente compatibles con ContaSol (DELSOL), plantillas de diario para A3 y hojas de cálculo normalizadas para Excel y Sage 50."),
-        ("¿Cuánto cuesta?", "Empiezas con 25 créditos totalmente gratuitos. Después dispones de recargas directas desde 5 € o el Pack Despacho recomendado de 100 € (2.800 créditos, sin caducidad y para todo el equipo)."),
+        ("¿Cuánto cuesta?", "Empiezas con 25 créditos totalmente gratuitos. Después eliges: Plan Despacho desde 49 €/mes (2.500 créditos al mes, unos 625 extractos leídos y conciliados, sin permanencia) o recargas sueltas desde 5 € que no caducan."),
     ]
     
     body = f"""
@@ -1155,7 +1176,7 @@ def advisors_page() -> str:
 <ul class="checks">
 <li>{icon("check")}<span>Windows: un comando en PowerShell y vigila la carpeta de clientes</span></li>
 <li>{icon("check")}<span>Genera el informe auditable <code>.flint.json</code> junto a cada extracto</span></li>
-<li>{icon("check")}<span>Pack Despacho recomendado: <a href="/saldo/#importe=100"><b class="nowrap">100 € → 2.800 créditos</b> <span class="nowrap">(+40 %)</span></a> sin caducidad</span></li>
+<li>{icon("check")}<span>Plan Despacho desde 49 €/mes: <a href="/precios/#despacho"><b class="nowrap">2.500 créditos al mes</b></a>, sin permanencia</span></li>
 </ul>
 <div class="cta-row" style="margin-top:18px"><a class="btn btn-primary" href="/lote/">{icon("download")}<span>Abrir procesador online</span></a></div>
 </div>
@@ -1170,6 +1191,9 @@ def advisors_page() -> str:
 
 <!-- 4. CALCULADORA DE RENTABILIDAD / ROI PARA EL DESPACHO -->
 {roi_calc()}
+
+<!-- 4b. PLAN DESPACHO -->
+{despacho_plans()}
 
 <!-- 5. ALTA EN 1 MINUTO: LICENCIA GRATUITA -->
 {onboarding_block()}
@@ -1464,7 +1488,7 @@ def start() -> str:
 
 def balance_page() -> str:
     tp = SITE["topup"]
-    pro = SITE["packs"][0]
+    pro = next(p for p in SITE["packs"] if p["id"] == "pro")
     presets = "".join(f'<button type="button" class="preset" data-preset="{a}" data-tier-min="{a}" aria-pressed="false" title="{e(n)}: {tp["rate"] * (100 + b) // 100} {L("créditos por euro", "credits per euro")}">'
                       f'<b class="tabnum">{L(f"{a} €", f"€{a}")}</b><span class="preset-bonus{" base" if not b else ""}">{(L(f"+{b} %", f"+{b}%")) if b else "base"}</span></button>'
                       for a, b, n in tp["tiers"])
@@ -1636,7 +1660,7 @@ def en_plans() -> str:
 <a class="btn btn-primary btn-block" href="/en/balance/#recargar">Top up</a>
 <ul class="checks">{tiers}<li>{icon("check")}Adds to the same license</li><li>{icon("check")}Credits never expire</li></ul></div>"""
     out = [free, topup]
-    for p in SITE["packs"]:
+    for p in (p for p in SITE["packs"] if not p["id"].startswith("despacho")):
         who, billing, per = EN_PACKS.get(p["id"], ("", "", ""))
         feat, badge = "", ""
         out.append(f"""<div class="plan{feat}">{badge}
