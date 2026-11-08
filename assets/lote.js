@@ -27,7 +27,12 @@
 
   var items = [], running = false, stopFlag = false;
 
-  try { var saved = localStorage.getItem(KEY); if (saved && !lic.value) lic.value = saved; } catch (e) { /* sin almacenamiento */ }
+  try {
+    var fromUrl = (location.hash.match(/licencia=([^&]+)/) || location.search.match(/licencia=([^&]+)/) || [])[1];
+    if (fromUrl) lic.value = decodeURIComponent(fromUrl);
+    var saved = localStorage.getItem(KEY);
+    if (saved && !lic.value) lic.value = saved;
+  } catch (e) { /* sin almacenamiento */ }
 
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
   function ext(name) { var i = name.lastIndexOf("."); return i < 0 ? "" : name.slice(i).toLowerCase(); }

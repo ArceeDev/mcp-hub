@@ -1037,9 +1037,10 @@ def batch_page() -> str:
 <p class="note" data-batch-msg aria-live="polite" hidden>{icon("info")}<span></span></p>
 <div class="batch-out" data-batch-out hidden><h2 class="h4">{icon("check")}{L("Resultados listos", "Results ready")}</h2>
 <p class="muted small">{L("El resumen se abre directamente en Excel (separador ; y coma decimal). El ZIP incluye además el informe auditable .flint.json de cada fichero.", "The summary opens straight in Excel. The ZIP also holds the auditable .flint.json report of each file.")}</p>
-<div class="cta-row"><button class="btn btn-primary" type="button" data-batch-csv>{icon("table")}{L("Descargar resumen .csv", "Download summary .csv")}</button>
+<div class="cta-row"><button class="btn btn-primary" type="button" data-batch-csv>{icon("table")}{L("Descargar resumen Excel (.csv)", "Download Excel summary (.csv)")}</button>
 <button class="btn btn-ghost" type="button" data-batch-zip>{icon("download")}{L("Descargar todo (.zip)", "Download everything (.zip)")}</button>
-<a class="btn btn-quiet" href="{U("balance")}">{L("Ver saldo", "Check balance")}</a></div></div>
+<a class="btn btn-primary" href="https://buy.stripe.com/28EaEPgIYcgbaMQdN9awo0f" target="_blank">{icon("arrow-right")}{L("Plan Despacho (99 €)", "Firm Plan (€99)")}</a>
+<a class="btn btn-quiet" href="{U("balance")}#recargar">{L("Recarga 5 €", "Top up €5")}</a></div></div>
 </form>
 <div class="install-grid batch-info">
 <div><h2 class="h3">{L("Qué hace con cada fichero", "What it does with each file")}</h2>
