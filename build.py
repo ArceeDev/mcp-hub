@@ -843,14 +843,15 @@ def pricing() -> str:
 <a class="btn btn-primary btn-block" href="/saldo/#recargar">Elegir importe</a>
 <ul class="checks">{tier_li}<li>{icon("check")}Se suma a tu misma licencia</li><li>{icon("check")}Los créditos no caducan</li></ul></div>""")
     for p in SITE["packs"]:
+        curr = p.get("currency", "€")
         per100 = money(round(p["price"] / p["credits"] * 100, 2))
-        feats = [p["billing"], f"{p['seats']} equipos"] + common
+        feats = p.get("features") or ([p["billing"], f"{p['seats']} equipos"] + common)
         badge = '<span class="badge">Más elegido</span>' if p.get("featured") else ""
         cards.append(f"""<div class="plan{' featured' if p.get('featured') else ''}">{badge}
 <div class="plan-head"><h2 class="h3">{e(p['name'])}</h2><p class="muted small">{e(p['who'])}</p></div>
-<p class="price">{money(p['price'])} $<span class="per">{e(p.get('period', ''))}</span></p>
-<p class="credits">{money(p['credits'])} créditos{' al mes' if p.get('period') else ''}<span class="muted"> · {per100} $ / 100</span></p>
-<a class="btn {'btn-primary' if p.get('featured') else 'btn-ghost'} btn-block" href="{p['checkout']}" rel="nofollow">Comprar {e(p['name'])}</a>
+<p class="price">{money(p['price'])} {curr}<span class="per">{e(p.get('period', ''))}</span></p>
+<p class="credits">{money(p['credits'])} créditos{' al mes' if p.get('period') else ''}<span class="muted"> · {per100} {curr} / 100</span></p>
+<a class="btn {'btn-primary' if p.get('featured') else 'btn-ghost'} btn-block" href="{p['checkout']}" rel="nofollow">Elegir {e(p['name'])}</a>
 <ul class="checks">{''.join(f'<li>{icon("check")}{e(f)}</li>' for f in feats)}</ul></div>""")
     cards.append(f"""<div class="plan">
 <div class="plan-head"><h2 class="h3">Pack Despacho</h2><p class="muted small">Asesorías, gestorías y cierres de lote</p></div>
@@ -1255,7 +1256,10 @@ EN_TOOLS = [
      "Verifies VERI*FACTU fingerprints and chaining, validates the XML against the AEAT schema, builds the tax QR and creates or validates Facturae 3.2.2. It reviews files: it is not a certified invoicing system."),
 ]
 EN_PACKS = {
-    "pro": ("For daily use", "1,000 new credits every month, cancel anytime", "/mo"),
+    "despacho-basico": ("Small accounting firms & solo advisors", "2,500 credits/mo, 3 seats, cancel anytime", "/mo"),
+    "despacho-pro": ("Growing accounting firms & gestorías", "6,000 credits/mo, 10 seats, cancel anytime", "/mo"),
+    "despacho-empresa": ("Enterprise accounting practices", "15,000 credits/mo, unlimited seats, SLA", "/mo"),
+    "pro": ("For developers and single users", "1,000 new credits every month, cancel anytime", "/mo"),
 }
 
 
