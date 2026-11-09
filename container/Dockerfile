@@ -2,6 +2,7 @@
 FROM python:3.12-slim
 RUN apt-get update && apt-get install -y --no-install-recommends git && rm -rf /var/lib/apt/lists/*
 ARG REF=main
+ARG CONTABRIDGE_VERSION=v0.4.0
 RUN pip install --no-cache-dir "uvicorn>=0.30" \
     "web-intel-mcp @ git+https://github.com/ArceeDev/web-intel-mcp@${REF}" \
     "norma43-mcp @ git+https://github.com/ArceeDev/norma43-mcp@${REF}" \
