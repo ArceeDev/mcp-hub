@@ -286,10 +286,15 @@ ${buttons("Verificar")}
 
 function chooseForm(details, handle, token, email, licenses, error = "") {
   const app = esc(details.clientName || "Una aplicación");
-  const opts = licenses.map((lic, i) => `
+  const opts = licenses.map((lic, i) => {
+    const sub = Number.isFinite(lic.credits) ? `${lic.credits} créditos · ${lic.tier || ""}` : (lic.tier || "");
+    return `
   <label class="lic-opt"><input type="radio" name="pick" value="${i}" ${i === 0 ? "checked" : ""}>
-    <div><b>${esc(lic.name || "Licencia " + (lic.tier || ""))}</b><div class="muted" style="font-size:.8rem">${esc(lic.tier || "")}</div></div>
-  </label>`).join("");
+    <div><b>${esc(lic.name || "Licencia " + (lic.tier || ""))}</b><div class="muted" style="font-size:.8rem">${esc(sub)}</div></div>
+  </label>`;
+  }).join("");
+  const trialOpt = licenses.length ? "" : `<label class="lic-opt"><input type="radio" name="pick" value="trial" checked>
+  <div><b>Crear prueba gratis</b><div class="muted" style="font-size:.8rem">25 créditos, una por correo</div></div></label>`;
   return `<h1>${licenses.length ? "Elige tu licencia" : "Conecta una licencia"}</h1>
 <p>Correo verificado: <b>${esc(email)}</b>. ${licenses.length ? `Elige con cuál conectar ${app}:` : "Aún no tiene licencias enlazadas."}</p>
 <form method="post">
@@ -297,8 +302,7 @@ function chooseForm(details, handle, token, email, licenses, error = "") {
 <input type="hidden" name="vt" value="${esc(token)}">
 <input type="hidden" name="step" value="pick">
 ${opts}
-<label class="lic-opt"><input type="radio" name="pick" value="trial" ${licenses.length ? "" : "checked"}>
-  <div><b>Crear prueba gratis</b><div class="muted" style="font-size:.8rem">25 créditos, una por correo</div></div></label>
+${trialOpt}
 <label class="lic-opt"><input type="radio" name="pick" value="lic">
   <div style="flex:1"><b>Usar otra clave LIC-…</b><input name="license" autocomplete="off" spellcheck="false" placeholder="LIC-…" style="margin-top:6px"></div></label>
 ${err(error)}

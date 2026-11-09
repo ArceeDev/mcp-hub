@@ -124,3 +124,23 @@ test("licensesFor recupera licencias activas del gateway si KV está vacío y la
   assert.equal(cached.length, 1);
   assert.equal(cached[0].key, LIC);
 });
+
+
+test("licensesFor sincroniza nuevas licencias de pago y descarta las revocadas aunque KV tenga caché previa", async () => {
+  const e = env();
+  const OLD_TRIAL = "LIC-COMMUNITY-old.sig";
+  const NEW_PRO = "LIC-PRO-new.sig";
+  await bindLicense(e, "cliente@despacho.es", { key: OLD_TRIAL, tier: "community", name: "Prueba gratis" });
+
+  m = mockFetch((url) => {
+    if (url.includes("/api/v1/licenses/by-customer")) {
+      return { body: { success: true, data: [{ key: NEW_PRO, tier: "pro", name: "Licencia PRO (3 puestos)", credits: 1000 }] } };
+    }
+    return { status: 404 };
+  });
+
+  const list = await licensesFor(e, "cliente@despacho.es");
+  assert.equal(list.length, 1);
+  assert.equal(list[0].key, NEW_PRO);
+  assert.equal(list[0].credits, 1000);
+});

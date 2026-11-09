@@ -126,15 +126,15 @@ export async function licensesFor(env, email) {
   if (!norm) return [];
   const k = "mail_lic:" + (await hash(norm, salt(env)));
 
-  // 1. Consultar KV local primero
+  let kvList = [];
   if (env.OAUTH_KV) {
-    const list = await env.OAUTH_KV.get(k, "json");
-    if (Array.isArray(list) && list.length > 0) {
-      return list.filter((l) => l && typeof l.key === "string");
+    const raw = await env.OAUTH_KV.get(k, "json");
+    if (Array.isArray(raw)) {
+      kvList = raw.filter((l) => l && typeof l.key === "string");
     }
   }
 
-  // 2. Si no hay en KV, consultar la pasarela central (keyflint-gateway)
+  // Consultar la pasarela central (keyflint-gateway) para traer licencias nuevas y descartar revocadas
   if (env.KEYFLINT_ADMIN_KEY) {
     try {
       const base = (env.GATEWAY_URL || "https://licenses.keyflint.dev").replace(/\/$/, "");
@@ -144,17 +144,20 @@ export async function licensesFor(env, email) {
       });
       if (res.ok) {
         const d = await res.json().catch(() => ({}));
-        const fromGateway = Array.isArray(d?.data) ? d.data : [];
-        if (fromGateway.length > 0) {
-          const formatted = fromGateway.map((lic) => ({
+        if (Array.isArray(d?.data)) {
+          const fromGateway = d.data.filter((l) => l && typeof l.key === "string").map((lic) => ({
             key: lic.key,
             tier: lic.tier || "registrada",
             name: lic.name || `Licencia ${(lic.tier || "").toUpperCase()}`,
+            ...(Number.isFinite(lic.credits) ? { credits: lic.credits } : {}),
           }));
+          // Conservar claves enlazadas manualmente (tier === "registrada" o sin tier) que no vengan ya del gateway
+          const manual = kvList.filter((l) => (!l.tier || l.tier === "registrada") && !fromGateway.some((g) => g.key === l.key));
+          const merged = [...fromGateway, ...manual].slice(0, 20);
           if (env.OAUTH_KV) {
-            await env.OAUTH_KV.put(k, JSON.stringify(formatted.slice(0, 20)));
+            await env.OAUTH_KV.put(k, JSON.stringify(merged));
           }
-          return formatted;
+          return merged;
         }
       }
     } catch (e) {
@@ -162,7 +165,7 @@ export async function licensesFor(env, email) {
     }
   }
 
-  return [];
+  return kvList;
 }
 
 export async function bindLicense(env, email, entry) {
