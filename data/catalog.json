@@ -250,6 +250,16 @@
           "Conciliación 1:1, 1:N y N:1 con puntuación y evidencias"
         ],
         [
+          "sepa_direct_debits",
+          "2",
+          "Remesa de recibos SEPA (pain.008, Cuaderno 19.14) lista para subir al banco"
+        ],
+        [
+          "sepa_credit_transfers",
+          "2",
+          "Transferencias SEPA (pain.001, Cuaderno 34.14) a proveedores y nóminas"
+        ],
+        [
           "validate_identifier",
           "0",
           "IBAN, CCC, NIF/NIE/CIF, acreedor SEPA"
@@ -326,9 +336,14 @@
           "Convierte el diario entre A3, ContaPlus/Sage 50, QuickBooks, Xero y CSV; ajusta subcuentas"
         ],
         [
+          "invoices_to_journal",
+          "3",
+          "Facturas emitidas y recibidas a asientos con IVA, recargo e IRPF; resumen por tipo para el 303"
+        ],
+        [
           "bank_to_journal",
           "3",
-          "Norma 43 a asientos con reglas; lo no reconocido va a la 555"
+          "Norma 43, CSV del banco o lista de movimientos a asientos; cobros y pagos a la 430/400 de cada factura"
         ],
         [
           "build_journal",
