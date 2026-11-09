@@ -15,6 +15,8 @@ from starlette.applications import Starlette
 from starlette.responses import JSONResponse
 from starlette.routing import Mount, Route
 
+import despacho
+
 SERVERS = {
     "web-intel": "web_intel_mcp.server",
     "norma43": "norma43_mcp.server",
@@ -33,6 +35,10 @@ for slug, module in SERVERS.items():
     srv.billing.hosted = True  # licencia por petición, nunca la del entorno
     apps[slug] = srv.mcp.streamable_http_app(stateless_http=True, json_response=True, transport_security=OPEN,
                                              max_request_body_size=MAX_BODY)
+
+# Conector único para despachos (ContaBridge + Norma 43): mismas herramientas, misma facturación, una sola URL.
+apps["despacho"] = despacho.build({s: importlib.import_module(SERVERS[s]) for s in despacho.PARTS}).streamable_http_app(
+    stateless_http=True, json_response=True, transport_security=OPEN, max_request_body_size=MAX_BODY)
 
 
 @contextlib.asynccontextmanager

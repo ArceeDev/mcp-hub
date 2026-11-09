@@ -37,6 +37,10 @@ Probar en local: `npx wrangler dev --var GATEWAY_URL:http://127.0.0.1:9009` con 
 Cada MCP vive también en `https://mcp.keyflint.dev/<slug>/mcp` (Streamable HTTP). Claude, ChatGPT, Cursor, VS Code,
 Codex y Claude Code lo añaden por URL; la primera vez abren `/authorize`, el usuario pega su licencia y listo.
 
+**Conector único para despachos:** `https://mcp.keyflint.dev/despacho/mcp` junta Norma 43 + ContaBridge (17 herramientas,
+mismo OAuth con código de 6 dígitos, misma facturación por herramienta). Código: `container/despacho.py`; test:
+`test/despacho_check.py`. No necesita rutas ni dominios nuevos en Cloudflare: lo cubre `"/*/mcp"` de `run_worker_first`.
+
 - `src/index.js`: servidor de autorización OAuth 2.1 (`@cloudflare/workers-oauth-provider`: DCR, CIMD, PKCE, refresh) y
   un recurso protegido por MCP. La licencia queda cifrada en los props del token (KV `OAUTH_KV`). Cada token sirve solo
   para el MCP que se autorizó. Los clientes con cabeceras (Antigravity, Windsurf, `config.toml` de Codex) pueden mandar

@@ -9,7 +9,7 @@ RUN pip install --no-cache-dir "uvicorn>=0.30" \
     "verifactu-keyflint-mcp @ git+https://github.com/ArceeDev/verifactu-mcp@${REF}" \
     "dataclean-mcp @ git+https://github.com/ArceeDev/dataclean-mcp@${REF}"
 WORKDIR /srv
-COPY app.py .
+COPY app.py despacho.py ./
 ENV WEB_INTEL_TRANSPORT=http NORMA43_TRANSPORT=http CONTABRIDGE_TRANSPORT=http VERIFACTU_TRANSPORT=http \
     DATACLEAN_TRANSPORT=http PYTHONUNBUFFERED=1
 EXPOSE 8080

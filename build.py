@@ -1192,6 +1192,22 @@ def advisors_page() -> str:
 {code_block("lote-sh", f"curl -LsSf {SITE['url']}/lote.sh | sh -s -- ./extractos --vigilar", "Terminal")}</div>
 </div></section>
 
+<!-- 2b. CONECTOR ÚNICO PARA EL DESPACHO (Norma 43 + ContaBridge en una URL) -->
+<section class="section" id="conector"><div class="wrap install-grid">
+<div class="section-head left"><p class="eyebrow">Un solo conector · Claude, ChatGPT, Antigravity</p>
+<h2>Todo el despacho con una sola URL</h2>
+<p class="lead-sm">Extractos Norma 43, conciliación, facturas al diario, exportación a a3, ContaPlus, Sage 50 o ContaSol y remesas SEPA en el mismo conector. Lo añades una vez y entras con el código de 6 dígitos que te llega por correo.</p>
+<ul class="checks">
+<li>{icon("check")}<span><code>reconcile_movements</code>, <code>bank_to_journal</code>, <code>invoices_to_journal</code>, <code>convert_journal</code>, <code>sepa_direct_debits</code> y el resto</span></li>
+<li>{icon("check")}<span>Mismos precios y créditos que cada herramienta por separado; los fallos se reembolsan</span></li>
+<li>{icon("check")}<span>Claude: Ajustes → Conectores → Añadir conector personalizado → pega la URL</span></li>
+</ul>
+</div>
+<div class="card-flat"><p class="small"><b>URL del conector</b>:</p>
+{code_block("despacho-url", f"{SITE['url']}/despacho/mcp", "URL")}
+<p class="small muted" style="margin-top:14px">Clientes con cabeceras (Claude Code, Cursor, VS Code): <code>Authorization: Bearer LIC-…</code> y sin OAuth.</p></div>
+</div></section>
+
 <!-- 3. SELLO DE RIGOR CONTABLE & SEGURIDAD -->
 {seal(compact=True)}
 
@@ -1941,7 +1957,7 @@ ALT_LANG = {"/": "/en/", "/probar/": "/en/try/", "/saldo/": "/en/balance/", "/em
 
 
 def status_page() -> str:
-    rows = [("licenses", "Licencias y créditos", "licenses.keyflint.dev")] + [(t[1], t[2], f"/{t[1]}/mcp") for t in EN_TOOLS]
+    rows = [("licenses", "Licencias y créditos", "licenses.keyflint.dev")] + [(t[1], t[2], f"/{t[1]}/mcp") for t in EN_TOOLS] + [("despacho", "Flint Despacho (Norma 43 + ContaBridge)", "/despacho/mcp")]
     lis = "".join(f'<li class="st-row"><div><b>{e(n)}</b><span class="muted small"> · <code>{e(d)}</code></span></div>'
                   f'<span class="st" data-st="{k}">Comprobando…</span></li>' for k, n, d in rows)
     body = f"""
