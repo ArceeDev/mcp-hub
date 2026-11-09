@@ -32,6 +32,18 @@ export class McpRuntime extends Container {
   defaultPort = 8080;
   sleepAfter = "10m";
   enableInternet = true; // Web Intel lee webs; todos cobran contra licenses.keyflint.dev
+
+  async fetch(request) {
+    if (request.headers.get("x-container-restart") === "1") {
+      try {
+        await this.destroy();
+      } catch (e) {
+        console.error("container destroy error", e?.message);
+      }
+      return new Response("restarted", { status: 200 });
+    }
+    return super.fetch(request);
+  }
 }
 
 const origin = (env) => (env.PUBLIC_ORIGIN || "https://mcp.keyflint.dev").replace(/\/$/, "");
@@ -315,6 +327,17 @@ export default {
     const { as, resources } = servers(env);
     if (path === "/authorize") return authorize(request, env);
     if (path === "/api/uso" && request.method === "GET") return usage(request, env, url);
+    if (path === "/api/admin/restart" && request.method === "POST") {
+      const n = Math.max(1, Math.min(5, Number(env.MCP_INSTANCES) || INSTANCES));
+      for (let i = 0; i < n; i++) {
+        const id = env.MCP_RUNTIME.idFromName(`instance-${i}`);
+        const stub = env.MCP_RUNTIME.get(id);
+        await stub.fetch(new Request("http://mcp/restart", { headers: { "x-container-restart": "1" } })).catch(() => {});
+      }
+      return new Response(JSON.stringify({ ok: true, message: "Containers restarted" }), {
+        headers: { "content-type": "application/json" },
+      });
+    }
     if (path === "/api/estado" && request.method === "GET")
       return status(env, ctx, SLUGS, () => upstreamFetch(env, new URL("http://mcp/healthz"), new Request("http://mcp/healthz")));
     const dm = path.match(/^\/api\/demo\/([a-z0-9-]+)$/);
