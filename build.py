@@ -372,11 +372,11 @@ def remote_panels(m: dict, local_desktop: str, cards: str) -> dict[str, str]:
     end = "" if multi else "</details>"
     return {
         "desktop": f"""<ol class="mini-steps"><li>{L("En Claude (web, escritorio o móvil): <b>Ajustes</b> › <b>Conectores</b> › <b>Añadir conector personalizado</b>.", "In Claude (web, desktop or mobile): <b>Settings</b> › <b>Connectors</b> › <b>Add custom connector</b>.")}</li>
-<li>{L(f'Ponle nombre y pega la URL{pl}. {"Repite con cada una." if multi else ""}', f'Name it and paste the URL{pl}. {"Repeat for each one." if multi else ""}')}</li><li>{L("Pulsa <b>Conectar</b> e inicia sesión con tu licencia.", "Click <b>Connect</b> and sign in with your license.")}</li></ol>
+<li>{L(f'Ponle nombre y pega {"las URL" if multi else "la URL"}. {"Repite con cada una." if multi else ""}', f'Name it and paste the URL{pl}. {"Repeat for each one." if multi else ""}')}</li><li>{L("Pulsa <b>Conectar</b> e inicia sesión con tu licencia.", "Click <b>Connect</b> and sign in with your license.")}</li></ol>
 {url_block}<a class="btn btn-block" href="https://claude.ai/settings/connectors" target="_blank" rel="noopener">{brand("claude")}{L("Abrir conectores de Claude", "Open Claude connectors")}</a>
 {oauth}{cards}<details class="manual"><summary><span>{L("Instalación local (.mcpb o configuración)", "Local install (.mcpb or config)")}</span>{icon("chevron")}</summary>{local_desktop}</details>""",
         "chatgpt": f"""<ol class="mini-steps"><li>{L("ChatGPT › <b>Ajustes</b> › <b>Apps y conectores</b> › <b>Avanzado</b>: activa el <b>modo desarrollador</b>.", "ChatGPT › <b>Settings</b> › <b>Apps &amp; Connectors</b> › <b>Advanced</b>: turn on <b>developer mode</b>.")}</li>
-<li>{L(f"<b>Crear</b> conector: pega la URL{pl}, autenticación <b>OAuth</b>.", f"<b>Create</b> a connector: paste the URL{pl}, authentication <b>OAuth</b>.")}</li><li>{L("Conecta e inicia sesión con tu licencia.", "Connect and sign in with your license.")}</li></ol>
+<li>{L(f"<b>Crear</b> conector: pega {'las URL' if multi else 'la URL'}, autenticación <b>OAuth</b>.", f"<b>Create</b> a connector: paste the URL{pl}, authentication <b>OAuth</b>.")}</li><li>{L("Conecta e inicia sesión con tu licencia.", "Connect and sign in with your license.")}</li></ol>
 {code_block(f"sn-{s}-gpt-url", sn["url"], "URL" + ("s" if multi else ""))}{oauth}""",
         "code": f"""<ol class="mini-steps"><li>{L(f'Ejecuta {"los comandos" if multi else "el comando"} en tu terminal.', "Run it in your terminal.")}</li>
 <li>{L("Abre Claude Code, escribe <code>/mcp</code> y elige <b>Authenticate</b> para pegar tu licencia.", "Open Claude Code, type <code>/mcp</code> and choose <b>Authenticate</b> to paste your license.")}</li></ol>
@@ -632,7 +632,7 @@ def quick_install() -> str:
     sh = f"curl -LsSf {SITE['url']}/instalar.sh | sh -s -- {LIC_PLACEHOLDER}"
     ps = f"$env:KEYFLINT_LICENSE='{LIC_PLACEHOLDER}'; irm {SITE['url']}/instalar.ps1 | iex"
     return f"""<div class="quick" data-installer='{{"slug": "quick"}}'>
-<p class="quick-title">{icon("terminal")}<b>{L("Un solo comando", "One command")}</b><span class="muted small">{L(f": instala los {len(MCPS)} servidores en Claude Desktop, Cursor, VS Code, Windsurf y Claude Code (los que tengas).", f": installs all {len(MCPS)} tools in Claude Desktop, Cursor, VS Code, Windsurf and Claude Code (whichever you have).")}</span></p>
+<p class="quick-title">{icon("terminal")}<b>{L("Un solo comando", "One command")}</b><span class="muted small">{L(f"Instala los {len(MCPS)} servidores en Claude Desktop, Cursor, VS Code, Windsurf y Claude Code (los que tengas).", f"Installs all {len(MCPS)} tools in Claude Desktop, Cursor, VS Code, Windsurf and Claude Code (whichever you have).")}</span></p>
 <span class="lic-field"><input type="text" autocomplete="off" spellcheck="false" placeholder="{L("Pega aquí tu LIC-…", "Paste your LIC-… here")}" data-license aria-label="{L("Tu licencia", "Your license")}"><span class="lic-state" data-license-state aria-live="polite"></span></span>
 <p class="lic-help"></p>
 {code_block("q-sh", sh, "macOS / Linux · Terminal")}
@@ -796,7 +796,7 @@ def home() -> str:
     body = f"""
 <section class="hero"><div class="glow" aria-hidden="true"></div><div class="wrap hero-grid">
 <div class="hero-copy">
-<div class="kicker"><span class="pill"><span class="pill-dot"></span><span>Herramientas Contables y Servidores MCP Deterministas</span></span></div>
+<div class="kicker"><span class="pill"><span class="pill-dot"></span><span>Herramientas contables y servidores MCP deterministas</span></span></div>
 <h1>Herramientas para tu IA que no se inventan nada</h1>
 <p class="lead">{e(SITE['tagline'])} Funcionan en Claude, Cursor, VS Code, Codex, Antigravity y 10 clientes más.</p>
 <div class="doors-wrap">
@@ -806,7 +806,7 @@ def home() -> str:
   <span class="door-icon">{icon("ledger")}</span>
   <span class="door-body">
     <span class="door-badge">Para Asesorías y Despachos</span>
-    <strong>Extractos bancarios Norma 43 a Excel y Lote</strong>
+    <strong>Extractos Norma 43 a Excel, uno a uno o por lotes</strong>
     <small>Convierte ficheros .n43 de cualquier banco español a Excel con cuadre garantizado. Valida VeriFactu y Facturae sin tocar la terminal.</small>
   </span>
   <span class="door-arr">{icon("arrow-right")}</span>
@@ -815,7 +815,7 @@ def home() -> str:
   <span class="door-icon">{icon("terminal")}</span>
   <span class="door-body">
     <span class="door-badge">Para Desarrolladores e IA</span>
-    <strong>Servidores MCP Locales para Claude, Cursor y Codex</strong>
+    <strong>Servidores MCP locales para Claude, Cursor y Codex</strong>
     <small>Herramientas uvx con cálculo determinista al céntimo, licencias Ed25519 y secreto profesional en tu propia máquina.</small>
   </span>
   <span class="door-arr">{icon("arrow-right")}</span>
@@ -823,13 +823,13 @@ def home() -> str:
 </nav>
 </div>
 <div class="cta-row"><a class="btn btn-primary btn-lg" href="/probar/">{icon("key")}Probar con {SITE['free_credits']} créditos gratis</a>
-<a class="btn btn-ghost btn-lg" href="#en-vivo">{icon("arrow-right")}Probar en vivo sin instalar</a></div>
+<a class="btn btn-ghost btn-lg" href="#en-vivo">{icon("arrow-right")}Ver la demo en vivo</a></div>
 <ul class="assure">
 <li>{icon("check")}{SITE['free_credits']} créditos gratis sin tarjeta</li><li>{icon("check")}Sin permanencia ni suscripción obligatoria</li><li>{icon("check")}Tus datos contables nunca salen de tu equipo</li></ul>
 </div>
 <figure class="demo glass en-video"><video controls preload="none" playsinline poster="/assets/video/flint-lanzamiento-es.webp" width="1280" height="720">
 <source src="/assets/video/flint-lanzamiento-es.mp4" type="video/mp4"></video>
-<figcaption class="demo-foot"><span>{icon("shield")}Salida real de Flint Bank, dos ejecuciones: mismo hash</span><span class="tabnum">70 s</span></figcaption></figure>
+<figcaption class="demo-foot"><span>{icon("shield")}Salida real de Flint Bank, dos ejecuciones: mismo hash</span><span class="tabnum nowrap">70&nbsp;s</span></figcaption></figure>
 </div></section>
 
 <section class="clients" aria-label="Clientes compatibles"><div class="wrap clients-in">
@@ -856,7 +856,7 @@ def home() -> str:
 <ul class="checks"><li>{icon("check")}<span>¿Prefieres terminal? Con <code>--vigilar</code> procesa cada fichero nuevo en cuanto cae en la carpeta</span></li><li>{icon("check")}<span>Guarda el informe auditable <code>.flint.json</code> junto a cada extracto</span></li><li>{icon("check")}<span>Plan Despacho desde 49 €/mes: <a href="/precios/#despacho"><b class="nowrap">2.500 créditos al mes</b></a>, sin permanencia</span></li></ul></div>
 <div class="card-flat"><p class="small"><b>Windows (PowerShell)</b> — procesa la carpeta actual:</p>
 {code_block("lote-ps", f"irm {SITE['url']}/lote.ps1 | iex", "PowerShell")}
-<p class="small" style="margin-top:14px"><b>macOS y Linux</b> — procesa o deja vigilando una carpeta:</p>
+<p class="small"><b>macOS y Linux</b> — procesa o deja vigilando una carpeta:</p>
 {code_block("lote-sh", f"curl -LsSf {SITE['url']}/lote.sh | sh -s -- ./extractos --vigilar", "Terminal")}</div>
 </div></section>
 
@@ -874,7 +874,7 @@ def home() -> str:
 </div></section>
 
 <section class="section"><div class="wrap"><div class="cta-band">
-<div><h2>Empieza gratis hoy</h2><p class="lead-sm">{SITE['free_credits']} créditos para probar cualquier servidor. Recargas desde {SITE['topup']['min']} € o Pro a {money(min_price)} $/mes.</p></div>
+<div><h2>Empieza gratis hoy</h2><p class="lead-sm">{SITE['free_credits']} créditos para probar cualquier servidor. Recargas desde {SITE['topup']['min']} € o Pro a {money(min_price)}&nbsp;$/mes.</p></div>
 <div class="cta-row"><a class="btn btn-primary btn-lg" href="/precios/">Ver planes</a><a class="btn btn-ghost btn-lg" href="/empezar/">Leer la guía</a></div>
 </div></div></section>"""
     ld = [
@@ -1139,7 +1139,7 @@ def advisors_page() -> str:
     
     body = f"""
 <section class="hero"><div class="glow" aria-hidden="true"></div><div class="wrap narrow center">
-<div class="kicker"><span class="pill"><span class="pill-dot"></span><span>Software para Despachos Contables y Asesorías</span></span></div>
+<div class="kicker"><span class="pill"><span class="pill-dot"></span><span>Software para despachos contables y asesorías</span></span></div>
 <h1>Conciliación bancaria Norma 43 y facturas en 1 segundo, sin picar datos</h1>
 <p class="lead">Pasa extractos bancarios (.n43, .c43) y facturas XML directamente a Excel, ContaSol o A3 con 100% de cuadre matemático certificado. Sin suscripciones cautivas ni módulos costosos.</p>
 <div class="cta-row center">
@@ -1167,7 +1167,7 @@ def advisors_page() -> str:
   </div>
   <div class="card glass">
     <span class="tile">{icon("download")}</span>
-    <h3>Procesador por Lotes</h3>
+    <h3>Procesador por lotes</h3>
     <p>¿Tienes 50 extractos o facturas del mes? Arrástralos todos juntos al navegador y descarga el resumen completo unificado. Sin límite de entidades.</p>
     <div style="margin-top:auto;padding-top:16px"><a class="btn btn-primary" href="/lote/">{icon("download")}<span>Abrir por lotes</span></a></div>
   </div>
@@ -1188,7 +1188,7 @@ def advisors_page() -> str:
 </div>
 <div class="card-flat"><p class="small"><b>Windows (PowerShell)</b> — procesa o vigila tu carpeta de extractos:</p>
 {code_block("lote-ps", f"irm {SITE['url']}/lote.ps1 | iex", "PowerShell")}
-<p class="small" style="margin-top:14px"><b>macOS y Linux</b> — terminal:</p>
+<p class="small"><b>macOS y Linux</b> — terminal:</p>
 {code_block("lote-sh", f"curl -LsSf {SITE['url']}/lote.sh | sh -s -- ./extractos --vigilar", "Terminal")}</div>
 </div></section>
 
@@ -1310,7 +1310,7 @@ def norma43_excel_page() -> str:
         ("¿Mis datos bancarios están protegidos (RGPD)?",
          "Totalmente. Los ficheros viajan cifrados bajo TLS a servidores en la Unión Europea (París), se procesan exclusivamente en memoria volátil y se descartan inmediatamente tras generar el resultado. Nunca se almacenan ni se usan para entrenar modelos de IA (RGPD Art. 28). Para despachos con máxima exigencia de secreto profesional, el modo local con uvx procesa el extracto 100% dentro de tu propio ordenador sin que salga a internet."),
         ("¿Cuánto cuesta convertir extractos bancarios a Excel?",
-         "Comienzas con 25 créditos totalmente gratuitos (unos 25 extractos bancarios, sin tarjeta). Después puedes recargar saldo libremente desde 5 € (1 céntimo por extracto) sin cuotas mensuales fijas obligatorias: pagas solo lo que procesas y los créditos no caducan."),
+         "Comienzas con 25 créditos totalmente gratuitos (unos 25 extractos bancarios, sin tarjeta). Después puedes recargar saldo libremente desde 5 € (unos 5 céntimos por extracto) sin cuotas mensuales fijas obligatorias: pagas solo lo que procesas y los créditos no caducan."),
     ]
     term = f"curl -LsSf {SITE['url']}/lote.sh | sh -s -- ./extractos --vigilar"
     body = f"""
