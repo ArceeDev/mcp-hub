@@ -122,12 +122,53 @@ export async function closeSession(env, token) {
 
 // Licencias enlazadas a un correo verificado (prefijo nuevo: las de "email_licenses:" se crearon sin verificar y se ignoran).
 export async function licensesFor(env, email) {
-  const list = await env.OAUTH_KV.get("mail_lic:" + (await hash(email, salt(env))), "json");
-  return Array.isArray(list) ? list.filter((l) => l && typeof l.key === "string") : [];
+  const norm = normEmail(email);
+  if (!norm) return [];
+  const k = "mail_lic:" + (await hash(norm, salt(env)));
+
+  // 1. Consultar KV local primero
+  if (env.OAUTH_KV) {
+    const list = await env.OAUTH_KV.get(k, "json");
+    if (Array.isArray(list) && list.length > 0) {
+      return list.filter((l) => l && typeof l.key === "string");
+    }
+  }
+
+  // 2. Si no hay en KV, consultar la pasarela central (keyflint-gateway)
+  if (env.KEYFLINT_ADMIN_KEY) {
+    try {
+      const base = (env.GATEWAY_URL || "https://licenses.keyflint.dev").replace(/\/$/, "");
+      const res = await fetch(`${base}/api/v1/licenses/by-customer?email=${encodeURIComponent(norm)}`, {
+        headers: { "x-admin-key": env.KEYFLINT_ADMIN_KEY, accept: "application/json", "user-agent": "mcp-hub-oauth" },
+        signal: AbortSignal.timeout(6000),
+      });
+      if (res.ok) {
+        const d = await res.json().catch(() => ({}));
+        const fromGateway = Array.isArray(d?.data) ? d.data : [];
+        if (fromGateway.length > 0) {
+          const formatted = fromGateway.map((lic) => ({
+            key: lic.key,
+            tier: lic.tier || "registrada",
+            name: lic.name || `Licencia ${(lic.tier || "").toUpperCase()}`,
+          }));
+          if (env.OAUTH_KV) {
+            await env.OAUTH_KV.put(k, JSON.stringify(formatted.slice(0, 20)));
+          }
+          return formatted;
+        }
+      }
+    } catch (e) {
+      console.error("gateway licenses lookup error", e?.message || e);
+    }
+  }
+
+  return [];
 }
 
 export async function bindLicense(env, email, entry) {
-  const k = "mail_lic:" + (await hash(email, salt(env)));
+  const norm = normEmail(email);
+  if (!norm || !env.OAUTH_KV) return;
+  const k = "mail_lic:" + (await hash(norm, salt(env)));
   const list = (await env.OAUTH_KV.get(k, "json")) || [];
   if (!list.some((l) => l.key === entry.key)) {
     list.push(entry);

@@ -102,3 +102,25 @@ test("sesión verificada: token aleatorio, formato estricto", async () => {
   assert.equal(await readSession(e, t), "ana@despacho.es");
   assert.equal(await readSession(e, "ana@despacho.es"), "");
 });
+
+
+test("licensesFor recupera licencias activas del gateway si KV está vacío y las cachea", async () => {
+  const e = env();
+  m = mockFetch((url) => {
+    if (url.includes("/api/v1/licenses/by-customer")) {
+      return { body: { success: true, data: [{ key: LIC, tier: "pro", name: "Licencia PRO (3 puestos)" }] } };
+    }
+    return { status: 404 };
+  });
+  const list = await licensesFor(e, "cliente@despacho.es");
+  assert.equal(list.length, 1);
+  assert.equal(list[0].key, LIC);
+  assert.equal(list[0].tier, "pro");
+
+  // Al restaurar mockFetch (sin red), debe responder desde el cache KV
+  m.restore();
+  m = null;
+  const cached = await licensesFor(e, "cliente@despacho.es");
+  assert.equal(cached.length, 1);
+  assert.equal(cached[0].key, LIC);
+});
