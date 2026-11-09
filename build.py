@@ -1288,6 +1288,7 @@ def batch_page() -> str:
 <div class="card-flat batch-term"><p class="small"><b>{L("¿Prefieres dejar una carpeta vigilada?", "Prefer a watched folder?")}</b> {L("El mismo proceso por terminal procesa cada fichero nuevo en cuanto cae en la carpeta:", "The same process from a terminal handles each new file as soon as it lands in the folder:")}</p>
 {code_block("lote-sh", term, "Terminal")}
 <p class="muted small">Windows: <code>irm {SITE['url']}/lote.ps1 | iex</code></p></div>
+{bank_links_section() if _LANG[-1] == "es" else ""}
 </div></section>
 <script defer src="/assets/lote.js?v={VERSION}"></script>"""
     return page(U("batch"), L("Procesador por lotes Norma 43, VERI*FACTU y Facturae · Flint", "Batch processor for Norma 43, VERI*FACTU and Facturae · Flint"),
@@ -1472,6 +1473,7 @@ def norma43_target_page(target: str) -> str:
 </div>
 
 <div class="faq" style="margin-top:40px"><h2 class="h3" style="margin-bottom:20px">Preguntas frecuentes sobre Norma 43 en {e(short)}</h2>{faq_html(faq)}</div>
+{bank_links_section() if target == "contasol" else ""}
 </div></section>
 <script defer src="/assets/lote.js?v={VERSION}"></script>"""
     return page(t["path"], t["title"], t["desc"], body, [faq_ld(faq)])
@@ -1479,6 +1481,241 @@ def norma43_target_page(target: str) -> str:
 
 def norma43_contasol_page() -> str:
     return norma43_target_page("contasol")
+
+
+# --- pSEO bancos y pasarelas -> ContaSol --------------------------------------------------------------------
+# Texto verificado contra contabridge bank.movements_from_csv: el CSV necesita cabeceras Fecha/Date (o Fecha
+# operación, Fecha valor, Booking date, Transaction date) + Importe/Amount (o Cargo y Abono) y Concepto/Description.
+# Las cabeceras de Revolut, Stripe y PayPal no se reconocen tal cual: cada página dice qué columna renombrar.
+BANK_PAGES = {
+    "revolut": {
+        "path": "/revolut-a-contasol/", "name": "Revolut", "kind": "pasarela", "csv": True,
+        "h1": "Convertir extracto Revolut (CSV) a ContaSol APU.ods",
+        "desc": "Pasa el extracto CSV de Revolut Business o Revolut personal a un APU.ods para ContaSol: un asiento por movimiento contra tu 572, sin OCR y con lo dudoso en la 555.",
+        "lead": "Revolut no da Norma 43, pero sí un extracto en CSV. Flint lo convierte en el fichero de apuntes APU.ods que importa ContaSol, con la subcuenta 572 que uses para Revolut.",
+        "export": [
+            "En la app o en la web de Revolut abre la cuenta en euros y pide el extracto del periodo.",
+            "Elige el formato Excel/CSV (no PDF) y descárgalo.",
+            "Si tienes varias divisas, descarga un extracto por divisa y convierte solo el de euros.",
+        ],
+        "cols": [("Completed Date (o Date completed)", "Fecha"), ("Amount", "Importe"), ("Description", "Concepto (ya se reconoce)")],
+        "cols_note": "Flint aún no reconoce las cabeceras en inglés de Revolut. Renombra la fecha y el importe en Excel o LibreOffice, guarda como CSV y arrástralo. Usa la fecha de completado: es la del cargo real en la cuenta.",
+        "tips": [
+            ("Una subcuenta por cuenta Revolut", "Da de alta en ContaSol una 572 propia (por ejemplo 57200005 Revolut EUR) para que el saldo cuadre con el de la app."),
+            ("Sin conversión de divisas", "Flint no convierte importes ni inventa tipos de cambio. Un CSV en USD o GBP se contabilizaría tal cual: no lo mezcles con el de euros."),
+            ("Comisiones", "Si la columna Fee trae importes, el Amount ya es el movimiento real de la cuenta. Las comisiones que Revolut cobra como fila aparte salen como otro apunte que puedes llevar a la 626."),
+        ],
+        "faq": [
+            ("¿Sirve para Revolut Business y para Revolut personal?", "Sí, mientras el CSV tenga una fecha, un importe con signo y una descripción por fila. Las dos versiones traen esas columnas; solo hay que renombrarlas a Fecha, Importe y Concepto."),
+            ("¿Por qué no aceptáis el PDF de Revolut?", "Esta página trabaja con CSV, que trae los importes exactos sin leer un documento impreso. Así no hay errores de lectura ni céntimos perdidos."),
+            ("¿Qué pasa con las transferencias entre mis cuentas Revolut?", "Cada movimiento sin regla va a la 555 para revisar. Así ves los traspasos entre bolsillos o divisas y los llevas a mano a la 572 que corresponda, sin que Flint adivine nada."),
+        ],
+        "kw": "revolut a contasol, extracto revolut contasol, importar revolut business contasol, revolut csv apu.ods, contabilizar revolut contasol",
+    },
+    "stripe": {
+        "path": "/stripe-a-contasol/", "name": "Stripe", "kind": "pasarela", "csv": True,
+        "h1": "Contabilizar Stripe (CSV) en ContaSol y A3 sin picar asientos",
+        "desc": "Convierte el informe CSV de saldo de Stripe en apuntes para ContaSol (APU.ods) o A3 (SUENLACE.DAT): cobros, comisiones y transferencias al banco, cada uno a su sitio y sin picar asientos.",
+        "lead": "Stripe junta cobros, comisiones, reembolsos y transferencias a tu banco. Flint convierte el CSV de saldo en un asiento por fila contra la subcuenta que uses para Stripe, listo para ContaSol o A3.",
+        "export": [
+            "En el panel de Stripe abre los informes de saldo y elige el periodo (un mes cerrado).",
+            "Descarga las transacciones del saldo en CSV, en la moneda de tu cuenta (EUR).",
+            "Si te interesa separar la comisión, descarga la versión con columnas de importe bruto, comisión y neto.",
+        ],
+        "cols": [("Created (UTC) o Available On", "Fecha"), ("Net (neto) o Amount (bruto)", "Importe"), ("Description", "Concepto (ya se reconoce)")],
+        "cols_note": "Flint aún no reconoce las cabeceras en inglés de Stripe. Renombra la fecha y el importe, guarda como CSV y arrástralo. Deja una sola columna llamada Importe: si dejas Amount y Net a la vez, se usaría la primera que aparezca.",
+        "tips": [
+            ("Stripe es una cuenta, no un cliente", "Trata el saldo de Stripe como una 572 aparte (por ejemplo 57200009 Stripe). Las transferencias (payouts) son un traspaso de esa 572 a la de tu banco."),
+            ("Neto o bruto", "Con Net, cada cobro entra ya sin comisión y el saldo cuadra con lo que llega al banco; la comisión la apuntas a la 626 en un asiento resumen del mes. Con Amount, la comisión debe venir como fila propia."),
+            ("Lo dudoso a la 555", "Flint no sabe qué cliente pagó cada cargo. Todo lo que no tenga regla va a la 555 para que lo apliques a la 430 o a ventas, sin cuentas inventadas."),
+        ],
+        "faq": [
+            ("¿Sirve también para A3?", "Sí. Esta página genera el APU.ods de ContaSol; el mismo CSV en la página CSV a A3 genera el SUENLACE.DAT para a3ASESOR, a3ECO y a3CON."),
+            ("¿Contabiliza el IVA de cada venta?", "No. Desde el extracto solo se conoce el dinero que se mueve. El IVA sale de las facturas: desde Claude o Cursor, la herramienta invoices_to_journal las contabiliza con IVA y luego casa los cobros de Stripe con ellas."),
+            ("¿Y los reembolsos y disputas?", "Son filas con importe negativo y salen como cargos en la cuenta de Stripe. Van a la 555 para que decidas si anulan una venta o son un gasto."),
+        ],
+        "kw": "contabilizar stripe contasol, stripe a contasol, stripe a3, importar stripe contabilidad, csv stripe asientos, comisiones stripe contabilidad",
+    },
+    "paypal": {
+        "path": "/paypal-a-contasol/", "name": "PayPal", "kind": "pasarela", "csv": True,
+        "h1": "Convertir movimientos PayPal (CSV) a ContaSol y A3",
+        "desc": "Pasa el informe de actividad CSV de PayPal a apuntes para ContaSol (APU.ods) o A3 (SUENLACE.DAT): cobros, pagos y retiradas al banco con su 572, sin picar asientos.",
+        "lead": "El informe de actividad de PayPal trae cada cobro, pago y retirada. Flint lo convierte en apuntes contra la subcuenta que uses para PayPal y te da el APU.ods para ContaSol.",
+        "export": [
+            "En PayPal abre Actividad y busca la opción de descargar el informe de actividad.",
+            "Elige el periodo, el tipo de transacciones (todas o solo las que afectan al saldo) y el formato CSV.",
+            "Descarga el fichero en euros; si cobras en otras divisas, filtra o separa esas filas.",
+        ],
+        "cols": [("Fecha (o Date)", "Fecha (ya se reconoce)"), ("Neto o Bruto (Net o Gross)", "Importe"), ("Nombre o Asunto", "Concepto")],
+        "cols_note": "La fecha de PayPal ya se reconoce. El importe no: renombra la columna que quieras usar a Importe y deja solo una. Si el fichero trae las cifras entre comillas con coma decimal, no hace falta tocarlas.",
+        "tips": [
+            ("Una 572 para PayPal", "Da de alta una subcuenta propia (por ejemplo 57200008 PayPal) para que el saldo de ContaSol cuadre con el de PayPal."),
+            ("Filas que no mueven saldo", "El informe completo incluye retenciones y autorizaciones que no son dinero real. Descarga solo las transacciones que afectan al saldo para no duplicar movimientos."),
+            ("Retiradas al banco", "Cada retirada es un traspaso a la 572 del banco. Flint la deja en la 555 para que la casas con el abono del extracto bancario."),
+        ],
+        "faq": [
+            ("¿Sirve también para A3?", "Sí. Con el mismo CSV, la página CSV a A3 genera el SUENLACE.DAT. ContaPlus también tiene su página."),
+            ("¿Qué columna de importe uso, Bruto o Neto?", "Neto si quieres que el saldo cuadre con el dinero que queda en PayPal; Bruto si vas a apuntar la tarifa de PayPal aparte a la 626. Deja solo una columna llamada Importe."),
+            ("¿Detecta qué cliente pagó?", "No lo adivina. Los cobros sin regla van a la 555. Desde Claude o Cursor puedes pasar las facturas pendientes y Flint casa cada cobro con la 430 cuando importe y referencia coinciden."),
+        ],
+        "kw": "paypal a contasol, contabilizar paypal contasol, paypal a3, informe actividad paypal csv contabilidad, importar paypal apu.ods",
+    },
+    "caixabank": {
+        "path": "/caixabank-a-contasol/", "name": "CaixaBank", "kind": "banco", "csv": False,
+        "h1": "Importar extracto CaixaBank (Norma 43 o CSV) en ContaSol",
+        "desc": "Convierte el extracto de CaixaBank (Norma 43 o CSV) en el APU.ods de ContaSol con la 572 del banco. Norma 43 con saldos comprobados; lo dudoso a la 555.",
+        "lead": "CaixaBank permite descargar los movimientos en Norma 43 (cuaderno 43) desde la banca de empresas. Es el formato más fiable: Flint comprueba los saldos del fichero antes de generar el APU.ods para ContaSol.",
+        "export": [
+            "En CaixaBankNow (empresas) busca la descarga de movimientos de cuentas en formato Norma 43 o cuaderno 43.",
+            "Elige la cuenta y el periodo y descarga el fichero (suele tener extensión .txt, .n43 o .aeb).",
+            "Si solo tienes la exportación a Excel, guárdala como CSV y revisa las columnas (abajo).",
+        ],
+        "cols": [("Fecha", "Fecha (ya se reconoce)"), ("Importe", "Importe (ya se reconoce)"), ("Movimiento", "Concepto")],
+        "cols_note": "Si tu exportación trae una columna Movimiento con el texto del apunte antes de Importe, renómbrala a Concepto: si no, Flint la tomaría como importe y rechazaría el fichero sin cobrarlo.",
+        "tips": [
+            ("Mejor Norma 43 que CSV", "El fichero Norma 43 trae saldo inicial, final y totales de control: Flint verifica que saldo inicial + abonos - cargos = saldo final. El CSV no permite esa comprobación."),
+            ("Extensión del fichero", "Si CaixaBank lo descarga como .txt, cámbiale la extensión a .n43 antes de arrastrarlo."),
+            ("Varias cuentas", "Un mismo Norma 43 puede traer varias cuentas. Si tienen subcuentas 572 distintas, conviértelas desde Claude o Cursor con bank_accounts; aquí todas van a la 572 del formulario."),
+        ],
+        "faq": [
+            ("¿Qué formato me conviene descargar de CaixaBank?", "Norma 43. Es el estándar de la banca española, trae los importes exactos y los saldos de control, y Flint los comprueba antes de generar nada."),
+            ("¿Funciona con CaixaBankNow de particulares?", "Si tu acceso solo ofrece Excel o CSV, también vale: guárdalo como CSV con columnas de fecha, importe y concepto."),
+            ("¿Qué hace con los recibos y transferencias?", "Un asiento por movimiento contra la 572. Lo que no tiene regla va a la 555 para revisar. Desde Claude o Cursor puedes añadir reglas (por ejemplo, ENDESA a la 628)."),
+        ],
+        "kw": "caixabank contasol, importar extracto caixabank contasol, norma 43 caixabank, caixabanknow norma 43, extracto caixabank apu.ods",
+    },
+    "bbva": {
+        "path": "/bbva-a-contasol/", "name": "BBVA", "kind": "banco", "csv": False,
+        "h1": "Importar extracto BBVA (Norma 43 o CSV) en ContaSol",
+        "desc": "Convierte el extracto de BBVA (Norma 43 o CSV) en el APU.ods de ContaSol con la 572 del banco, comprobando los saldos del fichero y sin picar asientos.",
+        "lead": "BBVA ofrece los movimientos en Norma 43 en la banca de empresas y en Excel en la web. Flint convierte cualquiera de los dos en el APU.ods de ContaSol, y con Norma 43 además cuadra los saldos.",
+        "export": [
+            "En BBVA net cash (empresas) busca la descarga de movimientos en formato Norma 43 o AEB 43.",
+            "En la web de particulares o autónomos, descarga los movimientos en Excel y guárdalos como CSV.",
+            "Descarga un mes cerrado por cuenta para que la numeración de asientos sea limpia.",
+        ],
+        "cols": [("Fecha", "Fecha (ya se reconoce)"), ("Importe", "Importe (ya se reconoce)"), ("Concepto", "Concepto (ya se reconoce)")],
+        "cols_note": "Si tu exportación trae también una columna Movimiento con texto antes de Importe, renómbrala o bórrala: si no, Flint la tomaría como importe y rechazaría el fichero sin cobrarlo.",
+        "tips": [
+            ("Norma 43 con cuadre", "Con el Norma 43, Flint comprueba los totales del registro 33 y que saldo inicial + movimientos = saldo final antes de generar los apuntes."),
+            ("Quita las filas de cabecera", "No hace falta: Flint busca la fila de títulos en las primeras 40 filas y salta los totales del final."),
+            ("Cuenta de valores o tarjeta", "Convierte solo la cuenta corriente. Las liquidaciones de tarjeta de crédito suelen llevar otra 52x en tu plan de cuentas."),
+        ],
+        "faq": [
+            ("¿Qué formato me conviene descargar de BBVA?", "Norma 43 si tienes acceso a la banca de empresas: trae los saldos de control. Si no, el Excel de movimientos guardado como CSV."),
+            ("¿Acepta el Excel (.xlsx) directamente?", "No: guárdalo como CSV desde Excel o LibreOffice (separador punto y coma o coma, los dos valen)."),
+            ("¿Cuánto cuesta?", "3 créditos por fichero convertido, unos 0,15 €. Si el fichero no se puede leer, no se cobra."),
+        ],
+        "kw": "bbva contasol, importar extracto bbva contasol, norma 43 bbva, bbva net cash norma 43, extracto bbva apu.ods",
+    },
+    "santander": {
+        "path": "/santander-a-contasol/", "name": "Banco Santander", "kind": "banco", "csv": False,
+        "h1": "Importar extracto Banco Santander (Norma 43 o CSV) en ContaSol",
+        "desc": "Convierte el extracto de Banco Santander (Norma 43 o CSV) en el APU.ods de ContaSol con la 572 del banco. Saldos comprobados y lo dudoso a la 555.",
+        "lead": "Banco Santander permite descargar los movimientos en Norma 43 desde la banca de empresas y en Excel desde la web. Flint convierte los dos en el APU.ods que importa ContaSol.",
+        "export": [
+            "En la banca de empresas de Santander busca la descarga de movimientos en cuaderno 43 o Norma 43.",
+            "En la web de particulares, descarga los movimientos en Excel y guárdalos como CSV.",
+            "Descarga un fichero por cuenta y por mes para cuadrar con el extracto en papel.",
+        ],
+        "cols": [("Fecha Operación", "Fecha (ya se reconoce)"), ("Importe", "Importe (ya se reconoce)"), ("Concepto", "Concepto (ya se reconoce)")],
+        "cols_note": "Con las columnas Fecha Operación, Fecha Valor, Concepto, Importe y Saldo no hay que tocar nada. Si tu descarga usa otros títulos, renómbralos a Fecha, Importe y Concepto.",
+        "tips": [
+            ("Fecha de operación o valor", "Flint usa la fecha de operación para el asiento. Desde Claude o Cursor puedes pedir la fecha valor (use_value_date)."),
+            ("Norma 43 con cuadre", "Con el Norma 43, Flint comprueba que saldo inicial + abonos - cargos = saldo final y marca el fichero si no cuadra."),
+            ("Mezcla de bancos", "Puedes arrastrar a la vez el Santander y los de otros bancos del cliente. Los asientos se numeran seguidos; cambia la 572 del formulario entre lotes si cada banco tiene la suya."),
+        ],
+        "faq": [
+            ("¿Qué formato me conviene descargar de Santander?", "Norma 43 si lo tienes: trae los saldos de control. Si no, el Excel de movimientos guardado como CSV funciona igual."),
+            ("¿Sirve para Santander Empresas y Particulares?", "Sí. El formato Norma 43 es el mismo en todos los bancos españoles, y el CSV vale si tiene fecha, importe y concepto."),
+            ("¿Sube mis datos a algún sitio?", "En esta página cada fichero viaja cifrado a nuestro servidor, se procesa en memoria y no se guarda. Con la instalación local, los extractos no salen del despacho hacia nosotros: solo viajan la licencia y el crédito."),
+        ],
+        "kw": "santander contasol, importar extracto santander contasol, norma 43 santander, cuaderno 43 santander empresas, extracto santander apu.ods",
+    },
+}
+SEO_KEYWORDS.update({b["path"]: b["kw"] for b in BANK_PAGES.values()})
+
+
+def bank_links_section() -> str:
+    """Enlaces cruzados a las páginas pSEO de BANK_PAGES (solo en las páginas en español)."""
+    cards = "".join(f'<li><a href="{b["path"]}">{icon("landmark" if b["kind"] == "banco" else "refresh")}<span><b>{e(b["name"])}</b>'
+                    f'<span class="muted small"> · {"Norma 43 o CSV" if b["kind"] == "banco" else "CSV"}</span></span></a></li>'
+                    for b in BANK_PAGES.values())
+    return (f'<div class="bank-links" style="margin-top:40px"><h2 class="h3">Bancos y pasarelas compatibles</h2>'
+            f'<p class="muted small">Guías paso a paso para llevar el extracto de cada uno a ContaSol.</p>'
+            f'<ul class="checks" style="columns:2;margin-top:12px">{cards}</ul></div>')
+
+
+def bank_page(key: str) -> str:
+    b = BANK_PAGES[key]
+    t = N43_TARGETS["contasol"]
+    csv = b["csv"]
+    accept = ".csv" if csv else ".n43,.c43,.q43,.csv"
+    drop = (f"Suelta aquí el CSV de {b['name']} (.csv)" if csv
+            else f"Suelta aquí el Norma 43 (.n43, .c43) o el CSV de {b['name']}")
+    steps = "".join(f'<li class="step"><span class="tile tile-sm">{icon(ic)}</span><div><h3><span class="step-n">{i}</span>{e(h)}</h3><p>{e(s)}</p></div></li>'
+                    for i, (s, ic, h) in enumerate(zip(b["export"], ("landmark", "download", "check"),
+                                                       (f"Entra en {b['name']}", "Descarga el fichero", "Antes de convertir")), 1))
+    cols = "".join(f'<tr><td style="white-space:normal">{e(a)}</td><td style="white-space:normal">{e(c)}</td></tr>' for a, c in b["cols"])
+    tips = "".join(f'<li>{icon("check")}<span><b>{e(h)}:</b> {e(x)}</span></li>' for h, x in b["tips"])
+    others = " · ".join(f'<a href="{o["path"]}">{e(o["name"])}</a>' for k, o in BANK_PAGES.items() if k != key)
+    a3 = ' ¿Usas A3? Con el mismo CSV, <a href="/csv-a-a3/">CSV a A3 (SUENLACE.DAT)</a>.' if b["kind"] == "pasarela" else ""
+    faq = list(b["faq"])
+    if not any("cuesta" in q for q, _ in faq):
+        faq.append(("¿Cuánto cuesta y hay suscripción?",
+                    f"Cada fichero convertido son 3 créditos (unos 0,15 €) y si falla no se cobra. Con tu correo tienes {SITE['free_credits']} créditos gratis sin tarjeta; después recargas desde 5 € o usas el Plan Despacho."))
+    body = f"""
+<section class="hero"><div class="glow" aria-hidden="true"></div><div class="wrap narrow">
+<nav class="crumbs" aria-label="Ruta"><a href="/">Inicio</a>{icon("chevron-right")}<a href="/norma43-a-contasol/">ContaSol</a>{icon("chevron-right")}<span aria-current="page">{e(b["name"])}</span></nav>
+<h1>{e(b["h1"])}</h1>
+<p class="lead">{e(b["lead"])}</p>
+</div></section>
+
+<section class="section tight"><div class="wrap narrow" data-batch data-batch-target="contasol"{' data-batch-csv-mode="1"' if csv else ""}>
+<form class="saldo-form glass batch" data-batch-form novalidate>
+<label class="lic"><span class="lic-label">{icon("key")}Tu correo o licencia</span>
+<span class="lic-field"><input type="text" name="license" autocomplete="email" spellcheck="false" placeholder="tu@correo.com o LIC-…" required aria-describedby="bk-help" data-batch-lic></span>
+<span id="bk-help" class="lic-help">Escribe tu correo para activar <b>{SITE['free_credits']} créditos gratis</b> al instante (sin tarjeta) o pega tu clave LIC-….</span></label>
+<label class="lic"><span class="lic-label">{icon("landmark")}Subcuenta de {e(b["name"])}</span>
+<span class="lic-field"><input type="text" name="bank" inputmode="numeric" autocomplete="off" value="57200001" pattern="57[0-9]{{2,10}}" required data-batch-bank aria-describedby="bkb-help"></span>
+<span id="bkb-help" class="lic-help">La 572 que usas para {e(b["name"])} en ContaSol. Los apuntes sin regla van a la 555 para revisar.</span></label>
+
+<label class="drop" data-batch-drop><input type="file" multiple accept="{accept}" class="sr-only" data-batch-input>
+<span class="tile">{icon("download")}</span><b>{e(drop)}</b>
+<span class="muted small">Vista previa instantánea · Sin OCR · hasta 10 MB</span></label>
+<div class="sample-bar"><button type="button" class="btn-sample" data-batch-sample>{icon("refresh")}<span>Cargar extracto de prueba (demo en 1 clic)</span></button></div>
+
+<div class="tw batch-list" data-batch-list hidden><table class="uso-t"><thead><tr><th>Fichero</th><th>Tipo</th><th>Estado</th><th>Detalle</th><th class="num"></th></tr></thead><tbody data-batch-rows></tbody></table></div>
+<div class="batch-actions"><button class="btn btn-primary btn-lg" type="submit" data-batch-go disabled>{icon("refresh")}<span>Convertir para ContaSol</span></button>
+<button class="btn btn-ghost" type="button" data-batch-stop hidden>Detener</button>
+<button class="btn btn-quiet" type="button" data-batch-clear hidden>Vaciar lista</button>
+<span class="muted small tabnum" data-batch-cost aria-live="polite"></span></div>
+<p class="note" data-batch-msg aria-live="polite" hidden>{icon("info")}<span></span></p>
+
+<div class="batch-out" data-batch-out hidden><h2 class="h4">{icon("check")}APU.ods generado</h2>
+<p class="muted small">Un fichero: descargas APU.ods. Varios: un ZIP con todos, con los asientos numerados seguidos. Revisa los marcados como REVISAR_555 antes de cerrar.</p>
+<div class="cta-row"><button class="btn btn-primary" type="button" data-batch-csv>{icon("download")}Descargar APU.ods</button>
+<button class="btn btn-ghost" type="button" data-batch-zip>{icon("table")}Todo con resumen (.zip)</button>
+<a class="btn btn-quiet" href="/precios/#despacho">Ver tarifas y recargas</a></div></div>
+</form>
+
+<div class="install-grid batch-info">
+<div><h2 class="h3">Cómo descargar el extracto de {e(b["name"])}</h2>
+<ol class="steps" style="margin-top:14px">{steps}</ol></div>
+<div><h2 class="h3">Columnas que necesita Flint</h2>
+<div class="tw uso"><table class="uso-t"><thead><tr><th style="white-space:normal">En tu fichero de {e(b["name"])}</th><th>Llámala</th></tr></thead><tbody>{cols}</tbody></table></div>
+<p class="muted small">{e(b["cols_note"])}</p></div>
+</div>
+
+<div style="margin-top:32px"><h2 class="h3">Contabilizar {e(b["name"])} en ContaSol sin sorpresas</h2>
+<ul class="checks" style="margin-top:12px">{tips}</ul>
+<p class="muted small">Importación: {t["import"]} La primera vez, pruébalo en una empresa de pruebas.{a3}</p></div>
+
+<div class="faq" style="margin-top:40px"><h2 class="h3" style="margin-bottom:20px">Preguntas frecuentes sobre {e(b["name"])} y ContaSol</h2>{faq_html(faq)}</div>
+<p class="muted small" style="margin-top:24px">Otros bancos y pasarelas: {others} · <a href="/csv-a-contasol/">Cualquier CSV</a> · <a href="/norma43-a-contasol/">Cualquier Norma 43</a></p>
+</div></section>
+<script defer src="/assets/lote.js?v={VERSION}"></script>"""
+    return page(b["path"], f"{b['h1']} · Flint", b["desc"], body, [faq_ld(faq)])
 
 
 def csv_target_page(target: str) -> str:
@@ -1495,7 +1732,7 @@ def csv_target_page(target: str) -> str:
         (f"¿Cómo se importa el archivo resultante en {short}?",
          f"Flint transforma cada fila del CSV en un asiento cuadrado contra la subcuenta 572 que indiques (y lleva lo pendiente a la 555 sin inventar cuentas). Descargas {fname} listo para importar. {t['import'].replace('<b>', '').replace('</b>', '').replace('&gt;', '>')}"),
         ("¿Sirve para Revolut, Wise, Stripe, PayPal y bancos españoles?",
-         "Sí. Cualquier extracto descargado en CSV desde Revolut Business, Wise, Stripe, PayPal, Qonto, N26 o la web de CaixaBank, BBVA, Santander y Sabadell se convierte al instante sin usar OCR ni perder un céntimo."),
+         "Sí, si el CSV tiene columnas de fecha, importe y concepto. Los bancos españoles suelen traerlas con esos nombres; en Revolut, Stripe y PayPal hay que renombrar alguna columna antes. Cada guía explica cuál: Revolut, Stripe, PayPal, CaixaBank, BBVA y Santander."),
         ("¿Hay suscripción obligatoria?",
          f"No. Al escribir tu correo tienes {SITE['free_credits']} créditos gratis al instante sin tarjeta (8 lotes completos gratis). Después puedes recargar desde 5 € pago por uso sin suscripción, o usar el Plan Despacho."),
     ]
@@ -1552,6 +1789,7 @@ def csv_target_page(target: str) -> str:
 </div>
 
 <div class="faq" style="margin-top:40px"><h2 class="h3" style="margin-bottom:20px">Preguntas frecuentes sobre convertir CSV a {e(short)}</h2>{faq_html(faq)}</div>
+{bank_links_section() if target == "contasol" else ""}
 </div></section>
 <script defer src="/assets/lote.js?v={VERSION}"></script>"""
     return page(path, title, desc, body, [faq_ld(faq)])
@@ -2280,6 +2518,8 @@ def main() -> None:
     write("csv-a-contasol/index.html", csv_target_page("contasol"))
     write("csv-a-a3/index.html", csv_target_page("a3"))
     write("csv-a-contaplus/index.html", csv_target_page("contaplus_ascii"))
+    for _k, _b in BANK_PAGES.items():
+        write(_b["path"].strip("/") + "/index.html", bank_page(_k))
     installer_files()
     try:
         import subprocess
@@ -2293,7 +2533,7 @@ def main() -> None:
         print("AVISO: faltan datos del titular en data/catalog.json -> site.legal:", ", ".join(legal_missing()))
     for m in MCPS:
         write(f"{m['slug']}/index.html", mcp_page(m))
-    paths = ["/", "/probar/", "/empezar/", "/precios/", "/terminos/", "/reembolsos/", "/aviso-legal/", "/confianza/", "/norma43-a-excel/", "/norma43-a-contasol/", "/norma43-a-a3/", "/norma43-a-contaplus/", "/csv-a-contasol/", "/csv-a-a3/", "/csv-a-contaplus/", "/en/", "/en/try/", "/en/start/", "/estado/", "/asesorias/", "/lote/", "/en/batch/"] + [f"/{m['slug']}/" for m in MCPS]
+    paths = ["/", "/probar/", "/empezar/", "/precios/", "/terminos/", "/reembolsos/", "/aviso-legal/", "/confianza/", "/norma43-a-excel/", "/norma43-a-contasol/", "/norma43-a-a3/", "/norma43-a-contaplus/", "/csv-a-contasol/", "/csv-a-a3/", "/csv-a-contaplus/"] + [b["path"] for b in BANK_PAGES.values()] + ["/en/", "/en/try/", "/en/start/", "/estado/", "/asesorias/", "/lote/", "/en/batch/"] + [f"/{m['slug']}/" for m in MCPS]
     write("sitemap.xml", '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
           + "".join(f"<url><loc>{SITE['url']}{p}</loc><lastmod>{TODAY}</lastmod></url>\n" for p in paths) + "</urlset>\n")
     write("robots.txt", f"User-agent: *\nAllow: /\nDisallow: /gracias/\nDisallow: /saldo/\nDisallow: /en/balance/\nDisallow: /api/\n\nSitemap: {SITE['url']}/sitemap.xml\n")
