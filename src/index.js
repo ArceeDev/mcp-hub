@@ -17,6 +17,7 @@ import {
   OAuthResourceServer,
 } from "@cloudflare/workers-oauth-provider";
 import api from "./worker.js";
+import { EMAIL_RE, bindLicense, closeSession, issueTrial, licensesFor, normEmail, openSession, readSession, startEmailLogin, verifyEmailCode } from "./emailauth.js";
 import { demo } from "./demo.js";
 import { status } from "./status.js";
 
@@ -232,55 +233,76 @@ font-size:.9rem;padding:.7em .8em;border-radius:10px;border:1px solid var(--line
 <div class="card">${body}</div></main></body></html>`, { status, headers });
 }
 
-function consentForm(details, handle, error = "", emailPrefill = "") {
+function intro(details) {
   const app = esc(details.clientName || "Una aplicación");
   const who = details.clientDomain
     ? `Publicada por <b>${esc(details.clientDomain)}</b>.`
-    : "La aplicación se registró sola; su nombre no está verificado.";
+    : "No hemos podido comprobar quién la publica.";
+  return `<p>${who} El acceso se enviará a <b>${esc(details.redirectHost)}</b>.</p>
+${details.redirectIsLoopback ? '<p class="warn">Esto envía el acceso a una aplicación de tu ordenador. Sigue solo si acabas de iniciar la conexión desde ella.</p>' : ""}`;
+}
+
+const err = (e) => (e ? `<p class="err">${esc(e)}</p>` : "");
+// El botón principal va primero en el DOM para que Intro conecte (no cancele); order lo pinta a la derecha.
+const buttons = (label = "Conectar") => `<div class="row">
+  <button class="btn btn-primary" style="order:2" name="decision" value="approve">${label}</button>
+  <button class="btn" name="decision" value="deny" formnovalidate>Cancelar</button>
+</div>`;
+
+function consentForm(details, handle, error = "", emailPrefill = "") {
+  const app = esc(details.clientName || "Una aplicación");
   return `<h1>Conectar ${app}</h1>
-<p>${who} El acceso se enviará a <b>${esc(details.redirectHost)}</b>.</p>
-${details.redirectIsLoopback ? '<p class="warn">Esto envía el acceso a una aplicación de tu ordenador. Sigue solo si acabas de iniciar la conexión desde ella.</p>' : ""}
-<p class="muted">Conecta los servidores MCP de KeyFlint para que ${app} pueda procesar facturas, diarios contables y extractos bancarios.</p>
+${intro(details)}
+<p class="muted">Podrá usar los servidores MCP de KeyFlint con tu licencia y gastar sus créditos. Puedes revocarlo cuando quieras.</p>
 <form method="post">
 <input type="hidden" name="handle" value="${esc(handle)}">
+<input type="hidden" name="step" value="start">
 <label for="email"><b>Tu correo electrónico</b></label>
-<input id="email" name="email" type="email" autocomplete="email" placeholder="nombre@despacho.com" value="${esc(emailPrefill)}" required>
-${error ? `<p class="err">${esc(error)}</p>` : ""}
-<p class="muted" style="margin-top:6px;font-size:.85rem">Si no tienes licencia, crearemos una prueba gratuita de 25 créditos al instante para este correo.</p>
+<input id="email" name="email" type="email" autocomplete="email" placeholder="nombre@despacho.com" value="${esc(emailPrefill)}">
+${err(error)}
+<p class="muted" style="margin-top:6px;font-size:.85rem">Te enviaremos un código de 6 dígitos. Si aún no tienes licencia, podrás crear una prueba gratis de 25 créditos.</p>
 <details>
   <summary>¿Prefieres introducir tu clave LIC-… directamente?</summary>
-  <div style="margin-top:8px">
-    <input id="lic" name="license" autocomplete="off" spellcheck="false" placeholder="LIC-…">
-  </div>
+  <div style="margin-top:8px"><input id="lic" name="license" autocomplete="off" spellcheck="false" placeholder="LIC-…"></div>
 </details>
-<div class="row">
-  <button class="btn" name="decision" value="deny" formnovalidate>Cancelar</button>
-  <button class="btn btn-primary" name="decision" value="approve">Conectar</button>
-</div>
+${buttons("Continuar")}
 </form>`;
 }
 
-function selectLicenseForm(details, handle, email, licenses, error = "") {
-  const app = esc(details.clientName || "Una aplicación");
-  return `<h1>Elige tu licencia</h1>
-<p>Hemos encontrado estas licencias para <b>${esc(email)}</b>. Selecciona con cuál deseas conectar ${app}:</p>
+function codeForm(details, handle, email, error = "") {
+  return `<h1>Revisa tu correo</h1>
+<p>Hemos enviado un código de 6 dígitos a <b>${esc(email)}</b>. Caduca en 10 minutos.</p>
 <form method="post">
 <input type="hidden" name="handle" value="${esc(handle)}">
 <input type="hidden" name="email" value="${esc(email)}">
-${licenses.map((lic, i) => `
-  <label class="lic-opt">
-    <input type="radio" name="license" value="${esc(lic.key)}" ${i === 0 ? "checked" : ""}>
-    <div>
-      <div><b>${esc(lic.name || ("Licencia " + (lic.tier || "Estándar")))}</b></div>
-      <div class="muted" style="font-size:.8rem">${esc(lic.credits != null ? lic.credits + " créditos disponibles" : "Activa")} · <code>${esc(lic.key.slice(0, 12))}…</code></div>
-    </div>
-  </label>
-`).join("")}
-${error ? `<p class="err">${esc(error)}</p>` : ""}
-<div class="row">
-  <button class="btn" name="decision" value="deny" formnovalidate>Cancelar</button>
-  <button class="btn btn-primary" name="decision" value="approve">Conectar</button>
-</div>
+<label for="code"><b>Código</b></label>
+<input id="code" name="code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9 ]{6,7}" maxlength="7" placeholder="123456" autofocus>
+${err(error)}
+<input type="hidden" name="step" value="code">
+${buttons("Verificar")}
+<p class="muted" style="font-size:.85rem">¿No llega? Mira en spam o <button class="btn" style="padding:.2em .6em" name="resend" value="1" formnovalidate>envía otro</button></p>
+</form>`;
+}
+
+function chooseForm(details, handle, token, email, licenses, error = "") {
+  const app = esc(details.clientName || "Una aplicación");
+  const opts = licenses.map((lic, i) => `
+  <label class="lic-opt"><input type="radio" name="pick" value="${i}" ${i === 0 ? "checked" : ""}>
+    <div><b>${esc(lic.name || "Licencia " + (lic.tier || ""))}</b><div class="muted" style="font-size:.8rem">${esc(lic.tier || "")}</div></div>
+  </label>`).join("");
+  return `<h1>${licenses.length ? "Elige tu licencia" : "Conecta una licencia"}</h1>
+<p>Correo verificado: <b>${esc(email)}</b>. ${licenses.length ? `Elige con cuál conectar ${app}:` : "Aún no tiene licencias enlazadas."}</p>
+<form method="post">
+<input type="hidden" name="handle" value="${esc(handle)}">
+<input type="hidden" name="vt" value="${esc(token)}">
+<input type="hidden" name="step" value="pick">
+${opts}
+<label class="lic-opt"><input type="radio" name="pick" value="trial" ${licenses.length ? "" : "checked"}>
+  <div><b>Crear prueba gratis</b><div class="muted" style="font-size:.8rem">25 créditos, una por correo</div></div></label>
+<label class="lic-opt"><input type="radio" name="pick" value="lic">
+  <div style="flex:1"><b>Usar otra clave LIC-…</b><input name="license" autocomplete="off" spellcheck="false" placeholder="LIC-…" style="margin-top:6px"></div></label>
+${err(error)}
+${buttons("Conectar")}
 </form>`;
 }
 
@@ -325,110 +347,85 @@ async function authorize(request, env) {
     if (request.method !== "POST") return new Response("Method Not Allowed", { status: 405 });
     const form = await request.formData();
     const handle = String(form.get("handle") || "");
-    if (form.get("decision") !== "approve") {
+    const resend = form.get("resend") === "1";
+    if (form.get("decision") !== "approve" && !resend) {
       const denied = await oauth.denyConsent(request, handle);
       return new Response(null, { status: 302, headers: denied.headers });
     }
-    // approveConsent consume el formulario; si la licencia no vale, se abre otro con la misma petición validada.
+    // approveConsent consume el formulario; cada paso que no conecta abre otro con la misma petición validada.
     const approved = await oauth.approveConsent(request, handle, { scope: [SCOPE, "offline_access"] });
+    const step = resend ? "resend" : String(form.get("step") || "start");
+    const email = normEmail(form.get("email"));
     let license = String(form.get("license") || "").trim();
-    const email = String(form.get("email") || "").trim().toLowerCase();
+    const again = async (title, render, status = 200) => {
+      const details = await oauth.describeConsent(approved.request);
+      const next = await oauth.beginConsent(approved.request);
+      return page(title, render(details, next.handle), next.headers, status);
+    };
+    const back = (msg, status = 400, prefill = email) => again("Conectar", (d, h) => consentForm(d, h, msg, prefill), status);
 
-    // Si no mandó licencia pero sí correo, buscamos o emitimos automáticamente:
-    if (!license && email) {
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-        const details = await oauth.describeConsent(approved.request);
-        const again = await oauth.beginConsent(approved.request);
-        return page("Conectar", consentForm(details, again.handle, "Introduce un correo válido.", email), again.headers, 400);
+    let verified = "", token = "";
+    if (step === "start" && !license) {
+      if (!email) return back("Escribe tu correo o tu clave LIC-….");
+      const r = await startEmailLogin(env, request, email);
+      if (!r.ok) return back(r.error, r.status);
+      return again("Revisa tu correo", (d, h) => codeForm(d, h, email));
+    }
+    if (step === "resend") {
+      const r = await startEmailLogin(env, request, email);
+      if (!r.ok) return again("Revisa tu correo", (d, h) => codeForm(d, h, email, r.error), r.status);
+      return again("Revisa tu correo", (d, h) => codeForm(d, h, email, "Te hemos enviado un código nuevo."));
+    }
+    if (step === "code") {
+      if (!EMAIL_RE.test(email)) return back("Introduce un correo válido.");
+      const r = await verifyEmailCode(env, email, form.get("code"));
+      if (!r.ok) {
+        if (r.expired) return back(r.error, r.status);
+        return again("Revisa tu correo", (d, h) => codeForm(d, h, email, r.error), r.status);
       }
-
-      // 1. Mirar si ya tiene licencias guardadas en KV para este correo
-      let saved = null;
-      try {
-        if (env.OAUTH_KV) {
-          saved = await env.OAUTH_KV.get("email_licenses:" + email, "json");
-        }
-      } catch (e) {
-        console.error("KV read email_licenses error", e?.message);
-      }
-
-      if (Array.isArray(saved) && saved.length > 0) {
-        if (saved.length === 1) {
-          license = saved[0].key;
-        } else {
-          // Varias licencias: mostrar formulario de selección
-          const details = await oauth.describeConsent(approved.request);
-          const again = await oauth.beginConsent(approved.request);
-          return page("Elige tu licencia", selectLicenseForm(details, again.handle, email, saved), again.headers, 200);
-        }
-      } else {
-        // 2. Nuevo usuario o sin licencia previa: emitir prueba gratuita con KEYFLINT_ADMIN_KEY
-        const base = (env.GATEWAY_URL || "https://licenses.keyflint.dev").replace(/\/$/, "");
-        if (env.KEYFLINT_ADMIN_KEY) {
-          try {
-            const r = await fetch(`${base}/api/v1/licenses/issue`, {
-              method: "POST",
-              headers: {
-                "content-type": "application/json",
-                "x-admin-key": env.KEYFLINT_ADMIN_KEY,
-                "user-agent": "mcp-hub-oauth"
-              },
-              body: JSON.stringify({
-                customer_email: email,
-                tier: "community",
-                metadata: { trial: true, source: "oauth-mcp-hub" }
-              }),
-              signal: AbortSignal.timeout(8000)
-            });
-            const d = await r.json().catch(() => ({}));
-            const issued = d?.data?.license_key;
-            if (r.ok && issued && LICENSE_RE.test(issued)) {
-              license = issued;
-              if (env.OAUTH_KV) {
-                await env.OAUTH_KV.put("email_licenses:" + email, JSON.stringify([
-                  { key: issued, tier: "community", credits: 25, name: "Prueba Gratuita" }
-                ]));
-              }
-            } else if (d?.detail || d?.message) {
-              console.warn("issue trial note", d?.detail || d?.message);
-            }
-          } catch (e) {
-            console.error("issue trial error", e?.message);
-          }
-        }
+      verified = email;
+      const list = await licensesFor(env, email);
+      if (list.length === 1 && (await licenseExists(env, list[0].key)) === "ok") license = list[0].key;
+      else {
+        token = await openSession(env, email);
+        return again("Elige tu licencia", (d, h) => chooseForm(d, h, token, email, list));
       }
     }
+    if (step === "pick") {
+      token = String(form.get("vt") || "");
+      verified = await readSession(env, token);
+      if (!verified) return back("La verificación ha caducado. Vuelve a pedir el código.", 400, "");
+      const list = await licensesFor(env, verified);
+      const pick = String(form.get("pick") || "");
+      const retry = (msg, status = 400) => again("Elige tu licencia", (d, h) => chooseForm(d, h, token, verified, list, msg), status);
+      if (pick === "trial") {
+        const r = await issueTrial(env, request, verified);
+        if (!r.ok) return retry(r.error, r.status);
+        license = r.license;
+      } else if (pick === "lic") {
+        const state = LICENSE_RE.test(license) ? await licenseExists(env, license) : "format";
+        if (state !== "ok") return retry(state === "down" ? "KeyFlint no responde ahora mismo. Inténtalo en un minuto." : "No encontramos esa licencia. Revisa que esté completa.");
+        await bindLicense(env, verified, { key: license, tier: "registrada", name: "Licencia " + license.slice(4, 10) + "…" });
+      } else if (/^\d{1,2}$/.test(pick) && list[Number(pick)]) {
+        license = list[Number(pick)].key;
+      } else return retry("Elige una opción.");
+      await closeSession(env, token);
+    }
 
+    // Camino directo (clave LIC-) o licencia elegida: se comprueba siempre contra KeyFlint antes de conectar.
     const state = LICENSE_RE.test(license) ? await licenseExists(env, license) : "format";
     if (state !== "ok") {
-      const msg = state === "format"
-        ? (email ? "No encontramos una licencia activa para este correo. Introduce tu clave LIC-… a continuación." : "Eso no parece una licencia. Empieza por LIC-…")
+      const msg = state === "format" ? "Eso no parece una licencia. Empieza por LIC- y viene en el correo de compra."
         : state === "down" ? "KeyFlint no responde ahora mismo. Inténtalo en un minuto."
           : "No encontramos esa licencia. Revisa que esté completa.";
-      const details = await oauth.describeConsent(approved.request);
-      const again = await oauth.beginConsent(approved.request);
-      return page("Conectar", consentForm(details, again.handle, msg, email), again.headers, 400);
+      return back(msg, 400, verified || email);
     }
-
-    // Guardar vinculación email -> licencia si el usuario introdujo ambos
-    if (env.OAUTH_KV && email && LICENSE_RE.test(license)) {
-      try {
-        const existing = (await env.OAUTH_KV.get("email_licenses:" + email, "json")) || [];
-        if (!existing.some(l => l.key === license)) {
-          existing.push({ key: license, tier: "registrada", name: "Licencia " + license.slice(0, 10) + "…" });
-          await env.OAUTH_KV.put("email_licenses:" + email, JSON.stringify(existing));
-        }
-      } catch (e) {
-        console.error("KV save email_licenses error", e?.message);
-      }
-    }
-
     const { redirectTo } = await oauth.completeAuthorization({
       request: approved.request,
       userId: await userId(license),
-      metadata: { email, connected: new Date().toISOString() },
+      metadata: { email: verified || null, connected: new Date().toISOString() },
       scope: approved.request.scope,
-      props: { license, email },
+      props: { license, email: verified || null },
     });
     approved.headers.set("location", redirectTo);
     return new Response(null, { status: 302, headers: approved.headers });
@@ -447,6 +444,11 @@ export default {
     if (path === "/authorize") return authorize(request, env);
     if (path === "/api/uso" && request.method === "GET") return usage(request, env, url);
     if (path === "/api/admin/restart" && request.method === "POST") {
+      // Sin esto cualquiera podía reiniciar los contenedores (DoS). Clave: HUB_ADMIN_KEY o, si no existe, KEYFLINT_ADMIN_KEY.
+      const want = env.HUB_ADMIN_KEY || env.KEYFLINT_ADMIN_KEY || "";
+      const got = request.headers.get("x-admin-key") || "";
+      if (!want || got.length !== want.length || !crypto.subtle.timingSafeEqual(new TextEncoder().encode(got), new TextEncoder().encode(want)))
+        return new Response(JSON.stringify({ ok: false }), { status: 403, headers: { "content-type": "application/json" } });
       const n = Math.max(1, Math.min(5, Number(env.MCP_INSTANCES) || INSTANCES));
       for (let i = 0; i < n; i++) {
         const id = env.MCP_RUNTIME.idFromName(`instance-${i}`);
