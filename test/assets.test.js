@@ -10,3 +10,11 @@ test("los scripts de assets/ son JavaScript válido", () => {
     assert.equal(r.status, 0, f + ": " + r.stderr);
   }
 });
+
+test("el lote acepta extractos PDF y los envía a pdf_bank_to_journal", async () => {
+  const { readFileSync } = await import("node:fs");
+  const js = readFileSync("assets/lote.js", "utf8");
+  assert.match(js, /var EXTS = \[[^\]]*"\.pdf"/);
+  assert.match(js, /\.pdf"\) return \["contabridge", "pdf_bank_to_journal"\]/);
+  assert.match(js, /pdf_bank_to_journal: 3/);
+});

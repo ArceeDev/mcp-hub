@@ -1256,9 +1256,9 @@ def batch_page() -> str:
 <label class="lic"><span class="lic-label">{icon("key")}{L("Tu correo o licencia", "Your email or license")}</span>
 <span class="lic-field"><input type="text" name="license" autocomplete="email" spellcheck="false" placeholder="{L("tu@correo.com o LIC-…", "you@company.com or LIC-…")}" required aria-describedby="lote-help" data-batch-lic></span>
 <span id="lote-help" class="lic-help">{L(f'Escribe tu correo para activar <b>{SITE["free_credits"]} créditos gratis</b> al instante (o cargar tu licencia activa), o pega tu clave LIC-….', f'Enter your email to activate <b>{SITE["free_credits"]} free credits</b> instantly (or load your active license), or paste your LIC-… key.')}</span></label>
-<label class="drop" data-batch-drop><input type="file" multiple accept=".n43,.c43,.q43,.csv,.xml,.xsig" class="sr-only" data-batch-input>
+<label class="drop" data-batch-drop><input type="file" multiple accept=".n43,.c43,.q43,.csv,.pdf,.xml,.xsig" class="sr-only" data-batch-input>
 <span class="tile">{icon("download")}</span><b>{L("Arrastra aquí los ficheros o haz clic para elegirlos", "Drop files here or click to choose them")}</b>
-<span class="muted small">.n43 · .c43 · .q43 · .csv · .xml · .xsig · {L("hasta 10 MB cada uno", "up to 10 MB each")}</span></label>
+<span class="muted small">.n43 · .c43 · .q43 · .csv · .pdf · .xml · .xsig · {L("hasta 10 MB cada uno", "up to 10 MB each")}</span></label>
 <div class="sample-bar"><button type="button" class="btn-sample" data-batch-sample>{icon("refresh")}<span>{L("Cargar extracto de prueba (demo en 1 clic)", "Load sample bank statement (1-click demo)")}</span></button></div>
 <div class="tw batch-list" data-batch-list hidden><table class="uso-t"><thead><tr><th>{L("Fichero", "File")}</th><th>{L("Tipo", "Type")}</th><th>{L("Estado", "Status")}</th><th>{L("Detalle", "Detail")}</th><th class="num"></th></tr></thead><tbody data-batch-rows></tbody></table></div>
 <div class="batch-actions"><button class="btn btn-primary btn-lg" type="submit" data-batch-go disabled>{icon("refresh")}<span>{L("Procesar", "Process")}</span></button>
@@ -1330,8 +1330,8 @@ def norma43_excel_page() -> str:
 <span class="lic-field"><input type="text" name="license" autocomplete="email" spellcheck="false" placeholder="tu@correo.com o LIC-…" required aria-describedby="n43-help" data-batch-lic></span>
 <span id="n43-help" class="lic-help">Escribe tu correo para activar <b>25 créditos gratis</b> al instante (sin salir de aquí) o pega tu clave LIC-….</span></label>
 
-<label class="drop" data-batch-drop><input type="file" multiple accept=".n43,.c43,.q43,.csv" class="sr-only" data-batch-input>
-<span class="tile">{icon("download")}</span><b>Arrastra aquí tus extractos bancarios (.n43, .c43) o haz clic para elegirlos</b>
+<label class="drop" data-batch-drop><input type="file" multiple accept=".n43,.c43,.q43,.csv,.pdf" class="sr-only" data-batch-input>
+<span class="tile">{icon("download")}</span><b>Arrastra aquí tus extractos bancarios (.n43, .c43 o PDF digital) o haz clic para elegirlos</b>
 <span class="muted small">Santander, BBVA, CaixaBank, Sabadell, Bankinter… hasta 10 MB cada uno</span></label>
 <div class="sample-bar"><button type="button" class="btn-sample" data-batch-sample>{icon("refresh")}<span>Cargar extracto de prueba (demo en 1 clic)</span></button></div>
 
@@ -1439,8 +1439,8 @@ def norma43_target_page(target: str) -> str:
 <span class="lic-field"><input type="text" name="bank" inputmode="numeric" autocomplete="off" value="57200001" pattern="57[0-9]{{2,10}}" required data-batch-bank aria-describedby="b-help"></span>
 <span id="b-help" class="lic-help">La 572 de la cuenta bancaria en {e(short)} (con los dígitos de tu plan de cuentas).</span></label>
 
-<label class="drop" data-batch-drop><input type="file" multiple accept=".n43,.c43,.q43,.csv" class="sr-only" data-batch-input>
-<span class="tile">{icon("download")}</span><b>Arrastra aquí tus extractos Norma 43 (.n43, .c43) o CSV bancarios (.csv)</b>
+<label class="drop" data-batch-drop><input type="file" multiple accept=".n43,.c43,.q43,.csv,.pdf" class="sr-only" data-batch-input>
+<span class="tile">{icon("download")}</span><b>Arrastra aquí tus extractos Norma 43 (.n43, .c43), CSV bancarios (.csv) o PDF digitales</b>
 <span class="muted small">Vista previa instantánea de movimientos · De cualquier banco o pasarela · hasta 10 MB</span></label>
 <div class="sample-bar"><button type="button" class="btn-sample" data-batch-sample>{icon("refresh")}<span>Cargar extracto de prueba</span></button></div>
 
@@ -1753,8 +1753,8 @@ def csv_target_page(target: str) -> str:
 <span class="lic-field"><input type="text" name="bank" inputmode="numeric" autocomplete="off" value="57200001" pattern="57[0-9]{{2,10}}" required data-batch-bank aria-describedby="cb-help"></span>
 <span id="cb-help" class="lic-help">La subcuenta 572 en {e(short)} (p. ej. 57200001). Los apuntes sin regla van a la 555 para revisar.</span></label>
 
-<label class="drop" data-batch-drop><input type="file" multiple accept=".csv,.n43,.c43,.q43" class="sr-only" data-batch-input>
-<span class="tile">{icon("download")}</span><b>Suelta aquí tus archivos CSV o Norma 43 (.csv, .n43)</b>
+<label class="drop" data-batch-drop><input type="file" multiple accept=".csv,.n43,.c43,.q43,.pdf" class="sr-only" data-batch-input>
+<span class="tile">{icon("download")}</span><b>Suelta aquí tus archivos CSV, Norma 43 o PDF digitales (.csv, .n43, .pdf)</b>
 <span class="muted small">Vista previa automática de filas verificadas · Sin suscripción · Servidores en la UE</span></label>
 <div class="sample-bar"><button type="button" class="btn-sample" data-batch-sample>{icon("refresh")}<span>Cargar CSV bancario de prueba (demo en 1 clic)</span></button></div>
 
