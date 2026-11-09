@@ -1734,7 +1734,7 @@ def csv_target_page(target: str) -> str:
         ("¿Sirve para Revolut, Wise, Stripe, PayPal y bancos españoles?",
          "Sí, si el CSV tiene columnas de fecha, importe y concepto. Los bancos españoles suelen traerlas con esos nombres; en Revolut, Stripe y PayPal hay que renombrar alguna columna antes. Cada guía explica cuál: Revolut, Stripe, PayPal, CaixaBank, BBVA y Santander."),
         ("¿Hay suscripción obligatoria?",
-         f"No. Al escribir tu correo tienes {SITE['free_credits']} créditos gratis al instante sin tarjeta (8 lotes completos gratis). Después puedes recargar desde 5 € pago por uso sin suscripción, o usar el Plan Despacho."),
+         f"No. Al escribir tu correo tienes {SITE['free_credits']} créditos gratis al instante sin tarjeta (8 extractos convertidos gratis). Después puedes recargar desde 5 € pago por uso sin suscripción, o usar el Plan Despacho."),
     ]
     n43_link = "contaplus" if target == "contaplus_ascii" else target
     body = f"""
@@ -1755,7 +1755,7 @@ def csv_target_page(target: str) -> str:
 
 <label class="drop" data-batch-drop><input type="file" multiple accept=".csv,.n43,.c43,.q43,.pdf" class="sr-only" data-batch-input>
 <span class="tile">{icon("download")}</span><b>Suelta aquí tus archivos CSV, Norma 43 o PDF digitales (.csv, .n43, .pdf)</b>
-<span class="muted small">Vista previa automática de filas verificadas · Sin suscripción · Servidores en la UE</span></label>
+<span class="muted small">Vista previa automática de filas verificadas · Sin suscripción</span></label>
 <div class="sample-bar"><button type="button" class="btn-sample" data-batch-sample>{icon("refresh")}<span>Cargar CSV bancario de prueba (demo en 1 clic)</span></button></div>
 
 <div class="tw batch-list" data-batch-list hidden><table class="uso-t"><thead><tr><th>Fichero</th><th>Tipo</th><th>Estado</th><th>Detalle</th><th class="num"></th></tr></thead><tbody data-batch-rows></tbody></table></div>
