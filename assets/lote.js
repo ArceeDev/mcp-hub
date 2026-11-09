@@ -1,4 +1,4 @@
-/* Flint · Procesador por lotes en el navegador (/lote/, /en/batch/, /norma43-a-*/, /csv-a-*/).
+/* Flint · Procesador por lotes en el navegador (/lote/, /en/batch/, /norma43-a-…/, /csv-a-…/).
    Misma lógica que installer/lote.py: bytes en base64 (CP850/Latin-1, firmas XAdES), detección VERI*FACTU vs Facturae,
    soporte directo de CSV bancario, vista previa instantánea en navegador y acceso directo con correo (prueba gratis u OTP). */
 (function () {
@@ -392,6 +392,7 @@
       lic.focus(); return;
     }
     try { localStorage.setItem(KEY, license); } catch (e) { /* sin almacenamiento */ }
+    lastLicense = license; hideRefill();
     var bankAcc = bankEl ? bankEl.value.trim() : "57200001";
     if (TARGET && !/^57\d{2,10}$/.test(bankAcc)) {
       say(T("Indica la subcuenta del banco (grupo 57, p. ej. 57200001).", "Enter the bank subaccount (group 57, e.g. 57200001)."), true);
@@ -422,13 +423,95 @@
     }
     running = false; render();
     var ok = items.filter(function (x) { return x.row; }).length, bad = items.filter(function (x) { return x.state === "error"; }).length;
-    if (fatal) say(fatal + (fatalCredits
-      ? T(" Recarga en Mi saldo y vuelve a pulsar Procesar: solo se repiten los pendientes.", " Top up under My balance and press Process again: only the pending files run.")
-      : T(" Corrígela y vuelve a pulsar Procesar.", " Fix it and press Process again.")), true);
+    if (fatal) {
+      say(fatal + (fatalCredits
+        ? T(" Recarga aquí abajo y continúa: solo se repiten los pendientes.", " Top up below and continue: only the pending files run.")
+        : T(" Corrígela y vuelve a pulsar Procesar.", " Fix it and press Process again.")), true);
+      if (fatalCredits) showRefill();
+    }
     else if (stopFlag) say(T("Detenido. Pulsa Procesar para seguir con los pendientes.", "Stopped. Press Process to continue with the pending files."));
     else say(T(ok + " fichero(s) procesados" + (bad ? ", " + bad + " con error (no se cobran)." : ".") + " Descarga el resultado abajo.",
       ok + " file(s) processed" + (bad ? ", " + bad + " failed (not charged)." : ".") + " Download the result below."), !!bad && !ok);
   }
+  /* --- recarga en 1 clic al quedarse sin créditos ---
+     Mismo cálculo que el gateway (topup_pricing.py): 20 créditos por euro, bonificación desde 20 €; 10 € = 200 créditos.
+     Stripe se abre en otra pestaña para no perder los ficheros de esta; si el navegador bloquea la pestaña, vamos en esta
+     y Stripe devuelve a esta misma página (?recarga=cs_…). */
+  var REFILL_EUR = 10, REFILL_CREDITS = 200, lastLicense = "", refillBox = null;
+  var STRIPE_RE = /^https:\/\/([a-z0-9-]+\.)*(stripe\.com|link\.com)\//;
+  function hideRefill() { if (refillBox) refillBox.hidden = true; }
+  function showRefill() {
+    if (!refillBox) {
+      refillBox = document.createElement("div");
+      refillBox.className = "batch-refill";
+      refillBox.setAttribute("data-batch-refill", "");
+      refillBox.innerHTML = '<label class="topup-waiver"><input type="checkbox" data-refill-waiver> <span>' +
+        esc(T("Quiero los créditos ya. Acepto que, al empezar a usarlos, pierdo el derecho de desistimiento de 14 días sobre la parte usada.",
+          "I want the credits now. I accept that once I start using them I lose the 14-day right of withdrawal on the used part.")) + '</span></label>' +
+        '<button class="btn btn-primary" type="button" data-refill-go disabled></button>' +
+        '<button class="btn" type="button" data-refill-continue hidden>' + esc(T("Ya he pagado: continuar lote", "I have paid: continue batch")) + '</button>' +
+        '<p class="muted small">' + esc(T("Pago seguro con Stripe, IVA incluido. Se abre en otra pestaña y esta conserva tus ficheros.",
+          "Secure payment with Stripe, VAT included. It opens in another tab and this one keeps your files.")) + '</p>' +
+        '<p class="note bad" data-refill-err hidden><span></span></p>';
+      msgEl.parentNode.insertBefore(refillBox, msgEl.nextSibling);
+      var w8 = refillBox.querySelector("[data-refill-waiver]"), btn = refillBox.querySelector("[data-refill-go]");
+      btn.textContent = T("Recargar " + REFILL_EUR + " € (" + REFILL_CREDITS + " créditos) con Stripe y continuar lote",
+        "Top up €" + REFILL_EUR + " (" + REFILL_CREDITS + " credits) with Stripe and continue batch");
+      w8.addEventListener("change", function () { btn.disabled = !w8.checked; });
+      btn.addEventListener("click", refill);
+      refillBox.querySelector("[data-refill-continue]").addEventListener("click", function () { if (!running) run(); });
+    }
+    refillBox.querySelector("[data-refill-err]").hidden = true;
+    refillBox.hidden = false;
+  }
+  function refill() {
+    var btn = refillBox.querySelector("[data-refill-go]"), err = refillBox.querySelector("[data-refill-err]");
+    if (!refillBox.querySelector("[data-refill-waiver]").checked || !LIC_RE.test(lastLicense)) return;
+    var tab = null;
+    try { tab = window.open("", "_blank"); } catch (e) { tab = null; } /* se abre en el clic: si no, el bloqueador la frena */
+    err.hidden = true; btn.disabled = true; btn.setAttribute("aria-busy", "true");
+    fetch("/api/recarga", { method: "POST", headers: { "content-type": "application/json", accept: "application/json" },
+      body: JSON.stringify({ license: lastLicense, amount: REFILL_EUR, currency: "eur", waiver: true, lang: EN ? "en" : "es", return_path: location.pathname }) })
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        if (!d.ok || !STRIPE_RE.test(d.url || "")) throw new Error(d.error || T("No se pudo iniciar el pago.", "Could not start the payment."));
+        if (tab && !tab.closed) {
+          try { tab.opener = null; } catch (e) { /* ignorar */ }
+          tab.location.href = d.url;
+          btn.removeAttribute("aria-busy"); btn.disabled = false;
+          refillBox.querySelector("[data-refill-continue]").hidden = false;
+          say(T("Completa el pago en la pestaña de Stripe y pulsa «Ya he pagado: continuar lote».", "Finish the payment in the Stripe tab and press “I have paid: continue batch”."));
+        } else location.href = d.url;
+      })
+      .catch(function (e) {
+        if (tab && !tab.closed) tab.close();
+        err.querySelector("span").textContent = e.message || T("No se pudo iniciar el pago.", "Could not start the payment.");
+        err.hidden = false; btn.removeAttribute("aria-busy"); btn.disabled = false;
+      });
+  }
+  /* vuelta de Stripe a esta página: ?recarga=cs_… */
+  (function () {
+    var sid = new URLSearchParams(location.search).get("recarga") || "";
+    if (!/^cs_[A-Za-z0-9_]{10,250}$/.test(sid)) return;
+    try { history.replaceState(null, "", location.pathname + location.hash); } catch (e) { /* ignorar */ }
+    var tries = 0, nf = new Intl.NumberFormat(EN ? "en-GB" : "es-ES");
+    say(T("Pago recibido. Sumando los créditos a tu licencia…", "Payment received. Adding the credits to your license…"));
+    (function poll() {
+      fetch("/api/recarga?session=" + encodeURIComponent(sid), { headers: { accept: "application/json" } })
+        .then(function (r) { return r.json(); })
+        .then(function (d) {
+          if (d.ok && d.status === "applied") {
+            say(T("Recarga completada: +" + nf.format(d.credits) + " créditos (saldo: " + nf.format(d.balance) + "). Vuelve a la pestaña del lote y pulsa «Ya he pagado: continuar lote», o suelta aquí los ficheros pendientes y pulsa Procesar.",
+              "Top-up complete: +" + nf.format(d.credits) + " credits (balance: " + nf.format(d.balance) + "). Go back to the batch tab and press “I have paid: continue batch”, or drop the pending files here and press Process."));
+            return;
+          }
+          if (++tries < 15) setTimeout(poll, 2000);
+          else say(T("El pago está hecho; los créditos pueden tardar un minuto. Mira tu saldo en Mi saldo.", "The payment went through; the credits may take a minute. Check My balance."));
+        })
+        .catch(function () { if (++tries < 15) setTimeout(poll, 2000); });
+    })();
+  })();
+
   form.addEventListener("submit", function (ev) { ev.preventDefault(); if (!running) run(); });
 
   /* --- salidas --- */
