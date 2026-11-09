@@ -1688,6 +1688,9 @@ def en_tool_card(t) -> str:
 </div>"""
 
 
+EN_PACK_NAMES = {"pro": "Pro (Developer)"}
+
+
 def en_plans() -> str:
     free = f"""<div class="plan">
 <div class="plan-head"><h3 class="h3">Free</h3><p class="muted small">Try it on your own files</p></div>
@@ -1705,10 +1708,11 @@ def en_plans() -> str:
     for p in (p for p in SITE["packs"] if not p["id"].startswith("despacho")):
         who, billing, per = EN_PACKS.get(p["id"], ("", "", ""))
         feat, badge = "", ""
+        name = EN_PACK_NAMES.get(p["id"], p["name"])
         out.append(f"""<div class="plan{feat}">{badge}
-<div class="plan-head"><h3 class="h3">{e(p['name'])}</h3><p class="muted small">{e(who)}</p></div>
+<div class="plan-head"><h3 class="h3">{e(name)}</h3><p class="muted small">{e(who)}</p></div>
 <p class="price">${p['price']:,}<span class="muted small">{per}</span></p><p class="credits">{p['credits']:,} credits</p>
-<a class="btn {'btn-primary' if p.get('featured') else 'btn-ghost'} btn-block" href="{e(p['checkout'])}" rel="noopener" data-checkout>Buy {e(p['name'])}</a>
+<a class="btn {'btn-primary' if p.get('featured') else 'btn-ghost'} btn-block" href="{e(p['checkout'])}" rel="noopener" data-checkout>Buy {e(name)}</a>
 <ul class="checks"><li>{icon("check")}{e(billing)}</li><li>{icon("check")}{p.get('seats', 3)} devices</li><li>{icon("check")}Failed calls are free</li></ul></div>""")
     return "".join(out)
 

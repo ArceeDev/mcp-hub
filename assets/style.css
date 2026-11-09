@@ -715,3 +715,13 @@ svg.logo{width:30px;height:30px;flex:none;filter:drop-shadow(0 1px 6px rgba(204,
   .hero h1{margin:14px 0 18px}
   .seal-list{gap:20px}
 }
+.legal td:first-child{white-space:normal;min-width:170px}
+.legal .table-wrap{margin:16px 0 20px}
+.table-wrap+p,.tw+p,.tw+.muted{margin-top:16px}
+.legal h3{margin:1.5rem 0 .5rem}
+.legal ul,.legal ol{margin:.75rem 0}
+.legal p+p{margin-top:.75rem}
+@media (max-width:640px){
+  .table-wrap table{min-width:600px}
+  th,td{padding:12px 14px}
+}
