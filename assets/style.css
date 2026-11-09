@@ -552,6 +552,8 @@ td code{color:var(--ink)}
 .topup-eq b{font:600 1.25rem/1.1 var(--display);color:var(--ink);white-space:nowrap}
 .topup-next{margin:0;color:var(--link)}
 .topup-next:empty{display:none}
+.batch-refill{display:grid;gap:12px;margin-top:16px;padding:16px;border:1px solid var(--line);border-radius:12px}
+.batch-refill .btn{justify-self:start}
 .topup-waiver{display:flex;gap:10px;align-items:flex-start;font-size:.8125rem;color:var(--ink-2)}
 .topup-waiver input{margin-top:3px;accent-color:var(--brand)}
 @media (max-width:640px){.topup-presets{grid-template-columns:repeat(2,1fr)}.topup-eq{grid-template-columns:1fr}.topup-eq li{flex-direction:row;align-items:baseline;gap:8px}}

@@ -144,6 +144,7 @@ async function trial(request, env, url) {
 // Recarga libre: el gateway crea la sesión de Stripe y suma los créditos a ESTA licencia al cobrar.
 // Aquí solo validamos, limitamos por IP y no dejamos que el navegador elija los créditos.
 const TOPUP_MIN = 5, TOPUP_MAX = 500;
+const RETURN_PATH_RE = /^\/(?:[a-z0-9-]{1,48}\/){1,2}$/;
 const TOPUP_ERRORS_EN = { 400: "Choose a whole euro amount between €5 and €500.", 404: "We could not find that license. Check that you pasted the full key.", 409: "This license is not active. Email us at support@keyflint.dev.", 429: "You have reached today's top-up limit for this license. Try tomorrow or email us.", 503: "Top-ups are not available right now. Please try again later." };
 const TOPUP_ERRORS = {
   400: "Elige un importe entre 5 € y 500 €, sin decimales.",
@@ -171,7 +172,9 @@ async function topup(request, env, url) {
     if (!(await take(db, "topup_ip", ipKey, day, num(env.TOPUP_PER_IP_DAY, 10))))
       return json({ ok: false, error: L("Demasiados intentos de pago desde tu conexión. Inténtalo mañana.", "Too many payment attempts from your connection. Try again tomorrow.") }, 429);
   }
-  const back = (env.PUBLIC_URL || "https://mcp.keyflint.dev").replace(/\/$/, "") + (body.lang === "en" ? "/en/balance/" : "/saldo/");
+  // Vuelta a la página donde estaba convirtiendo (p. ej. /lote/): solo rutas propias, el origen lo fija el Worker.
+  const rp = typeof body.return_path === "string" && RETURN_PATH_RE.test(body.return_path) ? body.return_path : (en ? "/en/balance/" : "/saldo/");
+  const back = (env.PUBLIC_URL || "https://mcp.keyflint.dev").replace(/\/$/, "") + rp;
   try {
     const r = await gateway(env, "/api/v1/billing/topup", {
       method: "POST",
