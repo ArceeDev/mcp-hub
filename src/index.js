@@ -441,12 +441,48 @@ async function authorize(request, env) {
 
 // ---------------------------------------------------------------- enrutado
 
+function jsonRes(body, status = 200) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store", "x-content-type-options": "nosniff" },
+  });
+}
+
+async function webOtpStart(request, env, url) {
+  const reqOrigin = request.headers.get("origin");
+  if (reqOrigin && reqOrigin !== url.origin) return jsonRes({ ok: false }, 403);
+  let email = "";
+  try { const b = await request.json(); email = normEmail(b.email); } catch (e) { /* json inválido */ }
+  const r = await startEmailLogin(env, request, email);
+  if (!r.ok) return jsonRes({ ok: false, error: r.error }, r.status || 400);
+  return jsonRes({ ok: true });
+}
+
+async function webOtpVerify(request, env, url) {
+  const reqOrigin = request.headers.get("origin");
+  if (reqOrigin && reqOrigin !== url.origin) return jsonRes({ ok: false }, 403);
+  let email = "", code = "";
+  try { const b = await request.json(); email = normEmail(b.email); code = String(b.code || ""); } catch (e) { /* json inválido */ }
+  if (!EMAIL_RE.test(email)) return jsonRes({ ok: false, error: "Introduce un correo válido." }, 400);
+  const r = await verifyEmailCode(env, email, code);
+  if (!r.ok) return jsonRes({ ok: false, error: r.error, expired: !!r.expired }, r.status || 400);
+  const list = await licensesFor(env, email);
+  if (list.length > 0) {
+    return jsonRes({ ok: true, license: list[0].key, tier: list[0].tier || "pro", credits: list[0].credits ?? null });
+  }
+  const tr = await issueTrial(env, request, email);
+  if (!tr.ok) return jsonRes({ ok: false, error: tr.error }, tr.status || 400);
+  return jsonRes({ ok: true, license: tr.license, tier: "community", credits: 25, trial: true });
+}
+
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
     const path = url.pathname;
     const { as, resources } = servers(env);
     if (path === "/authorize") return authorize(request, env);
+    if (path === "/api/otp/start" && request.method === "POST") return webOtpStart(request, env, url);
+    if (path === "/api/otp/verify" && request.method === "POST") return webOtpVerify(request, env, url);
     if (path === "/api/uso" && request.method === "GET") return usage(request, env, url);
     if (path === "/api/admin/restart" && request.method === "POST") {
       // Sin esto cualquiera podía reiniciar los contenedores (DoS). Clave: HUB_ADMIN_KEY o, si no existe, KEYFLINT_ADMIN_KEY.

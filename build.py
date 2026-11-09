@@ -24,6 +24,9 @@ SEO_KEYWORDS = {
     "/norma43-a-a3/": "importar norma 43 en a3, norma 43 a3asesor, suenlace.dat extracto bancario, pasar extracto bancario a a3eco, enlace contable a3 banco",
     "/norma43-a-contaplus/": "norma 43 contaplus, importar extracto bancario contaplus, xdiario contaplus banco, pasar c43 a contaplus, sage contaplus extractos",
     "/norma43-a-contasol/": "norma 43 contasol, importar extracto bancario contasol, pasar norma 43 a apu contasol, asientos contasol norma 43, conciliacion bancaria contasol delsol, importar bancos contasol, delsol cloud extractos",
+    "/csv-a-contasol/": "convertir csv a contasol, importar csv en contasol, pasar excel bancario a apu contasol, revolut stripe paypal a contasol, extracto csv a asientos contasol",
+    "/csv-a-a3/": "convertir csv a a3, importar csv bancario en a3asesor, pasar excel banco a suenlace.dat, extracto csv a a3eco a3con",
+    "/csv-a-contaplus/": "convertir csv a contaplus, importar csv bancario en sage contaplus, pasar excel banco a xdiario.txt, sage 50 csv banco",
     "/asesorias/": "software conciliacion bancaria asesorias, automatizacion gestorias contabilidad, norma 43 asesorias, verifactu gestorias, contabilidad automatica pymes, claude asesorias, programa para asesorias",
     "/precios/": "precios norma 43, tarifa plana conciliacion bancaria, planes gestorias contabilidad, keyflint precios, mcp precios espana, comprar creditos mcp",
     "/lote/": "procesador por lotes norma 43, convertir multiples extractos bancarios, lote n43 c43 xml facturae, conciliar bancos por lotes, visor norma 43 online",
@@ -1250,12 +1253,12 @@ def batch_page() -> str:
 </div></section>
 <section class="section tight"><div class="wrap narrow" data-batch>
 <form class="saldo-form glass batch" data-batch-form novalidate>
-<label class="lic"><span class="lic-label">{icon("key")}{L("Tu licencia", "Your license")}</span>
-<span class="lic-field"><input type="text" name="license" autocomplete="off" spellcheck="false" placeholder="LIC-…" required aria-describedby="lote-help" data-batch-lic></span>
-<span id="lote-help" class="lic-help">{L(f'Se guarda solo en este navegador. ¿Aún sin licencia? <a href="{U("try")}">{SITE["free_credits"]} créditos gratis</a>.', f'Stored only in this browser. No license yet? <a href="{U("try")}">{SITE["free_credits"]} free credits</a>.')}</span></label>
-<label class="drop" data-batch-drop><input type="file" multiple accept=".n43,.c43,.q43,.xml,.xsig" class="sr-only" data-batch-input>
+<label class="lic"><span class="lic-label">{icon("key")}{L("Tu correo o licencia", "Your email or license")}</span>
+<span class="lic-field"><input type="text" name="license" autocomplete="email" spellcheck="false" placeholder="{L("tu@correo.com o LIC-…", "you@company.com or LIC-…")}" required aria-describedby="lote-help" data-batch-lic></span>
+<span id="lote-help" class="lic-help">{L(f'Escribe tu correo para activar <b>{SITE["free_credits"]} créditos gratis</b> al instante (o cargar tu licencia activa), o pega tu clave LIC-….', f'Enter your email to activate <b>{SITE["free_credits"]} free credits</b> instantly (or load your active license), or paste your LIC-… key.')}</span></label>
+<label class="drop" data-batch-drop><input type="file" multiple accept=".n43,.c43,.q43,.csv,.xml,.xsig" class="sr-only" data-batch-input>
 <span class="tile">{icon("download")}</span><b>{L("Arrastra aquí los ficheros o haz clic para elegirlos", "Drop files here or click to choose them")}</b>
-<span class="muted small">.n43 · .c43 · .q43 · .xml · .xsig · {L("hasta 10 MB cada uno", "up to 10 MB each")}</span></label>
+<span class="muted small">.n43 · .c43 · .q43 · .csv · .xml · .xsig · {L("hasta 10 MB cada uno", "up to 10 MB each")}</span></label>
 <div class="sample-bar"><button type="button" class="btn-sample" data-batch-sample>{icon("refresh")}<span>{L("Cargar extracto de prueba (demo en 1 clic)", "Load sample bank statement (1-click demo)")}</span></button></div>
 <div class="tw batch-list" data-batch-list hidden><table class="uso-t"><thead><tr><th>{L("Fichero", "File")}</th><th>{L("Tipo", "Type")}</th><th>{L("Estado", "Status")}</th><th>{L("Detalle", "Detail")}</th><th class="num"></th></tr></thead><tbody data-batch-rows></tbody></table></div>
 <div class="batch-actions"><button class="btn btn-primary btn-lg" type="submit" data-batch-go disabled>{icon("refresh")}<span>{L("Procesar", "Process")}</span></button>
@@ -1322,11 +1325,11 @@ def norma43_excel_page() -> str:
 
 <section class="section tight"><div class="wrap narrow" data-batch>
 <form class="saldo-form glass batch" data-batch-form novalidate>
-<label class="lic"><span class="lic-label">{icon("key")}Tu licencia</span>
-<span class="lic-field"><input type="text" name="license" autocomplete="off" spellcheck="false" placeholder="LIC-…" required aria-describedby="n43-help" data-batch-lic></span>
-<span id="n43-help" class="lic-help">Se guarda en este navegador. ¿Aún sin licencia? <a href="/probar/">Consigue 25 créditos gratis en 10 segundos</a>.</span></label>
+<label class="lic"><span class="lic-label">{icon("key")}Tu correo o licencia</span>
+<span class="lic-field"><input type="text" name="license" autocomplete="email" spellcheck="false" placeholder="tu@correo.com o LIC-…" required aria-describedby="n43-help" data-batch-lic></span>
+<span id="n43-help" class="lic-help">Escribe tu correo para activar <b>25 créditos gratis</b> al instante (sin salir de aquí) o pega tu clave LIC-….</span></label>
 
-<label class="drop" data-batch-drop><input type="file" multiple accept=".n43,.c43,.q43" class="sr-only" data-batch-input>
+<label class="drop" data-batch-drop><input type="file" multiple accept=".n43,.c43,.q43,.csv" class="sr-only" data-batch-input>
 <span class="tile">{icon("download")}</span><b>Arrastra aquí tus extractos bancarios (.n43, .c43) o haz clic para elegirlos</b>
 <span class="muted small">Santander, BBVA, CaixaBank, Sabadell, Bankinter… hasta 10 MB cada uno</span></label>
 <div class="sample-bar"><button type="button" class="btn-sample" data-batch-sample>{icon("refresh")}<span>Cargar extracto de prueba (demo en 1 clic)</span></button></div>
@@ -1428,16 +1431,16 @@ def norma43_target_page(target: str) -> str:
 
 <section class="section tight"><div class="wrap narrow" data-batch data-batch-target="{target}">
 <form class="saldo-form glass batch" data-batch-form novalidate>
-<label class="lic"><span class="lic-label">{icon("key")}Tu licencia</span>
-<span class="lic-field"><input type="text" name="license" autocomplete="off" spellcheck="false" placeholder="LIC-…" required aria-describedby="t-help" data-batch-lic></span>
-<span id="t-help" class="lic-help">Se guarda en este navegador. ¿Aún sin licencia? <a href="/probar/">{SITE['free_credits']} créditos gratis, sin tarjeta</a>.</span></label>
+<label class="lic"><span class="lic-label">{icon("key")}Tu correo o licencia</span>
+<span class="lic-field"><input type="text" name="license" autocomplete="email" spellcheck="false" placeholder="tu@correo.com o LIC-…" required aria-describedby="t-help" data-batch-lic></span>
+<span id="t-help" class="lic-help">Escribe tu correo para activar <b>{SITE['free_credits']} créditos gratis</b> al instante (o cargar tu licencia activa), o pega tu clave LIC-….</span></label>
 <label class="lic"><span class="lic-label">{icon("landmark")}Subcuenta del banco</span>
 <span class="lic-field"><input type="text" name="bank" inputmode="numeric" autocomplete="off" value="57200001" pattern="57[0-9]{{2,10}}" required data-batch-bank aria-describedby="b-help"></span>
 <span id="b-help" class="lic-help">La 572 de la cuenta bancaria en {e(short)} (con los dígitos de tu plan de cuentas).</span></label>
 
-<label class="drop" data-batch-drop><input type="file" multiple accept=".n43,.c43,.q43" class="sr-only" data-batch-input>
-<span class="tile">{icon("download")}</span><b>Arrastra aquí tus extractos Norma 43 (.n43, .c43) o haz clic para elegirlos</b>
-<span class="muted small">De cualquier banco español · hasta 10 MB cada uno</span></label>
+<label class="drop" data-batch-drop><input type="file" multiple accept=".n43,.c43,.q43,.csv" class="sr-only" data-batch-input>
+<span class="tile">{icon("download")}</span><b>Arrastra aquí tus extractos Norma 43 (.n43, .c43) o CSV bancarios (.csv)</b>
+<span class="muted small">Vista previa instantánea de movimientos · De cualquier banco o pasarela · hasta 10 MB</span></label>
 <div class="sample-bar"><button type="button" class="btn-sample" data-batch-sample>{icon("refresh")}<span>Cargar extracto de prueba</span></button></div>
 
 <div class="tw batch-list" data-batch-list hidden><table class="uso-t"><thead><tr><th>Fichero</th><th>Tipo</th><th>Estado</th><th>Detalle</th><th class="num"></th></tr></thead><tbody data-batch-rows></tbody></table></div>
@@ -1476,6 +1479,83 @@ def norma43_target_page(target: str) -> str:
 
 def norma43_contasol_page() -> str:
     return norma43_target_page("contasol")
+
+
+def csv_target_page(target: str) -> str:
+    """Landing SEO directa para competir en Convertir CSV a ContaSol / A3 / ContaPlus."""
+    t = N43_TARGETS[target]
+    short, prog, fname = t["short"], t["program"], t["file"]
+    slug_map = {"contasol": "/csv-a-contasol/", "a3": "/csv-a-a3/", "contaplus_ascii": "/csv-a-contaplus/"}
+    path = slug_map[target]
+    title = f"Convertir CSV a {short} ({fname}) online · Sin OCR · Flint"
+    desc = f"Prepara movimientos CSV bancarios (Revolut, Stripe, PayPal, CaixaBank, BBVA, Santander) directamente para {prog} ({fname}). Vista previa instantánea y 25 créditos gratis."
+    faq = [
+        ("¿Qué datos necesita el archivo CSV?",
+         "Solo necesita una columna de fecha (Fecha, Date, Fecha operación), una de importe (o columnas separadas de Cargo/Debe y Abono/Haber) y una de concepto o descripción. Flint detecta automáticamente el delimitador (; , tabulador) y salta las filas de cabeceras o totales."),
+        (f"¿Cómo se importa el archivo resultante en {short}?",
+         f"Flint transforma cada fila del CSV en un asiento cuadrado contra la subcuenta 572 que indiques (y lleva lo pendiente a la 555 sin inventar cuentas). Descargas {fname} listo para importar. {t['import'].replace('<b>', '').replace('</b>', '').replace('&gt;', '>')}"),
+        ("¿Sirve para Revolut, Wise, Stripe, PayPal y bancos españoles?",
+         "Sí. Cualquier extracto descargado en CSV desde Revolut Business, Wise, Stripe, PayPal, Qonto, N26 o la web de CaixaBank, BBVA, Santander y Sabadell se convierte al instante sin usar OCR ni perder un céntimo."),
+        ("¿Hay suscripción obligatoria?",
+         f"No. Al escribir tu correo tienes {SITE['free_credits']} créditos gratis al instante sin tarjeta (8 lotes completos gratis). Después puedes recargar desde 5 € pago por uso sin suscripción, o usar el Plan Despacho."),
+    ]
+    n43_link = "contaplus" if target == "contaplus_ascii" else target
+    body = f"""
+<section class="hero"><div class="glow" aria-hidden="true"></div><div class="wrap narrow">
+<nav class="crumbs" aria-label="Ruta"><a href="/">Inicio</a>{icon("chevron-right")}<span aria-current="page">CSV a {e(short)}</span></nav>
+<h1>Convertir CSV a {e(short)} ({e(fname)})</h1>
+<p class="lead">Prepara movimientos CSV bancarios o de pasarelas (Revolut, Stripe, PayPal, CaixaBank, BBVA, Santander) directamente para {e(prog)}, sin extracción PDF ni OCR. Vista previa inmediata y lotes en ZIP.</p>
+</div></section>
+
+<section class="section tight"><div class="wrap narrow" data-batch data-batch-target="{target}" data-batch-csv-mode="1">
+<form class="saldo-form glass batch" data-batch-form novalidate>
+<label class="lic"><span class="lic-label">{icon("key")}Tu correo o licencia</span>
+<span class="lic-field"><input type="text" name="license" autocomplete="email" spellcheck="false" placeholder="tu@correo.com o LIC-…" required aria-describedby="c-help" data-batch-lic></span>
+<span id="c-help" class="lic-help">Escribe tu correo para activar <b>{SITE['free_credits']} créditos gratis</b> al instante (sin tarjeta) o pega tu clave LIC-….</span></label>
+<label class="lic"><span class="lic-label">{icon("landmark")}Subcuenta del banco</span>
+<span class="lic-field"><input type="text" name="bank" inputmode="numeric" autocomplete="off" value="57200001" pattern="57[0-9]{{2,10}}" required data-batch-bank aria-describedby="cb-help"></span>
+<span id="cb-help" class="lic-help">La subcuenta 572 en {e(short)} (p. ej. 57200001). Los apuntes sin regla van a la 555 para revisar.</span></label>
+
+<label class="drop" data-batch-drop><input type="file" multiple accept=".csv,.n43,.c43,.q43" class="sr-only" data-batch-input>
+<span class="tile">{icon("download")}</span><b>Suelta aquí tus archivos CSV o Norma 43 (.csv, .n43)</b>
+<span class="muted small">Vista previa automática de filas verificadas · Sin suscripción · Servidores en la UE</span></label>
+<div class="sample-bar"><button type="button" class="btn-sample" data-batch-sample>{icon("refresh")}<span>Cargar CSV bancario de prueba (demo en 1 clic)</span></button></div>
+
+<div class="tw batch-list" data-batch-list hidden><table class="uso-t"><thead><tr><th>Fichero</th><th>Tipo</th><th>Estado</th><th>Detalle</th><th class="num"></th></tr></thead><tbody data-batch-rows></tbody></table></div>
+<div class="batch-actions"><button class="btn btn-primary btn-lg" type="submit" data-batch-go disabled>{icon("refresh")}<span>Convertir para {e(short)}</span></button>
+<button class="btn btn-ghost" type="button" data-batch-stop hidden>Detener</button>
+<button class="btn btn-quiet" type="button" data-batch-clear hidden>Vaciar lista</button>
+<span class="muted small tabnum" data-batch-cost aria-live="polite"></span></div>
+<p class="note" data-batch-msg aria-live="polite" hidden>{icon("info")}<span></span></p>
+
+<div class="batch-out" data-batch-out hidden><h2 class="h4">{icon("check")}Fichero {e(fname)} generado</h2>
+<p class="muted small">Un archivo: descargas {e(fname)} directo. Varios archivos: descargas un ZIP con todos los lotes numerados seguidos.</p>
+<div class="cta-row"><button class="btn btn-primary" type="button" data-batch-csv>{icon("download")}Descargar {e(fname)}</button>
+<button class="btn btn-ghost" type="button" data-batch-zip>{icon("table")}Todo con resumen (.zip)</button>
+<a class="btn btn-quiet" href="/precios/#despacho">Ver tarifas y recargas</a></div></div>
+</form>
+
+<div class="install-grid batch-info">
+<div><h2 class="h3">¿Qué datos necesita el CSV?</h2>
+<ul class="checks">
+<li>{icon("check")}<span><b>Fecha e importe:</b> detecta automáticamente columnas de Fecha e Importe (o Cargo y Abono separados).</span></li>
+<li>{icon("check")}<span><b>Cualquier formato europeo o anglosajón:</b> coma o punto decimal, fechas DD/MM/AAAA o AAAA-MM-DD.</span></li>
+<li>{icon("check")}<span><b>Flujo CSV directo sin OCR:</b> conversión determinista al 100%, sin errores de lectura óptica ni cuentas inventadas.</span></li>
+<li>{icon("check")}<span><b>También acepta Norma 43 (.n43, .c43):</b> puedes mezclar archivos CSV y cuadernos 43 en el mismo lote.</span></li>
+</ul></div>
+<div><h2 class="h3">{e(short)} ({e(fname)})</h2>
+<p class="muted small">{t["import"]}</p>
+<div class="tw uso" style="margin-top:12px"><table class="uso-t"><thead><tr><th>Concepto</th><th class="num">Créditos</th></tr></thead>
+<tbody><tr><td>Convertir un CSV o extracto a {e(short)}</td><td class="num">3 cr (≈ 0,15 €)</td></tr>
+<tr><td>Archivo con error de formato</td><td class="num">0 cr (gratis)</td></tr></tbody></table></div>
+<p class="muted small">También disponible como conector directo en Claude (<code>https://mcp.keyflint.dev/despacho/mcp</code>). <a href="/norma43-a-{n43_link}/">Ver conversor Norma 43 a {e(short)}</a>.</p></div>
+</div>
+
+<div class="faq" style="margin-top:40px"><h2 class="h3" style="margin-bottom:20px">Preguntas frecuentes sobre convertir CSV a {e(short)}</h2>{faq_html(faq)}</div>
+</div></section>
+<script defer src="/assets/lote.js?v={VERSION}"></script>"""
+    return page(path, title, desc, body, [faq_ld(faq)])
+
 
 
 def start() -> str:
@@ -2197,6 +2277,9 @@ def main() -> None:
     write("norma43-a-contasol/index.html", norma43_contasol_page())
     write("norma43-a-a3/index.html", norma43_target_page("a3"))
     write("norma43-a-contaplus/index.html", norma43_target_page("contaplus_ascii"))
+    write("csv-a-contasol/index.html", csv_target_page("contasol"))
+    write("csv-a-a3/index.html", csv_target_page("a3"))
+    write("csv-a-contaplus/index.html", csv_target_page("contaplus_ascii"))
     installer_files()
     try:
         import subprocess
@@ -2210,7 +2293,7 @@ def main() -> None:
         print("AVISO: faltan datos del titular en data/catalog.json -> site.legal:", ", ".join(legal_missing()))
     for m in MCPS:
         write(f"{m['slug']}/index.html", mcp_page(m))
-    paths = ["/", "/probar/", "/empezar/", "/precios/", "/terminos/", "/reembolsos/", "/aviso-legal/", "/confianza/", "/norma43-a-excel/", "/norma43-a-contasol/", "/norma43-a-a3/", "/norma43-a-contaplus/", "/en/", "/en/try/", "/en/start/", "/estado/", "/asesorias/", "/lote/", "/en/batch/"] + [f"/{m['slug']}/" for m in MCPS]
+    paths = ["/", "/probar/", "/empezar/", "/precios/", "/terminos/", "/reembolsos/", "/aviso-legal/", "/confianza/", "/norma43-a-excel/", "/norma43-a-contasol/", "/norma43-a-a3/", "/norma43-a-contaplus/", "/csv-a-contasol/", "/csv-a-a3/", "/csv-a-contaplus/", "/en/", "/en/try/", "/en/start/", "/estado/", "/asesorias/", "/lote/", "/en/batch/"] + [f"/{m['slug']}/" for m in MCPS]
     write("sitemap.xml", '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
           + "".join(f"<url><loc>{SITE['url']}{p}</loc><lastmod>{TODAY}</lastmod></url>\n" for p in paths) + "</urlset>\n")
     write("robots.txt", f"User-agent: *\nAllow: /\nDisallow: /gracias/\nDisallow: /saldo/\nDisallow: /en/balance/\nDisallow: /api/\n\nSitemap: {SITE['url']}/sitemap.xml\n")
