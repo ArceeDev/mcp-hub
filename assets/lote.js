@@ -8,8 +8,8 @@
   var EN = document.documentElement.lang === "en";
   function T(es, en) { return EN ? en : es; }
   var KEY = "kf-mcp-license", LIC_RE = /^LIC-[A-Za-z0-9._~+\/=-]{6,1024}$/, EMAIL_RE = /^[^\s@]{1,64}@[^\s@]{1,255}\.[^\s@]{2,}$/;
-  var EXTS = [".n43", ".c43", ".q43", ".csv", ".xml", ".xsig"], MAX_BYTES = 10 * 1024 * 1024;
-  var COST = { parse_norma43: 1, validate_verifactu_xml: 3, validate_facturae: 2, bank_to_journal: 3 };
+  var EXTS = [".n43", ".c43", ".q43", ".csv", ".pdf", ".xml", ".xsig"], MAX_BYTES = 10 * 1024 * 1024;
+  var COST = { parse_norma43: 1, validate_verifactu_xml: 3, validate_facturae: 2, bank_to_journal: 3, pdf_bank_to_journal: 3 };
   /* Con data-batch-target (contasol | a3 | contaplus_ascii) los Norma 43 y CSV se convierten en el fichero del programa contable. */
   var TARGET = root.getAttribute("data-batch-target") || "";
   var CSV_MODE = root.getAttribute("data-batch-csv-mode") === "1";
@@ -55,12 +55,17 @@
   function isVerifactu(bytes) { var h = head(bytes); return VF_TAGS.some(function (t) { return h.indexOf(t) >= 0; }); }
   function toolFor(it) {
     if (it.ext === ".csv") return ["contabridge", "bank_to_journal"];
+    if (it.ext === ".pdf") return ["contabridge", "pdf_bank_to_journal"];
     if (it.ext === ".n43" || it.ext === ".c43" || it.ext === ".q43") return TARGET ? ["contabridge", "bank_to_journal"] : ["norma43", "parse_norma43"];
     if (it.ext === ".xml" && isVerifactu(it.bytes)) return ["verifactu", "validate_verifactu_xml"];
     return ["verifactu", "validate_facturae"];
   }
   function previewOf(it) {
     try {
+      if (it.ext === ".pdf") {
+        var pages = (head(it.bytes, 2097152).match(/\/Type\s*\/Page(?!s)/g) || []).length;
+        return head(it.bytes, 5) !== "%PDF-" ? T("No parece un PDF", "Not a PDF") : T("PDF digital" + (pages ? " · " + pages + " pág." : "") + ": se verificará el cuadre de saldos", "Digital PDF" + (pages ? " · " + pages + " p." : "") + ": balances will be checked");
+      }
       var txt = head(it.bytes, 262144);
       var lines = txt.replace(/\r\n/g, "\n").replace(/\r/g, "\n").split("\n");
       if (it.ext === ".n43" || it.ext === ".c43" || it.ext === ".q43") {
@@ -95,14 +100,14 @@
         it.preview = previewOf(it);
       });
     })).then(render);
-    say(skipped.length ? T("No se admiten: ", "Not supported: ") + skipped.join(", ") + T(". Solo .n43, .c43, .q43, .csv, .xml y .xsig de hasta 10 MB.", ". Only .n43, .c43, .q43, .csv, .xml and .xsig up to 10 MB.") : "", true);
+    say(skipped.length ? T("No se admiten: ", "Not supported: ") + skipped.join(", ") + T(". Solo .n43, .c43, .q43, .csv, .pdf, .xml y .xsig de hasta 10 MB.", ". Only .n43, .c43, .q43, .csv, .pdf, .xml and .xsig up to 10 MB.") : "", true);
   }
 
   var LABEL = {
     pending: T("Pendiente", "Pending"), running: T("Procesando…", "Processing…"), ok: "OK",
     warn: T("Con reparos", "With issues"), error: "Error"
   };
-  var TYPE = { parse_norma43: "Norma 43", validate_verifactu_xml: "VERI*FACTU XML", validate_facturae: "Facturae 3.2.2", bank_to_journal: "Extracto → asientos" };
+  var TYPE = { parse_norma43: "Norma 43", validate_verifactu_xml: "VERI*FACTU XML", validate_facturae: "Facturae 3.2.2", bank_to_journal: "Extracto → asientos", pdf_bank_to_journal: T("PDF → asientos", "PDF → entries") };
   function typeOf(it) {
     if (!it.tool) return "…";
     if (it.ext === ".csv") return "CSV → asientos";
@@ -331,13 +336,14 @@
 
   function summarise(it, data) {
     var tool = it.tool[1], base = { fecha_proceso: nowStr(), fichero: it.name, tipo: typeOf(it) };
-    if (tool === "bank_to_journal") {
+    if (tool === "bank_to_journal" || tool === "pdf_bank_to_journal") {
       var bk = data.bank || {}, js = data.summary || {}, pend = bk.unmatched_total || 0;
+      var chk = (data.statement || {}).balance_check, flag = (data.statement || {}).flagged_total || 0;
       return Object.assign(base, {
-        estado: js.balanced === false ? "DESCUADRADO" : (pend ? "REVISAR_555" : "OK"),
-        iban_o_emisor: (bankEl && bankEl.value) || "57200001", movimientos_o_facturas: bk.movements != null ? bk.movements : (js.entries || ""),
-        saldo_inicial: js.from || "", saldo_final_o_total: js.to || "",
-        moneda: "EUR", avisos: pend + (data.norma43_issues || []).length, ok: js.balanced !== false && !pend
+        estado: js.balanced === false || (chk && !chk.balanced) ? "DESCUADRADO" : (pend ? "REVISAR_555" : "OK"),
+        iban_o_emisor: ((data.statement || {}).iban) || (bankEl && bankEl.value) || "57200001", movimientos_o_facturas: bk.movements != null ? bk.movements : (js.entries || ""),
+        saldo_inicial: chk ? (chk.opening_balance || "") : (js.from || ""), saldo_final_o_total: chk ? (chk.printed_closing || chk.computed_closing || "") : (js.to || ""),
+        moneda: "EUR", avisos: pend + flag + (data.norma43_issues || []).length, ok: js.balanced !== false && !pend && !flag && (!chk || chk.balanced)
       });
     }
     if (tool === "parse_norma43") {
@@ -411,6 +417,7 @@
       try {
         var args = { content_base64: b64(it.bytes) };
         if (it.tool[1] === "parse_norma43") args.include_movements = true;
+        if (it.tool[1] === "pdf_bank_to_journal") { args.bank_account = bankAcc || "57200001"; args.target_format = TARGET || "csv"; args.start_entry_number = nextEntry; }
         if (it.tool[1] === "bank_to_journal") { args.bank_account = bankAcc || "57200001"; args.target_format = TARGET || "csv"; args.start_entry_number = nextEntry; }
         var data = await callMcp(it.tool[0], it.tool[1], args, license);
         it.data = data; it.row = summarise(it, data); it.state = it.row.ok ? "ok" : "warn";
