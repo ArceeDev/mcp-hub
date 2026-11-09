@@ -469,7 +469,22 @@ export default {
     const dm = path.match(/^\/api\/demo\/([a-z0-9-]+)$/);
     if (dm && request.method === "POST") return demo(request, env, url, dm[1], (slug, name, args, lic) => demoCall(env, url, slug, name, args, lic));
     const m = path.match(/^\/([a-z0-9-]+)\/mcp(\/.*)?$/) || path.match(/^\/\.well-known\/oauth-protected-resource\/([a-z0-9-]+)\/mcp$/);
-    if (m && resources[m[1]]) return resources[m[1]].fetch(request, env, ctx);
+    if (m && resources[m[1]]) {
+      const res = await resources[m[1]].fetch(request, env, ctx);
+      if (res.status === 401 && request.method === "GET" && (request.headers.get("accept") || "").includes("text/html")) {
+        const slug = m[1], mcpUrl = `${origin(env)}/${slug}/mcp`, guide = slug === "despacho" ? "/asesorias/#conector" : `/${slug}/`;
+        return page(`Conector ${NAMES[slug] || slug}`, `<h1>Conector ${esc(NAMES[slug] || slug)}</h1>
+<p>Esta dirección es un <b>conector MCP</b> para pegar dentro de Claude (no se abre directamente en el navegador).</p>
+<label for="mcp-url"><b>URL del conector</b></label>
+<input id="mcp-url" value="${esc(mcpUrl)}" readonly onclick="this.select()">
+<p class="muted" style="margin-top:12px"><b>Cómo conectarlo en Claude:</b><br>1. Abre Claude → <b>Ajustes (Settings) → Conectores (Connectors)</b>.<br>2. Pulsa <b>Añadir conector personalizado (Add custom connector)</b> y pega esta URL.<br>3. Escribe tu correo y el código de 6 dígitos que recibirás.</p>
+<div class="row">
+  <button type="button" class="btn btn-primary" style="order:2" onclick="navigator.clipboard.writeText('${esc(mcpUrl)}');this.textContent='URL copiada'">Copiar URL</button>
+  <a class="btn" href="${esc(guide)}">Ver guía</a>
+</div>`, new Headers(res.headers), 401);
+      }
+      return res;
+    }
     if (path.startsWith("/oauth/") || path.startsWith("/.well-known/oauth-")) return as.fetch(request, env, ctx);
     return api.fetch(request, env, ctx);
   },
