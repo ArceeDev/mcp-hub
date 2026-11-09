@@ -1,5 +1,6 @@
 // mcp.keyflint.dev: web estática, API mínima (/api/*) y los MCP remotos con OAuth.
 //
+//   https://mcp.keyflint.dev/despacho/mcp conector único para asesorías: Norma 43 + ContaBridge con una URL
 //   https://mcp.keyflint.dev/<slug>/mcp   MCP remoto (Streamable HTTP). Claude, ChatGPT, Antigravity, Codex… lo añaden
 //                                          por URL; el cliente hace OAuth y el usuario pega su licencia una vez.
 //   /authorize                            página de licencia (consentimiento OAuth)
@@ -21,9 +22,9 @@ import { EMAIL_RE, bindLicense, closeSession, issueTrial, licensesFor, normEmail
 import { demo } from "./demo.js";
 import { status } from "./status.js";
 
-export const SLUGS = ["web-intel", "norma43", "contabridge", "verifactu", "dataclean"];
-const NAMES = { "web-intel": "Web Intel", norma43: "Norma 43", contabridge: "ContaBridge", verifactu: "VeriFactu",
-  dataclean: "DataClean" };
+import { NAMES, SLUGS } from "./slugs.js";
+
+export { SLUGS };
 const SCOPE = "mcp";
 const LICENSE_RE = /^LIC-[A-Za-z0-9._~+\/=-]{6,1024}$/;
 const INSTANCES = 1; // 1 contenedor primario caliente evita 3x cold-starts; escalable con MCP_INSTANCES
