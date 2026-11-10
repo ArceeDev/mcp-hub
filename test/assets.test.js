@@ -18,3 +18,22 @@ test("el lote acepta extractos PDF y los envía a pdf_bank_to_journal", async ()
   assert.match(js, /\.pdf"\) return \["contabridge", "pdf_bank_to_journal"\]/);
   assert.match(js, /pdf_bank_to_journal: 3/);
 });
+
+test("el visor Norma 43 valida saldos y totales sin red", async () => {
+  const { readFileSync } = await import("node:fs");
+  const js = readFileSync("assets/visor.js", "utf8");
+  assert.doesNotMatch(js, /fetch\(|XMLHttpRequest|sendBeacon/);
+  const rec = (s) => s.padEnd(80);
+  const r11 = "112100041802000513322610012610312" + String(150000).padStart(14, "0") + "9783";
+  const r22 = "22    0418" + "261002261002" + "01" + "000" + "2" + String(20000).padStart(14, "0");
+  const r33 = "3321000418" + "0200051332" + "00000" + "00000000000000" + "00001" + String(20000).padStart(14, "0") + "2" + String(170000).padStart(14, "0") + "978";
+  const text = [r11, r22, r33].map(rec).join("\n");
+  globalThis.document = { querySelector: () => ({ addEventListener() {}, hidden: false, querySelector: () => null }) };
+  globalThis.window = {};
+  (0, eval)(js);
+  const a = window.__visorN43.parse(text).accts[0];
+  assert.equal(a.mov.length, 1);
+  assert.deepEqual(a.ok.map((x) => x[0]), [true, true, true]);
+  const bad = window.__visorN43.parse(text.replace(String(170000).padStart(14, "0"), String(170001).padStart(14, "0"))).accts[0];
+  assert.ok(bad.ok.some((x) => !x[0]));
+});

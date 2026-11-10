@@ -29,6 +29,7 @@ SEO_KEYWORDS = {
     "/csv-a-contaplus/": "convertir csv a contaplus, importar csv bancario en sage contaplus, pasar excel banco a xdiario.txt, sage 50 csv banco",
     "/asesorias/": "software conciliacion bancaria asesorias, automatizacion gestorias contabilidad, norma 43 asesorias, verifactu gestorias, contabilidad automatica pymes, claude asesorias, programa para asesorias",
     "/precios/": "precios norma 43, tarifa plana conciliacion bancaria, planes gestorias contabilidad, keyflint precios, mcp precios espana, comprar creditos mcp",
+    "/visor-norma-43/": "visor norma 43 online, abrir fichero n43, lector cuaderno 43, ver c43 online, comprobar extracto norma 43, visor aeb43",
     "/lote/": "procesador por lotes norma 43, convertir multiples extractos bancarios, lote n43 c43 xml facturae, conciliar bancos por lotes, visor norma 43 online",
     "/confianza/": "rgpd art 28 contabilidad, proteccion datos asesorias, secreto profesional extractos bancarios, subencargados software contable, dpa gestorias, seguridad datos contables",
     "/probar/": "probar mcp gratis, creditos gratis norma 43, licencia keyflint gratis, demo conciliacion bancaria, probar servidores mcp claude cursor",
@@ -2484,6 +2485,39 @@ def notice_page() -> str:
 
 # ---------------------------------------------------------------- output
 
+def visor_page() -> str:
+    """Visor Norma 43 gratuito: el análisis ocurre en el navegador, sin enviar el fichero."""
+    faq = [
+        ("¿Se sube mi extracto a algún servidor?", "No. El visor lee el fichero con JavaScript en tu navegador: no se envía ni a KeyFlint ni a nadie. Puedes comprobarlo con la pestaña Red de las herramientas de desarrollo o desconectando internet después de cargar la página."),
+        ("¿Qué comprueba?", "Que saldo inicial más movimientos da el saldo final, que los totales de debe y haber del registro 33 coinciden con la suma de los apuntes y que el número de apuntes cuadra. Si algo no cuadra, lo marca."),
+        ("¿Qué es un fichero Norma 43?", "El Cuaderno 43 de la AEB: un fichero de texto de 80 caracteres por línea que cada banco español ofrece como extracto electrónico, con registros 11 (cuenta), 22 (movimiento), 23 (concepto), 33 (totales) y 88 (fin)."),
+        ("¿Y si mi banco solo da CSV o PDF?", "Este visor solo abre Norma 43. Para CSV y PDF usa el conversor a ContaSol, A3 o ContaPlus, que sí los interpreta."),
+        ("¿Pasar el extracto a ContaSol, A3 o ContaPlus?", "Una vez revisado, conviértelo a un fichero que importe tu programa contable, con una prueba gratis de 25 créditos sin tarjeta."),
+    ]
+    body = f"""<section class="hero hero-sub"><div class="wrap narrow">
+<p class="eyebrow">Herramienta gratuita</p>
+<h1>Visor de Norma 43 online</h1>
+<p class="lead">Abre un fichero .n43, .c43 o .q43 y comprueba al instante cuentas, saldos y movimientos. Se procesa en tu navegador: el extracto no sale de tu equipo.</p>
+</div></section>
+<section class="section tight"><div class="wrap narrow">
+<div class="saldo-form glass batch">
+<label class="drop" data-visor-drop><input type="file" accept=".n43,.c43,.q43,.txt,.aeb" class="sr-only" data-visor-input>
+<span class="tile">{icon("download")}</span><b>Arrastra aquí tu Norma 43 o haz clic para elegirlo</b>
+<span class="muted small">.n43 · .c43 · .q43 · .txt · hasta 10 MB · no se sube a ningún sitio</span></label>
+<p class="note" data-visor-msg hidden>{icon("info")}<span></span></p>
+</div>
+<div data-visor-out hidden style="margin-top:24px"></div>
+<div class="card-flat" style="margin-top:32px"><h2 class="h4">¿Y ahora qué?</h2>
+<p class="muted small">Si el extracto cuadra, llévalo a tu programa contable sin teclear: <a href="/norma43-a-contasol/">Norma 43 a ContaSol</a> · <a href="/norma43-a-a3/">a A3</a> · <a href="/norma43-a-contaplus/">a ContaPlus</a> · <a href="/norma43-a-excel/">a Excel</a>.</p>
+<div class="cta-row" style="margin-top:12px"><a class="btn btn-primary" href="/probar/?utm_source=visor&amp;utm_medium=web&amp;utm_campaign=visor-n43">{icon("key")}<span>Probar gratis (25 créditos)</span></a></div></div>
+<div class="faq" style="margin-top:40px"><h2 class="h3" style="margin-bottom:20px">Preguntas frecuentes</h2>{faq_html(faq)}</div>
+</div></section>
+<script defer src="/assets/visor.js?v={VERSION}"></script>"""
+    return page("/visor-norma-43/", "Visor de Norma 43 online gratis (n43, c43) · Flint by KeyFlint",
+                "Abre un fichero Norma 43 (Cuaderno 43) en el navegador y comprueba saldos, totales y movimientos. Gratis, sin subir el fichero.",
+                body, [faq_ld(faq)])
+
+
 def write(rel: str, text: str) -> None:
     p = OUT / rel
     p.parent.mkdir(parents=True, exist_ok=True)
@@ -2524,6 +2558,7 @@ def main() -> None:
     write("csv-a-contasol/index.html", csv_target_page("contasol"))
     write("csv-a-a3/index.html", csv_target_page("a3"))
     write("csv-a-contaplus/index.html", csv_target_page("contaplus_ascii"))
+    write("visor-norma-43/index.html", visor_page())
     for _k, _b in BANK_PAGES.items():
         write(_b["path"].strip("/") + "/index.html", bank_page(_k))
     installer_files()
@@ -2534,7 +2569,7 @@ def main() -> None:
         npx_bin = shutil.which("npx")
         if esbuild_bin or npx_bin:
             base_cmd = [esbuild_bin] if esbuild_bin else [npx_bin, "--no-install", "esbuild"]
-            for _f in [OUT / "assets" / "app.js", OUT / "assets" / "lote.js", OUT / "assets" / "style.css"]:
+            for _f in [OUT / "assets" / "app.js", OUT / "assets" / "lote.js", OUT / "assets" / "visor.js", OUT / "assets" / "style.css"]:
                 if _f.exists():
                     subprocess.run([*base_cmd, str(_f), "--minify", f"--outfile={_f}", "--allow-overwrite"],
                                    check=True, shell=False, capture_output=True, timeout=30)
@@ -2544,7 +2579,7 @@ def main() -> None:
         print("AVISO: faltan datos del titular en data/catalog.json -> site.legal:", ", ".join(legal_missing()))
     for m in MCPS:
         write(f"{m['slug']}/index.html", mcp_page(m))
-    paths = ["/", "/probar/", "/empezar/", "/precios/", "/terminos/", "/reembolsos/", "/aviso-legal/", "/confianza/", "/norma43-a-excel/", "/norma43-a-contasol/", "/norma43-a-a3/", "/norma43-a-contaplus/", "/csv-a-contasol/", "/csv-a-a3/", "/csv-a-contaplus/"] + [b["path"] for b in BANK_PAGES.values()] + ["/en/", "/en/try/", "/en/start/", "/estado/", "/asesorias/", "/lote/", "/en/batch/"] + [f"/{m['slug']}/" for m in MCPS]
+    paths = ["/", "/visor-norma-43/", "/probar/", "/empezar/", "/precios/", "/terminos/", "/reembolsos/", "/aviso-legal/", "/confianza/", "/norma43-a-excel/", "/norma43-a-contasol/", "/norma43-a-a3/", "/norma43-a-contaplus/", "/csv-a-contasol/", "/csv-a-a3/", "/csv-a-contaplus/"] + [b["path"] for b in BANK_PAGES.values()] + ["/en/", "/en/try/", "/en/start/", "/estado/", "/asesorias/", "/lote/", "/en/batch/"] + [f"/{m['slug']}/" for m in MCPS]
     write("sitemap.xml", '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
           + "".join(f"<url><loc>{SITE['url']}{p}</loc><lastmod>{TODAY}</lastmod></url>\n" for p in paths) + "</urlset>\n")
     indexnow_key = "8f4e2a9c1b7d3e5f6a0c8b2d4e6f1a3b"
