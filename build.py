@@ -437,6 +437,7 @@ def build_page_ld(path: str, title: str, desc: str, lang: str = "es", custom_ld:
             "@type": "WebSite",
             "@id": f"{SITE['url']}/#website",
             "name": SITE["name"],
+            "alternateName": "Flint",
             "url": f"{SITE['url']}/",
             "description": SITE["description"],
             "inLanguage": lang,
@@ -761,7 +762,7 @@ def trial_page() -> str:
 <p class="lead-sm">Claude Desktop (extensión .mcpb), Claude Code, Cursor, VS Code y más. Elige servidor y copia.</p></div>
 <div class="install-card glass">{quick_install()}<p class="quick-or muted small">o elige servidor y cliente</p><div class="picker" role="group" aria-label="Elige servidor">{picker}</div>{installers}</div>
 </div></section>"""
-    return page("/probar/", f"Prueba gratis los servidores MCP: {SITE['free_credits']} créditos · Flint",
+    return page("/probar/", f"Prueba gratis los servidores MCP: {SITE['free_credits']} créditos · Flint by KeyFlint",
                 f"Licencia gratis al momento con {SITE['free_credits']} créditos para todos los servidores MCP de KeyFlint. Sin tarjeta.", body)
 
 
@@ -1087,7 +1088,7 @@ def pricing() -> str:
                      + [{"@type": "Offer", "name": "Recarga libre", "price": SITE["topup"]["min"], "priceCurrency": "EUR",
                          "url": f"{SITE['url']}/saldo/", "availability": "https://schema.org/InStock"}]},
           faq_ld(faq)]
-    return page("/precios/", "Precios de los servidores MCP · Flint",
+    return page("/precios/", "Precios de los servidores MCP · Flint by KeyFlint",
                 f"Un saldo de créditos para todos los servidores MCP de KeyFlint. Recargas desde {SITE['topup']['min']} € sin suscripción o gratis con {SITE['free_credits']} créditos.",
                 body, ld)
 
@@ -1234,7 +1235,7 @@ def advisors_page() -> str:
 <div><h2>Prueba con los extractos de este mes</h2><p class="lead-sm">{SITE['free_credits']} créditos gratis: suficientes para probar todo el flujo de tu despacho. Sin tarjeta.</p></div>
 <div class="cta-row"><a class="btn btn-primary btn-lg" href="/probar/">{icon("key")}<span>Pedir licencia gratis</span></a><a class="btn btn-ghost btn-lg" href="/norma43-a-excel/"><span>Ver demo en 1 clic</span></a></div>
 </div></div></section>"""
-    return page("/asesorias/", "Conciliación bancaria Norma 43 y facturas para asesorías · Flint",
+    return page("/asesorias/", "Conciliación bancaria Norma 43 y facturas para asesorías · Flint by KeyFlint",
                 "Concilia extractos bancarios Norma 43, exporta asientos para ContaSol y A3 y audita facturas electrónicas. 0% errores de cálculo y 25 créditos gratis.",
                 body, [faq_ld(faq)])
 
@@ -1291,7 +1292,7 @@ def batch_page() -> str:
 {bank_links_section() if _LANG[-1] == "es" else ""}
 </div></section>
 <script defer src="/assets/lote.js?v={VERSION}"></script>"""
-    return page(U("batch"), L("Procesador por lotes Norma 43, VERI*FACTU y Facturae · Flint", "Batch processor for Norma 43, VERI*FACTU and Facturae · Flint"),
+    return page(U("batch"), L("Procesador por lotes Norma 43, VERI*FACTU y Facturae · Flint by KeyFlint", "Batch processor for Norma 43, VERI*FACTU and Facturae · Flint by KeyFlint"),
                 L("Arrastra extractos Norma 43 y XML de VERI*FACTU o Facturae, pega tu licencia y descarga el resumen .csv para Excel. Sin instalar nada.",
                   "Drop Norma 43 statements and VERI*FACTU or Facturae XML, paste your license and download the Excel .csv summary. Nothing to install."),
                 body, lang=_LANG[-1])
@@ -1378,7 +1379,7 @@ def norma43_excel_page() -> str:
 <div class="faq" style="margin-top:40px"><h2 class="h3" style="margin-bottom:20px">Preguntas frecuentes sobre Norma 43 a Excel</h2>{faq_html(faq)}</div>
 </div></section>
 <script defer src="/assets/lote.js?v={VERSION}"></script>"""
-    return page("/norma43-a-excel/", "Convertir extractos Norma 43 (.n43, .c43) a Excel online · Flint",
+    return page("/norma43-a-excel/", "Convertir extractos Norma 43 (.n43, .c43) a Excel online · Flint by KeyFlint",
                 "Convierte ficheros bancarios Norma 43 a Excel (.csv delimitado por punto y coma) gratis y al instante. Cuadre bancario matemático según cuaderno AEB 43.",
                 body, [faq_ld(faq)])
 
@@ -1387,21 +1388,21 @@ N43_TARGETS = {
     "contasol": {
         "path": "/norma43-a-contasol/", "program": "ContaSol (DELSOL)", "short": "ContaSol", "file": "APU.ods",
         "import": "En ContaSol: <b>Utilidades &gt; Importaciones</b>, importación Excel/Calc de <b>Apuntes</b>, y eliges el fichero APU.ods.",
-        "title": "Pasar extractos Norma 43 a ContaSol (APU.ods) · Flint",
+        "title": "Pasar extractos Norma 43 a ContaSol (APU.ods) · Flint by KeyFlint",
         "desc": "Convierte extractos bancarios Norma 43 (.n43, .c43) en el fichero de apuntes APU.ods que importa ContaSol, con la subcuenta 572 de tu banco y sin picar asientos.",
         "faq_extra": ("¿Qué fichero genera para ContaSol?", "Un APU.ods con el formato de importación Excel/Calc de apuntes de ContaSol (columnas A a Q). Se importa en Utilidades > Importaciones. Antes de pasarlo a una empresa real, haz una primera importación en una empresa de pruebas."),
     },
     "a3": {
         "path": "/norma43-a-a3/", "program": "a3ASESOR, a3ECO y a3CON", "short": "A3", "file": "SUENLACE.DAT",
         "import": "En a3: <b>Utilidades &gt; Enlace contable / Importar</b> el fichero SUENLACE.DAT (apuntes tipo 0, formato de 5 dígitos por defecto).",
-        "title": "Importar extractos Norma 43 en a3 (SUENLACE.DAT) · Flint",
+        "title": "Importar extractos Norma 43 en a3 (SUENLACE.DAT) · Flint by KeyFlint",
         "desc": "Convierte extractos bancarios Norma 43 (.n43, .c43) en un SUENLACE.DAT listo para importar en a3ASESOR, a3ECO o a3CON, con la subcuenta 572 del banco.",
         "faq_extra": ("¿Qué fichero genera para a3?", "Un SUENLACE.DAT con apuntes tipo 0, el formato estándar de enlace contable de a3ASESOR, a3ECO y a3CON. Por defecto usa el código de empresa 00001; si tu empresa en a3 tiene otro código, cámbialo antes de importar."),
     },
     "contaplus_ascii": {
         "path": "/norma43-a-contaplus/", "program": "Sage ContaPlus y Sage 50", "short": "ContaPlus", "file": "XDiario.txt",
         "import": "En ContaPlus: <b>Útiles &gt; Importación de ficheros ASCII</b>, eliges Diario y el fichero XDiario.txt.",
-        "title": "Pasar extractos Norma 43 a ContaPlus (XDiario) · Flint",
+        "title": "Pasar extractos Norma 43 a ContaPlus (XDiario) · Flint by KeyFlint",
         "desc": "Convierte extractos bancarios Norma 43 (.n43, .c43) en un diario XDiario.txt para importar en Sage ContaPlus, con la subcuenta 572 del banco.",
         "faq_extra": ("¿Qué fichero genera para ContaPlus?", "Un XDiario.txt de ancho fijo, el formato de importación ASCII de diario de Sage ContaPlus. Si usas Sage 50 con importación CSV, Flint también puede generar el diario en CSV desde Claude o Cursor."),
     },
@@ -1715,7 +1716,7 @@ def bank_page(key: str) -> str:
 <p class="muted small" style="margin-top:24px">Otros bancos y pasarelas: {others} · <a href="/csv-a-contasol/">Cualquier CSV</a> · <a href="/norma43-a-contasol/">Cualquier Norma 43</a></p>
 </div></section>
 <script defer src="/assets/lote.js?v={VERSION}"></script>"""
-    return page(b["path"], f"{b['h1']} · Flint", b["desc"], body, [faq_ld(faq)])
+    return page(b["path"], f"{b['h1']} · Flint by KeyFlint", b["desc"], body, [faq_ld(faq)])
 
 
 def csv_target_page(target: str) -> str:
@@ -1724,7 +1725,7 @@ def csv_target_page(target: str) -> str:
     short, prog, fname = t["short"], t["program"], t["file"]
     slug_map = {"contasol": "/csv-a-contasol/", "a3": "/csv-a-a3/", "contaplus_ascii": "/csv-a-contaplus/"}
     path = slug_map[target]
-    title = f"Convertir CSV a {short} ({fname}) online · Sin OCR · Flint"
+    title = f"Convertir CSV a {short} ({fname}) online · Sin OCR · Flint by KeyFlint"
     desc = f"Prepara movimientos CSV bancarios (Revolut, Stripe, PayPal, CaixaBank, BBVA, Santander) directamente para {prog} ({fname}). Vista previa instantánea y 25 créditos gratis."
     faq = [
         ("¿Qué datos necesita el archivo CSV?",
@@ -1841,7 +1842,7 @@ def start() -> str:
            "totalTime": "PT2M",
            "step": [{"@type": "HowToStep", "name": n} for n in
                     ["Consigue tu licencia", "Instala uv", "Añade el servidor a tu cliente MCP", "Compruébalo con tu agente"]]}]
-    return page("/empezar/", "Cómo instalar un servidor MCP en Claude, Cursor o VS Code · Flint",
+    return page("/empezar/", "Cómo instalar un servidor MCP en Claude, Cursor o VS Code · Flint by KeyFlint",
                 "Guía paso a paso para instalar servidores MCP en Claude Desktop, Claude Code, Cursor, VS Code, Codex, Antigravity y Windsurf con una licencia gratuita.",
                 body, ld)
 
@@ -1918,7 +1919,7 @@ def balance_page() -> str:
         ("What if I change my mind?", "If you have not used the credits from a top-up, email us within 14 days and we refund it. The refunded credits are removed."),
     ]))}</div>
 </div></section>"""
-    return page(U("balance"), L("Consulta tu saldo de créditos · Flint", "Check your credit balance · Flint"),
+    return page(U("balance"), L("Consulta tu saldo de créditos · Flint by KeyFlint", "Check your credit balance · Flint by KeyFlint"),
                 L("Consulta los créditos que te quedan en tu licencia de KeyFlint MCP.", "Check the credits left on your Flint license and top up."),
                 body, noindex=True, lang=_LANG[-1])
 
@@ -1952,11 +1953,11 @@ def thanks() -> str:
 </form>
 <p class="muted small center">¿Sigue sin llegar? Escribe a <a href="{SITE['contact']}">{e(CONTACT)}</a>.</p>
 </div></section>"""
-    return page("/gracias/", "Pago completado · Flint", "Tu licencia está de camino.", body, noindex=True)
+    return page("/gracias/", "Pago completado · Flint by KeyFlint", "Tu licencia está de camino.", body, noindex=True)
 
 
 def not_found() -> str:
-    return page("/404", "Página no encontrada · Flint", "Página no encontrada.",
+    return page("/404", "Página no encontrada · Flint by KeyFlint", "Página no encontrada.",
                 f'<section class="hero hero-sm center"><div class="glow" aria-hidden="true"></div><div class="wrap narrow"><p class="eyebrow">Error 404</p>'
                 f'<h1>Esta página no existe</h1><p class="lead">Puede que el enlace haya cambiado.</p>'
                 f'<div class="cta-row center"><a class="btn btn-primary btn-lg" href="/">Ir al inicio</a>'
@@ -2097,7 +2098,7 @@ def en_start() -> str:
 </div></section>"""
     ld = [{"@context": "https://schema.org", "@type": "HowTo", "name": "Install a Flint MCP server", "totalTime": "PT2M", "inLanguage": "en",
            "step": [{"@type": "HowToStep", "name": n} for n in ["Get your license", "Install uv", "Add the server to your MCP client", "Check it with your agent"]]}]
-    return page("/en/start/", "How to install an MCP server in Claude, Cursor or VS Code · Flint",
+    return page("/en/start/", "How to install an MCP server in Claude, Cursor or VS Code · Flint by KeyFlint",
                 "Step-by-step guide to install MCP servers in Claude Desktop, Claude Code, Cursor, VS Code, Codex, Antigravity and Windsurf with a free license.",
                 body, ld, lang="en")
 
@@ -2212,7 +2213,8 @@ def en_home() -> str:
 <div><h2>Try it on your own files</h2><p class="lead-sm">{SITE['free_credits']} free credits, no card. Built solo from Spain.</p></div>
 <div class="cta-row"><a class="btn btn-primary btn-lg" href="/en/try/">Get a free license</a><a class="btn btn-ghost btn-lg" href="https://github.com/ArceeDev" rel="noopener">See the code</a></div>
 </div></div></section>"""
-    ld = [{"@context": "https://schema.org", "@type": "SoftwareApplication", "name": "Flint", "applicationCategory": "BusinessApplication",
+    ld = [{"@context": "https://schema.org", "@type": "SoftwareApplication", "name": "Flint by KeyFlint", "alternateName": "Flint", "applicationCategory": "BusinessApplication",
+           "publisher": {"@type": "Organization", "name": "KeyFlint", "url": "https://keyflint.dev"},
            "operatingSystem": "Windows, macOS, Linux", "url": SITE["url"] + "/en/", "inLanguage": "en",
            "offers": {"@type": "Offer", "price": 0, "priceCurrency": "USD"}},
           faq_ld(faq)]
@@ -2292,7 +2294,7 @@ def status_page() -> str:
 <ul class="st-list glass" data-status>{lis}</ul>
 <p class="muted small">Última comprobación: <span data-st-time>…</span>. Los servidores locales (<code>uvx</code>) solo dependen de las licencias. ¿Algo raro? Escribe a <a href="{SITE['contact']}">{e(CONTACT)}</a>.</p>
 </div></section>"""
-    return page("/estado/", "Estado del servicio · Flint", "Estado en directo de las licencias y de las herramientas remotas de Flint.", body)
+    return page("/estado/", "Estado del servicio · Flint by KeyFlint", "Estado en directo de las licencias y de las herramientas remotas de Flint.", body)
 
 
 # ---------------------------------------------------------------- legal
@@ -2324,7 +2326,7 @@ def legal_page(path: str, crumb: str, title: str, lead: str, sections: list[tupl
 <nav class="legal-toc" aria-label="En esta página"><ol>{toc}</ol></nav>
 {secs}
 </div></section>"""
-    return page(path, f"{title} · Flint", re.sub(r"<[^>]+>", "", lead)[:158], body)
+    return page(path, f"{title} · Flint by KeyFlint", re.sub(r"<[^>]+>", "", lead)[:158], body)
 
 
 def terms_page() -> str:
