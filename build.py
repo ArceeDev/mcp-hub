@@ -29,6 +29,7 @@ SEO_KEYWORDS = {
     "/csv-a-contaplus/": "convertir csv a contaplus, importar csv bancario en sage contaplus, pasar excel banco a xdiario.txt, sage 50 csv banco",
     "/asesorias/": "software conciliacion bancaria asesorias, automatizacion gestorias contabilidad, norma 43 asesorias, verifactu gestorias, contabilidad automatica pymes, claude asesorias, programa para asesorias",
     "/precios/": "precios norma 43, tarifa plana conciliacion bancaria, planes gestorias contabilidad, keyflint precios, mcp precios espana, comprar creditos mcp",
+    "/visor-norma-43/": "visor norma 43 online, abrir fichero n43, lector cuaderno 43, ver c43 online, comprobar extracto norma 43, visor aeb43",
     "/lote/": "procesador por lotes norma 43, convertir multiples extractos bancarios, lote n43 c43 xml facturae, conciliar bancos por lotes, visor norma 43 online",
     "/confianza/": "rgpd art 28 contabilidad, proteccion datos asesorias, secreto profesional extractos bancarios, subencargados software contable, dpa gestorias, seguridad datos contables",
     "/probar/": "probar mcp gratis, creditos gratis norma 43, licencia keyflint gratis, demo conciliacion bancaria, probar servidores mcp claude cursor",
@@ -2484,6 +2485,82 @@ def notice_page() -> str:
 
 # ---------------------------------------------------------------- output
 
+N43_GUIDES = {
+    "santander": {"name": "Santander", "app": "Santander Empresas (Online Banking)",
+                  "route": ["Entra en Santander Empresas y abre Cuentas.", "Elige la cuenta y el periodo en Movimientos o Extractos.", "Pulsa Descargar y escoge el formato Cuaderno 43 (también llamado Norma 43 o AEB43).", "Guarda el fichero: suele ser .txt, .n43 o .c43."]},
+    "bbva": {"name": "BBVA", "app": "BBVA Net Cash / BBVA Net",
+             "route": ["Entra en BBVA Net Cash y abre Cuentas > Consulta de movimientos.", "Filtra por cuenta y fechas.", "Elige Exportar y el formato Norma 43 (AEB43).", "Guarda el fichero resultante."]},
+    "caixabank": {"name": "CaixaBank", "app": "CaixaBankNow Empresas",
+                  "route": ["Entra en CaixaBankNow Empresas y abre Cuentas > Extractos o Movimientos.", "Selecciona cuenta y rango de fechas.", "Pulsa Descargar y elige Cuaderno 43.", "Guarda el fichero (suele ser .txt o .q43)."]},
+    "sabadell": {"name": "Banco Sabadell", "app": "Sabadell Professional",
+                 "route": ["Entra en Sabadell Professional y abre Cuentas > Movimientos.", "Elige cuenta y periodo.", "Usa Descargar o Exportar y selecciona Norma 43.", "Guarda el fichero."]},
+}
+
+
+def n43_guide_page(key: str) -> str:
+    g = N43_GUIDES[key]
+    n = g["name"]
+    path = f"/descargar-norma-43-{key}/"
+    steps = "".join(f'<li class="step"><span class="tile tile-sm">{icon(ic)}</span><div><h3><span class="step-n">{i}</span>{e(txt)}</h3></div></li>'
+                    for i, (txt, ic) in enumerate(zip(g["route"], ("landmark", "table", "download", "check")), 1))
+    others = " · ".join(f'<a href="/descargar-norma-43-{k}/">{e(v["name"])}</a>' for k, v in N43_GUIDES.items() if k != key)
+    faq = [
+        (f"¿Dónde descargo el Norma 43 de {n}?", f"En la banca online para empresas de {n} ({g['app']}), en el apartado de movimientos o extractos de la cuenta, con la opción de descarga en formato Cuaderno 43 o Norma 43. La ruta exacta cambia con las versiones; si no ves la opción, pídesela a tu gestor de {n} o a su soporte."),
+        ("¿Cómo sé que el fichero es correcto?", "Ábrelo en el visor gratuito de Norma 43: comprueba que saldo inicial más movimientos da el saldo final y que los totales del registro 33 cuadran. Todo ocurre en tu navegador."),
+        (f"¿Qué extensión tiene el fichero de {n}?", "Suele ser .n43, .c43, .q43 o .txt. Flint los lee igual: lo importante es que cada línea tenga 80 caracteres y empiece por registros 11, 22, 23, 33 y 88."),
+        ("¿Cómo lo llevo a ContaSol, A3 o ContaPlus?", "Con el conversor de Norma 43: genera el fichero que importa tu programa, con un asiento por movimiento contra la subcuenta 572 y lo dudoso en la 555 para revisión."),
+    ]
+    body = f"""<section class="hero hero-sub"><div class="wrap narrow">
+<p class="eyebrow">Guía · {e(n)}</p>
+<h1>Cómo descargar el extracto Norma 43 de {e(n)}</h1>
+<p class="lead">Ruta habitual en {e(g["app"])} para bajar el Cuaderno 43 y comprobarlo antes de contabilizarlo. Los menús de cada banco cambian: si algo no coincide, usa la ayuda del banco.</p>
+</div></section>
+<section class="section tight"><div class="wrap narrow">
+<ol class="steps">{steps}</ol>
+<div class="card-flat" style="margin-top:28px"><h2 class="h4">Después de descargarlo</h2>
+<ul class="checks" style="margin-top:12px"><li>{icon("check")}<span><a href="/visor-norma-43/">Revísalo en el visor gratuito</a>: saldos y totales, sin subirlo a ningún sitio.</span></li>
+<li>{icon("check")}<span>Conviértelo: <a href="/norma43-a-contasol/?utm_source=guia-{key}&amp;utm_medium=web&amp;utm_campaign=guias-n43">ContaSol</a> · <a href="/norma43-a-a3/?utm_source=guia-{key}&amp;utm_medium=web&amp;utm_campaign=guias-n43">A3</a> · <a href="/norma43-a-contaplus/?utm_source=guia-{key}&amp;utm_medium=web&amp;utm_campaign=guias-n43">ContaPlus</a> · <a href="/norma43-a-excel/?utm_source=guia-{key}&amp;utm_medium=web&amp;utm_campaign=guias-n43">Excel</a>.</span></li></ul>
+<div class="cta-row" style="margin-top:12px"><a class="btn btn-primary" href="/probar/?utm_source=guia-{key}&amp;utm_medium=web&amp;utm_campaign=guias-n43">{icon("key")}<span>Probar gratis (25 créditos)</span></a></div></div>
+<div class="faq" style="margin-top:40px"><h2 class="h3" style="margin-bottom:20px">Preguntas frecuentes</h2>{faq_html(faq)}</div>
+<p class="muted small" style="margin-top:24px">Otros bancos: {others} · <a href="/visor-norma-43/">Visor Norma 43</a></p>
+</div></section>"""
+    return page(path, f"Descargar Norma 43 de {n}: guía paso a paso · Flint by KeyFlint",
+                f"Cómo descargar el extracto Norma 43 (Cuaderno 43) de {n}, comprobarlo gratis y pasarlo a ContaSol, A3 o ContaPlus.", body, [faq_ld(faq)])
+
+
+def visor_page() -> str:
+    """Visor Norma 43 gratuito: el análisis ocurre en el navegador, sin enviar el fichero."""
+    faq = [
+        ("¿Se sube mi extracto a algún servidor?", "No. El visor lee el fichero con JavaScript en tu navegador: no se envía ni a KeyFlint ni a nadie. Puedes comprobarlo con la pestaña Red de las herramientas de desarrollo o desconectando internet después de cargar la página."),
+        ("¿Qué comprueba?", "Que saldo inicial más movimientos da el saldo final, que los totales de debe y haber del registro 33 coinciden con la suma de los apuntes y que el número de apuntes cuadra. Si algo no cuadra, lo marca."),
+        ("¿Qué es un fichero Norma 43?", "El Cuaderno 43 de la AEB: un fichero de texto de 80 caracteres por línea que cada banco español ofrece como extracto electrónico, con registros 11 (cuenta), 22 (movimiento), 23 (concepto), 33 (totales) y 88 (fin)."),
+        ("¿Y si mi banco solo da CSV o PDF?", "Este visor solo abre Norma 43. Para CSV y PDF usa el conversor a ContaSol, A3 o ContaPlus, que sí los interpreta."),
+        ("¿Pasar el extracto a ContaSol, A3 o ContaPlus?", "Una vez revisado, conviértelo a un fichero que importe tu programa contable, con una prueba gratis de 25 créditos sin tarjeta."),
+    ]
+    body = f"""<section class="hero hero-sub"><div class="wrap narrow">
+<p class="eyebrow">Herramienta gratuita</p>
+<h1>Visor de Norma 43 online</h1>
+<p class="lead">Abre un fichero .n43, .c43 o .q43 y comprueba al instante cuentas, saldos y movimientos. Se procesa en tu navegador: el extracto no sale de tu equipo.</p>
+</div></section>
+<section class="section tight"><div class="wrap narrow">
+<div class="saldo-form glass batch">
+<label class="drop" data-visor-drop><input type="file" accept=".n43,.c43,.q43,.txt,.aeb" class="sr-only" data-visor-input>
+<span class="tile">{icon("download")}</span><b>Arrastra aquí tu Norma 43 o haz clic para elegirlo</b>
+<span class="muted small">.n43 · .c43 · .q43 · .txt · hasta 10 MB · no se sube a ningún sitio</span></label>
+<p class="note" data-visor-msg hidden>{icon("info")}<span></span></p>
+</div>
+<div data-visor-out hidden style="margin-top:24px"></div>
+<div class="card-flat" style="margin-top:32px"><h2 class="h4">¿Y ahora qué?</h2>
+<p class="muted small">Si el extracto cuadra, llévalo a tu programa contable sin teclear: <a href="/norma43-a-contasol/">Norma 43 a ContaSol</a> · <a href="/norma43-a-a3/">a A3</a> · <a href="/norma43-a-contaplus/">a ContaPlus</a> · <a href="/norma43-a-excel/">a Excel</a>. ¿Cómo lo descargo? {" · ".join(f'<a href="/descargar-norma-43-{k}/">{v["name"]}</a>' for k, v in N43_GUIDES.items())}</p>
+<div class="cta-row" style="margin-top:12px"><a class="btn btn-primary" href="/probar/?utm_source=visor&amp;utm_medium=web&amp;utm_campaign=visor-n43">{icon("key")}<span>Probar gratis (25 créditos)</span></a></div></div>
+<div class="faq" style="margin-top:40px"><h2 class="h3" style="margin-bottom:20px">Preguntas frecuentes</h2>{faq_html(faq)}</div>
+</div></section>
+<script defer src="/assets/visor.js?v={VERSION}"></script>"""
+    return page("/visor-norma-43/", "Visor de Norma 43 online gratis (n43, c43) · Flint by KeyFlint",
+                "Abre un fichero Norma 43 (Cuaderno 43) en el navegador y comprueba saldos, totales y movimientos. Gratis, sin subir el fichero.",
+                body, [faq_ld(faq)])
+
+
 def write(rel: str, text: str) -> None:
     p = OUT / rel
     p.parent.mkdir(parents=True, exist_ok=True)
@@ -2524,6 +2601,9 @@ def main() -> None:
     write("csv-a-contasol/index.html", csv_target_page("contasol"))
     write("csv-a-a3/index.html", csv_target_page("a3"))
     write("csv-a-contaplus/index.html", csv_target_page("contaplus_ascii"))
+    write("visor-norma-43/index.html", visor_page())
+    for _g in N43_GUIDES:
+        write(f"descargar-norma-43-{_g}/index.html", n43_guide_page(_g))
     for _k, _b in BANK_PAGES.items():
         write(_b["path"].strip("/") + "/index.html", bank_page(_k))
     installer_files()
@@ -2534,7 +2614,7 @@ def main() -> None:
         npx_bin = shutil.which("npx")
         if esbuild_bin or npx_bin:
             base_cmd = [esbuild_bin] if esbuild_bin else [npx_bin, "--no-install", "esbuild"]
-            for _f in [OUT / "assets" / "app.js", OUT / "assets" / "lote.js", OUT / "assets" / "style.css"]:
+            for _f in [OUT / "assets" / "app.js", OUT / "assets" / "lote.js", OUT / "assets" / "visor.js", OUT / "assets" / "style.css"]:
                 if _f.exists():
                     subprocess.run([*base_cmd, str(_f), "--minify", f"--outfile={_f}", "--allow-overwrite"],
                                    check=True, shell=False, capture_output=True, timeout=30)
@@ -2544,7 +2624,7 @@ def main() -> None:
         print("AVISO: faltan datos del titular en data/catalog.json -> site.legal:", ", ".join(legal_missing()))
     for m in MCPS:
         write(f"{m['slug']}/index.html", mcp_page(m))
-    paths = ["/", "/probar/", "/empezar/", "/precios/", "/terminos/", "/reembolsos/", "/aviso-legal/", "/confianza/", "/norma43-a-excel/", "/norma43-a-contasol/", "/norma43-a-a3/", "/norma43-a-contaplus/", "/csv-a-contasol/", "/csv-a-a3/", "/csv-a-contaplus/"] + [b["path"] for b in BANK_PAGES.values()] + ["/en/", "/en/try/", "/en/start/", "/estado/", "/asesorias/", "/lote/", "/en/batch/"] + [f"/{m['slug']}/" for m in MCPS]
+    paths = ["/", "/visor-norma-43/", *[f"/descargar-norma-43-{_g}/" for _g in N43_GUIDES], "/probar/", "/empezar/", "/precios/", "/terminos/", "/reembolsos/", "/aviso-legal/", "/confianza/", "/norma43-a-excel/", "/norma43-a-contasol/", "/norma43-a-a3/", "/norma43-a-contaplus/", "/csv-a-contasol/", "/csv-a-a3/", "/csv-a-contaplus/"] + [b["path"] for b in BANK_PAGES.values()] + ["/en/", "/en/try/", "/en/start/", "/estado/", "/asesorias/", "/lote/", "/en/batch/"] + [f"/{m['slug']}/" for m in MCPS]
     write("sitemap.xml", '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
           + "".join(f"<url><loc>{SITE['url']}{p}</loc><lastmod>{TODAY}</lastmod></url>\n" for p in paths) + "</urlset>\n")
     indexnow_key = "8f4e2a9c1b7d3e5f6a0c8b2d4e6f1a3b"
