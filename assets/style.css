@@ -727,3 +727,4 @@ svg.logo{width:30px;height:30px;flex:none;filter:drop-shadow(0 1px 6px rgba(204,
   .table-wrap table{min-width:600px}
   th,td{padding:12px 14px}
 }
+.brand-mark-lg{display:block;margin:0 auto 24px;filter:drop-shadow(0 8px 24px rgba(204,255,0,.28))}
