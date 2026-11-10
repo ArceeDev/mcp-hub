@@ -1312,7 +1312,7 @@ def norma43_excel_page() -> str:
         ("¿Cómo comprueba Flint el cuadre bancario del extracto?",
          "Flint aplica el algoritmo matemático oficial del cuaderno AEB 43: verifica el registro 11 (saldo inicial), suma algebraicamente los movimientos de los registros 22 y 23 (debe y haber) y comprueba que coincidan de forma exacta con el registro 33 (saldo final). Si falta un movimiento o el fichero está cortado, te avisa antes de que descuadre tu contabilidad."),
         ("¿Mis datos bancarios están protegidos (RGPD)?",
-         "Totalmente. Los ficheros viajan cifrados bajo TLS a servidores en la Unión Europea (París), se procesan exclusivamente en memoria volátil y se descartan inmediatamente tras generar el resultado. Nunca se almacenan ni se usan para entrenar modelos de IA (RGPD Art. 28). Para despachos con máxima exigencia de secreto profesional, el modo local con uvx procesa el extracto 100% dentro de tu propio ordenador sin que salga a internet."),
+         "Totalmente. Los ficheros viajan cifrados bajo TLS, se procesan exclusivamente en memoria volátil y se descartan inmediatamente tras generar el resultado. Nunca se almacenan ni se usan para entrenar modelos de IA (RGPD Art. 28). Para despachos con máxima exigencia de secreto profesional, el modo local con uvx procesa el extracto 100% dentro de tu propio ordenador sin que salga a internet."),
         ("¿Cuánto cuesta convertir extractos bancarios a Excel?",
          "Comienzas con 25 créditos totalmente gratuitos (unos 25 extractos bancarios, sin tarjeta). Después puedes recargar saldo libremente desde 5 € (unos 5 céntimos por extracto) sin cuotas mensuales fijas obligatorias: pagas solo lo que procesas y los créditos no caducan."),
     ]
@@ -1368,7 +1368,7 @@ def norma43_excel_page() -> str:
 <tr><td>Software tradicional de escritorio</td><td>5 min/cuenta</td><td>Medio</td><td>300 €/año + licencias</td></tr>
 <tr><td><b>Flint Norma 43 a Excel</b></td><td><b>1 segundo</b></td><td><b>0% (AEB 43)</b></td><td><b>25 gratis · Recarga libre desde 5 €</b></td></tr>
 </tbody></table></div>
-<p class="muted small">Garantía de privacidad: procesamiento en memoria bajo RGPD Art. 28 en la UE. <a href="/confianza/">Ver informe de confianza</a>.</p></div>
+<p class="muted small">Garantía de privacidad: procesamiento en memoria volátil bajo RGPD Art. 28, sin guardar tus ficheros. <a href="/confianza/">Ver informe de confianza</a>.</p></div>
 </div>
 
 <div class="card-flat batch-term"><p class="small"><b>¿Gestionas decenas de extractos bancarios al mes en tu despacho?</b> Deja una carpeta vigilada en tu ordenador: cualquier extracto bancario que guardes se convertirá a Excel automáticamente en segundo plano:</p>
@@ -2540,9 +2540,29 @@ def main() -> None:
     paths = ["/", "/probar/", "/empezar/", "/precios/", "/terminos/", "/reembolsos/", "/aviso-legal/", "/confianza/", "/norma43-a-excel/", "/norma43-a-contasol/", "/norma43-a-a3/", "/norma43-a-contaplus/", "/csv-a-contasol/", "/csv-a-a3/", "/csv-a-contaplus/"] + [b["path"] for b in BANK_PAGES.values()] + ["/en/", "/en/try/", "/en/start/", "/estado/", "/asesorias/", "/lote/", "/en/batch/"] + [f"/{m['slug']}/" for m in MCPS]
     write("sitemap.xml", '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
           + "".join(f"<url><loc>{SITE['url']}{p}</loc><lastmod>{TODAY}</lastmod></url>\n" for p in paths) + "</urlset>\n")
+    indexnow_key = "8f4e2a9c1b7d3e5f6a0c8b2d4e6f1a3b"
+    write(f"{indexnow_key}.txt", f"{indexnow_key}\n")
+    write("indexnow-urls.json", json.dumps([f"{SITE['url']}{p}" for p in paths], ensure_ascii=False))
+    from email.utils import formatdate
+    rfc_date = formatdate(usegmt=True)
+    rss_items = [
+        ("Conector único /despacho/mcp para Claude (17 herramientas contables y bancarias)", f"{SITE['url']}/asesorias/#conector", "Norma 43 + ContaBridge en una sola URL con OAuth 2.1 y código de 6 dígitos por correo."),
+        ("Convertir extractos bancarios PDF y CSV a ContaSol, A3 y ContaPlus", f"{SITE['url']}/csv-a-contasol/", "Lectura determinista de extractos bancarios PDF digitales, CSV y Norma 43 con cuadre al céntimo y vista previa inmediata."),
+        ("Extractos de CaixaBank, BBVA, Santander, Revolut, Stripe y PayPal a ContaSol", f"{SITE['url']}/revolut-a-contasol/", "Páginas dedicadas para pasar exportaciones de bancos y pasarelas de pago a diario contable APU.ods o SUENLACE.DAT."),
+    ] + [(f"{m['name']} MCP ({m['slug']})", f"{SITE['url']}/{m['slug']}/", m["headline"]) for m in MCPS]
+    write("feed.xml", '<?xml version="1.0" encoding="UTF-8"?>\n<rss version="2.0">\n<channel>\n'
+          f'<title>{e(SITE["name"])}</title>\n<link>{SITE["url"]}/</link>\n'
+          f'<description>{e(SITE["description"])}</description>\n<language>es</language>\n<lastBuildDate>{rfc_date}</lastBuildDate>\n'
+          + "".join(f'<item><title>{e(t)}</title><link>{u}</link><guid isPermaLink="true">{u}</guid><pubDate>{rfc_date}</pubDate><description>{e(d)}</description></item>\n' for t, u, d in rss_items)
+          + "</channel>\n</rss>\n")
     write("robots.txt", f"User-agent: *\nAllow: /\nDisallow: /gracias/\nDisallow: /saldo/\nDisallow: /en/balance/\nDisallow: /api/\n\nSitemap: {SITE['url']}/sitemap.xml\n")
-    write("llms.txt", f"# {SITE['name']}\n\n> {SITE['description']}\n\n## Servidores\n\n"
+    write("llms.txt", f"# {SITE['name']}\n\n> {SITE['description']}\n\n## Conector único y servidores MCP\n\n"
+          f"- [Conector único Despacho (/despacho/mcp)]({SITE['url']}/asesorias/#conector): 17 herramientas de Norma 43 y ContaBridge en una URL OAuth.\n"
           + "".join(f"- [{m['name']}]({SITE['url']}/{m['slug']}/): {m['headline']}\n" for m in MCPS)
+          + f"\n## Conversores web sin instalación\n\n"
+          + f"- [Procesador por lotes (/lote/)]({SITE['url']}/lote/)\n"
+          + f"- [CSV y PDF a ContaSol]({SITE['url']}/csv-a-contasol/)\n"
+          + f"- [Norma 43 a Excel]({SITE['url']}/norma43-a-excel/)\n"
           + f"\n## Más\n\n- [Precios]({SITE['url']}/precios/)\n- [Guía de instalación]({SITE['url']}/empezar/)\n")
     print(f"OK: {len(paths)} páginas indexables en {OUT}")
 

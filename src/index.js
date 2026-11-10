@@ -208,6 +208,23 @@ async function daily(env) {
   const missing = SLUGS.filter((s) => !(data.servers || []).includes(s));
   if (!res.ok || missing.length) console.error("healthz", res.status, "faltan", missing.join(","));
   else console.log("healthz ok", data.servers.join(","));
+  if (env.ASSETS) {
+    try {
+      const pubOrigin = origin(env);
+      const uRes = await env.ASSETS.fetch(new Request(`${pubOrigin}/indexnow-urls.json`));
+      const urlList = uRes.ok ? await uRes.json() : [];
+      if (Array.isArray(urlList) && urlList.length) {
+        const key = "8f4e2a9c1b7d3e5f6a0c8b2d4e6f1a3b";
+        const idx = await fetch("https://api.indexnow.org/indexnow", {
+          method: "POST",
+          headers: { "content-type": "application/json; charset=utf-8" },
+          body: JSON.stringify({ host: new URL(pubOrigin).host, key, keyLocation: `${pubOrigin}/${key}.txt`, urlList }),
+          signal: AbortSignal.timeout(8000),
+        });
+        console.log("indexnow mcp-hub", idx.status, urlList.length);
+      }
+    } catch (e) { console.error("indexnow mcp-hub error", e.message); }
+  }
 }
 
 // ---------------------------------------------------------------- página de licencia (consentimiento)
