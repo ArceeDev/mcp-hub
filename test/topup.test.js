@@ -19,6 +19,17 @@ test("crea la recarga en el gateway con céntimos y vuelta a /saldo/", async () 
   assert.deepEqual(m.calls[0].body, { license_key: LIC, amount_cents: 3700, currency: "eur", return_url: "https://mcp.keyflint.dev/saldo/" });
 });
 
+test("vuelve a la página del lote si la ruta es propia; si no, a /saldo/", async () => {
+  const env = { USAGE_DB: fakeD1() };
+  for (const [rp, want] of [["/lote/", "/lote/"], ["/csv-a-contasol/", "/csv-a-contasol/"], ["/en/batch/", "/en/batch/"],
+    ["//evil.example/", "/saldo/"], ["https://evil.example/", "/saldo/"], ["/lote/?x=1", "/saldo/"], ["/../", "/saldo/"], ["/lote", "/saldo/"], [42, "/saldo/"]]) {
+    m = mockFetch(ok);
+    await api.fetch(post("/api/recarga", { license: LIC, amount: 10, waiver: true, return_path: rp }), env);
+    assert.equal(m.calls[0].body.return_url, "https://mcp.keyflint.dev" + want, String(rp));
+    m.restore(); m = null;
+  }
+});
+
 test("valida importe, licencia, moneda y la casilla de desistimiento sin llamar al gateway", async () => {
   m = mockFetch(ok);
   const env = { USAGE_DB: fakeD1() };

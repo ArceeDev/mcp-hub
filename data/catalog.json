@@ -15,19 +15,83 @@
       "email": "legal@keyflint.dev",
       "updated": "2026-11-07"
     },
-    "cf_analytics_token": "",
+    "cf_analytics_token": "2f22e80ce2e94eebbc340eb44c0ad2aa",
     "free_credits": 25,
     "packs": [
       {
+        "id": "despacho-basico",
+        "name": "Despacho Básico",
+        "credits": 2500,
+        "price": 49,
+        "period": "/mes",
+        "currency": "€",
+        "checkout": "https://buy.stripe.com/cNiaEP8cscgb1cg8sPawo0e",
+        "seats": 3,
+        "who": "Asesores y pequeños despachos (hasta 3 puestos)",
+        "billing": "49 €/mes + IVA · 3 puestos · Factura con NIF/CIF",
+        "features": [
+          "2.500 créditos al mes (≈ 625 extractos conciliados)",
+          "Norma 43 (.n43, .c43) y Facturae",
+          "ContaSol (APU.ods), A3 y Sage",
+          "Carpetas vigiladas automáticas",
+          "3 puestos de asesor simultáneos",
+          "Factura mensual deducible con NIF/CIF"
+        ]
+      },
+      {
+        "id": "despacho-pro",
+        "name": "Despacho Pro",
+        "credits": 6000,
+        "price": 99,
+        "period": "/mes",
+        "currency": "€",
+        "checkout": "https://buy.stripe.com/28EaEPgIYcgbaMQdN9awo0f",
+        "seats": 10,
+        "featured": true,
+        "who": "Gestorías con volumen continuo de clientes",
+        "billing": "99 €/mes + IVA · 10 puestos · Cancela cuando quieras",
+        "features": [
+          "6.000 créditos al mes (≈ 1.500 extractos conciliados)",
+          "Todo lo de Básico",
+          "VERI*FACTU y Facturae (XML AEAT)",
+          "Conciliación bancaria multicuenta",
+          "10 puestos de asesor en el despacho",
+          "Contrato de encargo RGPD Art. 28 firmado",
+          "Soporte prioritario por email"
+        ]
+      },
+      {
+        "id": "despacho-empresa",
+        "name": "Despacho Empresa",
+        "credits": 15000,
+        "price": 149,
+        "period": "/mes",
+        "currency": "€",
+        "checkout": "https://buy.stripe.com/8x28wH8cs7ZVaMQeRdawo0g",
+        "seats": 99,
+        "who": "Despachos medianos y firmas de asesoría integral",
+        "billing": "149 €/mes + IVA · Puestos ilimitados · Facturación mensual",
+        "features": [
+          "15.000 créditos al mes (≈ 3.750 extractos conciliados)",
+          "Todo lo de Pro",
+          "Hasta 99 puestos de asesor",
+          "Alta disponibilidad y monitorización continua",
+          "Onboarding e instalación técnica asistida",
+          "Integración con servidor local o NAS del despacho",
+          "Atención técnica y soporte dedicado"
+        ]
+      },
+      {
         "id": "pro",
-        "name": "Pro",
+        "name": "Pro (Desarrollador)",
         "credits": 1000,
         "price": 29,
         "period": "/mes",
+        "currency": "$",
         "checkout": "https://buy.stripe.com/bJefZ9dwMdkf9IM9wTawo08",
         "seats": 3,
-        "who": "Uso constante cada mes",
-        "billing": "Se renueva cada mes, cancela cuando quieras"
+        "who": "Desarrolladores e IA individual",
+        "billing": "29 $/mes · Se renueva cada mes, cancela cuando quieras"
       }
     ],
     "topup": {
@@ -186,6 +250,16 @@
           "Conciliación 1:1, 1:N y N:1 con puntuación y evidencias"
         ],
         [
+          "sepa_direct_debits",
+          "2",
+          "Remesa de recibos SEPA (pain.008, Cuaderno 19.14) lista para subir al banco"
+        ],
+        [
+          "sepa_credit_transfers",
+          "2",
+          "Transferencias SEPA (pain.001, Cuaderno 34.14) a proveedores y nóminas"
+        ],
+        [
           "validate_identifier",
           "0",
           "IBAN, CCC, NIF/NIE/CIF, acreedor SEPA"
@@ -262,9 +336,14 @@
           "Convierte el diario entre A3, ContaPlus/Sage 50, QuickBooks, Xero y CSV; ajusta subcuentas"
         ],
         [
+          "invoices_to_journal",
+          "3",
+          "Facturas emitidas y recibidas a asientos con IVA, recargo e IRPF; resumen por tipo para el 303"
+        ],
+        [
           "bank_to_journal",
           "3",
-          "Norma 43 a asientos con reglas; lo no reconocido va a la 555"
+          "Norma 43, CSV del banco o lista de movimientos a asientos; cobros y pagos a la 430/400 de cada factura"
         ],
         [
           "build_journal",

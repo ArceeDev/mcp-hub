@@ -40,5 +40,5 @@ Estándar: producción militar, determinismo matemático (SHA-256), seguridad LS
 3. **UI B2B Quiet Luxury**:
    - Fondos sólidos (`#0B0D17` / `#FFFFFF`), acento único `#CCFF00`, tipografía Inter/Geist/JetBrains Mono, matriz espacial 8pt, cero emojis en CTAs.
 4. **Verificación Obligatoria**:
-   - `mcp-hub`: `python build.py` + `npm test` (21/21 pass).
+   - `mcp-hub`: `python build.py` + `npm test` (22/22 pass).
    - `keyflint`: `python run_tests.py` (234/234 pass).

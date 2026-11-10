@@ -94,6 +94,17 @@
       if (v) v.href = "vscode:mcp/install?" + encodeURIComponent(JSON.stringify(cfg.server.url ?
         { name: cfg.slug, type: "http", url: cfg.server.url } :
         { name: cfg.slug, type: "stdio", command: cfg.server.command, args: cfg.server.args, env: cfg.server.env }));
+      /* "Más clientes" (solo modo remoto): formatos de cada cliente, ver keyflint links */
+      var url = cfg.server && cfg.server.url, E = encodeURIComponent;
+      if (url) {
+        var set = function (id, href) { var a = ins.querySelector('[data-deeplink="' + id + '"]'); if (a) a.href = href; };
+        set("goose", "goose://extension?url=" + E(url) + "&type=streamable_http&id=" + E(cfg.slug) +
+          "&name=" + E(cfg.name || cfg.slug) + "&description=" + E(cfg.desc || ""));
+        set("lmstudio", "lmstudio://add_mcp?name=" + E(cfg.slug) + "&config=" +
+          E(b64(JSON.stringify({ url: url, headers: { Authorization: "Bearer " + value } }))));
+        set("kiro", "https://kiro.dev/launch/mcp/add?name=" + E(cfg.slug) + "&config=" + E(JSON.stringify({ url: url })));
+        set("vscode-insiders", "vscode-insiders:mcp/install?" + E(JSON.stringify({ name: cfg.slug, type: "http", url: url })));
+      }
       var input = ins.querySelector("[data-license]"), state = ins.querySelector("[data-license-state]"), help = ins.querySelector(".lic-help");
       if (input && document.activeElement !== input) input.value = lic || "";
       if (state) state.innerHTML = ok ? CHECK : "";
@@ -202,7 +213,7 @@
       var eqMsg = tb.querySelector("[data-topup-eq]"); eqMsg.hidden = ok; eqMsg.textContent = T("Entre ", "Between ") + EUR(cfg.min) + T(" y ", " and ") + EUR(cfg.max) + T(", sin decimales", ", whole euros");
       tb.querySelector("[data-topup-eqs]").hidden = !ok;
       tb.querySelectorAll("[data-eq]").forEach(function (el) { el.textContent = "≈ " + nfT.format(Math.floor(c / Number(el.getAttribute("data-eq")))); });
-      if (bonus.getAttribute("data-b") !== String(b)) { bonus.setAttribute("data-b", b); bonus.classList.remove("pop"); void bonus.offsetWidth; bonus.classList.add("pop"); }
+      if (bonus.getAttribute("data-b") !== String(b)) { bonus.setAttribute("data-b", b); bonus.classList.remove("pop"); requestAnimationFrame(function () { bonus.classList.add("pop"); }); }
       rng.style.setProperty("--p", Math.max(0, Math.min(100, (Number(rng.value) - Number(rng.min)) / (Number(rng.max) - Number(rng.min)) * 100)) + "%");
       var next = cfg.tiers.filter(function (t) { return t[0] > eur; })[0];
       tb.querySelector("[data-topup-next]").textContent = ok && next

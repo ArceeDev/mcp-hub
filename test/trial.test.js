@@ -20,6 +20,7 @@ test("emite la licencia de prueba y la devuelve en pantalla", async () => {
   assert.equal(m.calls[0].init.headers["x-admin-key"], "adm");
   assert.equal(m.calls[0].body.tier, "community");
   assert.equal(m.calls[0].body.metadata.trial, true);
+  assert.equal(m.calls[0].body.metadata.lang, "es");
 });
 
 test("una sola licencia por correo, aunque cambien mayúsculas o la IP", async () => {
