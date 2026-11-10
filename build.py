@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python3
 """Genera el sitio estático de mcp.keyflint.dev desde data/catalog.json.
 
@@ -16,6 +17,37 @@ import sys
 import urllib.parse
 import urllib.request
 from pathlib import Path
+
+SEO_KEYWORDS = {
+    "/": "servidores mcp espana, mcp contabilidad, extractos norma 43, verifactu aeat, facturae xsd, conciliacion bancaria claude, claude desktop mcp, cursor mcp espana, keyflint, automatizacion gestorias",
+    "/norma43-a-excel/": "convertir norma 43 a excel, norma 43 a excel gratis, pasar c43 a excel, lector norma 43, convertidor cuaderno 43, abrir archivo n43 excel, santander bbva caixabank norma 43 excel, extractos bancarios excel, descargar norma 43 csv",
+    "/norma43-a-a3/": "importar norma 43 en a3, norma 43 a3asesor, suenlace.dat extracto bancario, pasar extracto bancario a a3eco, enlace contable a3 banco",
+    "/norma43-a-contaplus/": "norma 43 contaplus, importar extracto bancario contaplus, xdiario contaplus banco, pasar c43 a contaplus, sage contaplus extractos",
+    "/norma43-a-contasol/": "norma 43 contasol, importar extracto bancario contasol, pasar norma 43 a apu contasol, asientos contasol norma 43, conciliacion bancaria contasol delsol, importar bancos contasol, delsol cloud extractos",
+    "/csv-a-contasol/": "convertir csv a contasol, importar csv en contasol, pasar excel bancario a apu contasol, revolut stripe paypal a contasol, extracto csv a asientos contasol",
+    "/csv-a-a3/": "convertir csv a a3, importar csv bancario en a3asesor, pasar excel banco a suenlace.dat, extracto csv a a3eco a3con",
+    "/csv-a-contaplus/": "convertir csv a contaplus, importar csv bancario en sage contaplus, pasar excel banco a xdiario.txt, sage 50 csv banco",
+    "/asesorias/": "software conciliacion bancaria asesorias, automatizacion gestorias contabilidad, norma 43 asesorias, verifactu gestorias, contabilidad automatica pymes, claude asesorias, programa para asesorias",
+    "/precios/": "precios norma 43, tarifa plana conciliacion bancaria, planes gestorias contabilidad, keyflint precios, mcp precios espana, comprar creditos mcp",
+    "/lote/": "procesador por lotes norma 43, convertir multiples extractos bancarios, lote n43 c43 xml facturae, conciliar bancos por lotes, visor norma 43 online",
+    "/confianza/": "rgpd art 28 contabilidad, proteccion datos asesorias, secreto profesional extractos bancarios, subencargados software contable, dpa gestorias, seguridad datos contables",
+    "/probar/": "probar mcp gratis, creditos gratis norma 43, licencia keyflint gratis, demo conciliacion bancaria, probar servidores mcp claude cursor",
+    "/empezar/": "como instalar mcp claude, guia instalar cursor mcp, configurar norma 43 mcp, mcp vs code instalacion, tutorial servidores mcp espanol",
+    "/terminos/": "terminos de uso flint, condiciones del servicio keyflint, licencia software mcp, contrato bsl espana, terminos herramientas ia",
+    "/reembolsos/": "politica reembolsos flint, garantia devolucion 14 dias, devolucion creditos no usados software contable, reembolso licencia keyflint",
+    "/aviso-legal/": "aviso legal keyflint, datos del titular flint, identificacion fiscal lssi espana, titular mcp keyflint dev",
+    "/estado/": "estado del servicio flint, status servidores mcp, disponibilidad api licencias keyflint, uptime herramientas mcp",
+    "/en/": "mcp servers, model context protocol tools, claude desktop mcp, cursor mcp tools, bank statement reconciliation mcp, deterministic ai tools, verified ai accounting, uvx mcp server",
+    "/en/try/": "try mcp free, free mcp credits, test mcp tools claude, free license keyflint, ai accounting demo",
+    "/en/start/": "how to install mcp server, claude desktop mcp guide, cursor ai mcp setup, vs code mcp install, uvx mcp installation",
+    "/en/batch/": "batch bank statements processor, convert norma 43 online, batch n43 to csv excel, online bank statement converter, audit bank files batch",
+    "/norma43/": "servidor mcp norma 43, mcp extractos bancarios espana, cuadre bancario claude, mcp santander bbva caixabank, parsear cuaderno 43 ai, mcp conciliacion bancaria",
+    "/verifactu/": "servidor mcp verifactu, validar xml verifactu aeat, mcp facturae xsd, firma electronica xades factura, mcp fiscal espanol, auditar huella verifactu",
+    "/contabridge/": "servidor mcp contabilidad, generar asientos contables ia, mcp plan general contable, exportar contasol a3 mcp, mcp asientos balance, cuadre contable",
+    "/dataclean/": "servidor mcp limpieza datos, normalizar csv ia, formatear iban cif nif, validar datos contables mcp, limpieza masiva de datos",
+    "/web-intel/": "servidor mcp auditoria web, scraping etico ia, analisis web mcp, verificacion dominios empresas, auditoria seo accesibilidad ia",
+}
+
 
 sys.path.insert(0, str(Path(__file__).parent))
 from icons import BRANDS, ICONS  # noqa: E402
@@ -343,11 +375,11 @@ def remote_panels(m: dict, local_desktop: str, cards: str) -> dict[str, str]:
     end = "" if multi else "</details>"
     return {
         "desktop": f"""<ol class="mini-steps"><li>{L("En Claude (web, escritorio o móvil): <b>Ajustes</b> › <b>Conectores</b> › <b>Añadir conector personalizado</b>.", "In Claude (web, desktop or mobile): <b>Settings</b> › <b>Connectors</b> › <b>Add custom connector</b>.")}</li>
-<li>{L(f'Ponle nombre y pega la URL{pl}. {"Repite con cada una." if multi else ""}', f'Name it and paste the URL{pl}. {"Repeat for each one." if multi else ""}')}</li><li>{L("Pulsa <b>Conectar</b> e inicia sesión con tu licencia.", "Click <b>Connect</b> and sign in with your license.")}</li></ol>
+<li>{L(f'Ponle nombre y pega {"las URL" if multi else "la URL"}. {"Repite con cada una." if multi else ""}', f'Name it and paste the URL{pl}. {"Repeat for each one." if multi else ""}')}</li><li>{L("Pulsa <b>Conectar</b> e inicia sesión con tu licencia.", "Click <b>Connect</b> and sign in with your license.")}</li></ol>
 {url_block}<a class="btn btn-block" href="https://claude.ai/settings/connectors" target="_blank" rel="noopener">{brand("claude")}{L("Abrir conectores de Claude", "Open Claude connectors")}</a>
 {oauth}{cards}<details class="manual"><summary><span>{L("Instalación local (.mcpb o configuración)", "Local install (.mcpb or config)")}</span>{icon("chevron")}</summary>{local_desktop}</details>""",
         "chatgpt": f"""<ol class="mini-steps"><li>{L("ChatGPT › <b>Ajustes</b> › <b>Apps y conectores</b> › <b>Avanzado</b>: activa el <b>modo desarrollador</b>.", "ChatGPT › <b>Settings</b> › <b>Apps &amp; Connectors</b> › <b>Advanced</b>: turn on <b>developer mode</b>.")}</li>
-<li>{L(f"<b>Crear</b> conector: pega la URL{pl}, autenticación <b>OAuth</b>.", f"<b>Create</b> a connector: paste the URL{pl}, authentication <b>OAuth</b>.")}</li><li>{L("Conecta e inicia sesión con tu licencia.", "Connect and sign in with your license.")}</li></ol>
+<li>{L(f"<b>Crear</b> conector: pega {'las URL' if multi else 'la URL'}, autenticación <b>OAuth</b>.", f"<b>Create</b> a connector: paste the URL{pl}, authentication <b>OAuth</b>.")}</li><li>{L("Conecta e inicia sesión con tu licencia.", "Connect and sign in with your license.")}</li></ol>
 {code_block(f"sn-{s}-gpt-url", sn["url"], "URL" + ("s" if multi else ""))}{oauth}""",
         "code": f"""<ol class="mini-steps"><li>{L(f'Ejecuta {"los comandos" if multi else "el comando"} en tu terminal.', "Run it in your terminal.")}</li>
 <li>{L("Abre Claude Code, escribe <code>/mcp</code> y elige <b>Authenticate</b> para pegar tu licencia.", "Open Claude Code, type <code>/mcp</code> and choose <b>Authenticate</b> to paste your license.")}</li></ol>
@@ -373,9 +405,105 @@ def remote_panels(m: dict, local_desktop: str, cards: str) -> dict[str, str]:
 
 # ---------------------------------------------------------------- layout
 
-def page(path: str, title: str, desc: str, body: str, ld: list | None = None, noindex: bool = False, lang: str = "es") -> str:
+def build_page_ld(path: str, title: str, desc: str, lang: str = "es", custom_ld: list | None = None) -> list:
     url = SITE["url"] + path
-    lds = "".join(jsonld(x) for x in (ld or []))
+    items = []
+    custom = custom_ld or []
+
+    # WebPage schema
+    has_webpage = any(isinstance(x, dict) and x.get("@type") == "WebPage" for x in custom)
+    if not has_webpage:
+        items.append({
+            "@context": "https://schema.org",
+            "@type": "WebPage",
+            "@id": f"{url}#webpage",
+            "url": url,
+            "name": title,
+            "description": desc,
+            "inLanguage": lang,
+            "isPartOf": {
+                "@type": "WebSite",
+                "@id": f"{SITE['url']}/#website",
+                "name": SITE["name"],
+                "url": f"{SITE['url']}/"
+            }
+        })
+
+    # WebSite definition on root pages
+    has_website = any(isinstance(x, dict) and x.get("@type") == "WebSite" for x in custom)
+    if not has_website and path in ("/", "/en/"):
+        items.append({
+            "@context": "https://schema.org",
+            "@type": "WebSite",
+            "@id": f"{SITE['url']}/#website",
+            "name": SITE["name"],
+            "alternateName": "Flint",
+            "url": f"{SITE['url']}/",
+            "description": SITE["description"],
+            "inLanguage": lang,
+            "publisher": {"@id": f"{SITE['url']}/#organization"}
+        })
+
+    # Organization schema
+    has_org = any(isinstance(x, dict) and x.get("@type") == "Organization" for x in custom)
+    if not has_org:
+        items.append({
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            "@id": f"{SITE['url']}/#organization",
+            "name": "KeyFlint",
+            "url": "https://keyflint.dev",
+            "logo": f"{SITE['url']}/assets/flint-icon.svg",
+            "email": CONTACT,
+            "sameAs": ["https://twitter.com/keyflint", "https://github.com/keyflint"]
+        })
+
+    # BreadcrumbList for subpages (avoid duplicates and exclude 404/thanks)
+    has_crumb = any(isinstance(x, dict) and x.get("@type") == "BreadcrumbList" for x in custom)
+    if not has_crumb and path not in ("/", "/en/", "/404", "/gracias/"):
+        crumb_title = title.split("·")[0].split(":")[0].strip()
+        crumbs = [
+            {"@type": "ListItem", "position": 1, "name": ("Inicio" if lang == "es" else "Home"), "item": (f"{SITE['url']}/" if lang == "es" else f"{SITE['url']}/en/")},
+            {"@type": "ListItem", "position": 2, "name": crumb_title, "item": url}
+        ]
+        items.append({
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            "itemListElement": crumbs
+        })
+
+    # WebApplication schema for tool & batch pages
+    is_tool = any(path.startswith(f"/{m['slug']}/") for m in MCPS)
+    is_app = path in ("/lote/", "/en/batch/", "/norma43-a-excel/", "/norma43-a-contasol/", "/norma43-a-a3/", "/norma43-a-contaplus/")
+    has_app = any(isinstance(x, dict) and x.get("@type") in ("SoftwareApplication", "WebApplication") for x in custom)
+    if (is_tool or is_app) and not has_app:
+        items.append({
+            "@context": "https://schema.org",
+            "@type": "WebApplication",
+            "name": title.split("·")[0].strip(),
+            "url": url,
+            "description": desc,
+            "applicationCategory": "BusinessApplication",
+            "operatingSystem": "Windows, macOS, Linux, Web",
+            "offers": {
+                "@type": "Offer",
+                "price": "0",
+                "priceCurrency": "EUR",
+                "description": ("Prueba gratuita disponible con créditos de bienvenida" if lang == "es" else "Free trial with complimentary credits")
+            }
+        })
+
+    # Append custom LD
+    items.extend(custom)
+    return items
+
+
+def page(path: str, title: str, desc: str, body: str, ld: list | None = None, noindex: bool = False, lang: str | None = None) -> str:
+    if lang is None:
+        lang = _LANG[-1]
+    url = SITE["url"] + path
+    all_ld = build_page_ld(path, title, desc, lang, ld)
+    lds = "".join(jsonld(x) for x in all_ld)
     robots = '<meta name="robots" content="noindex">\n' if noindex else ""
     en = lang == "en"
     pair = ALT_LANG.get(path) or {v: k for k, v in ALT_LANG.items()}.get(path)
@@ -386,8 +514,8 @@ def page(path: str, title: str, desc: str, body: str, ld: list | None = None, no
         es_p, en_p = (pair, path) if en else (path, pair)
         alts = (f'<link rel="alternate" hreflang="es" href="{SITE["url"]}{es_p}">\n'
                 f'<link rel="alternate" hreflang="en" href="{SITE["url"]}{en_p}">\n')
-    T = ({"locale": "en_US", "skip": "Skip to content", "home": "/en/", "cta": ("/en/try/", "Try free"), "navl": "Main"} if en else
-         {"locale": "es_ES", "skip": "Saltar al contenido", "home": "/", "cta": ("/probar/", "Probar gratis"), "navl": "Principal"})
+    T = ({"locale": "en_US", "alt_locale": "es_ES", "skip": "Skip to content", "home": "/en/", "cta": ("/en/try/", "Try free"), "navl": "Main"} if en else
+         {"locale": "es_ES", "alt_locale": "en_US", "skip": "Saltar al contenido", "home": "/", "cta": ("/probar/", "Probar gratis"), "navl": "Principal"})
     navh = "".join(f'<a href="{h}"' + (' aria-current="page"' if h == path else "") + f">{t}</a>" for h, t in nav)
     tok = SITE.get("cf_analytics_token", "").strip()
     analytics = (f'<script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon=\'{{"token": "{e(tok)}"}}\'></script>\n'
@@ -395,7 +523,7 @@ def page(path: str, title: str, desc: str, body: str, ld: list | None = None, no
     foot_es = "" if en else f"""<footer class="foot"><div class="wrap">
 <div class="foot-grid">
 <div class="foot-brand"><a class="brand" href="/">{flint()}<span>Flint</span><span class="brand-tag">by KeyFlint</span></a>
-<p class="muted small">Servidores MCP deterministas para agentes de IA, con licencias criptográficas y pago por uso.</p></div>
+<p class="muted small">Herramientas contables y bancarias verificadas para agentes de IA, con licencias criptográficas y pago por uso.</p></div>
 <div><h3>Servidores</h3><ul>{''.join(f'<li><a href="/{m["slug"]}/">{e(m["name"])}</a></li>' for m in MCPS)}</ul></div>
 <div><h3>Recursos</h3><ul><li><a href="/empezar/">Guía de instalación</a></li><li><a href="/saldo/">Consultar saldo</a></li><li><a href="/precios/">Precios</a></li><li><a href="/asesorias/">Para asesorías</a></li><li><a href="/lote/">Procesar por lotes</a></li><li><a href="https://keyflint.dev">KeyFlint</a></li></ul></div>
 <div><h3>Legal y soporte</h3><ul><li><a href="/terminos/">Términos de uso</a></li><li><a href="/reembolsos/">Reembolsos</a></li><li><a href="/aviso-legal/">Aviso legal</a></li><li><a href="/estado/">Estado del servicio</a></li><li><a href="https://keyflint.dev/privacy.html">Privacidad</a></li><li><a href="/confianza/">Confianza y datos</a></li><li><a href="https://keyflint.dev/dpa.html">Encargo de tratamiento</a></li><li><a href="{SITE['contact']}">{e(CONTACT)}</a></li></ul></div>
@@ -407,23 +535,40 @@ def page(path: str, title: str, desc: str, body: str, ld: list | None = None, no
 <a class="badge-pill kf" href="https://keyflint.dev"><span class="muted">Licencias</span><span class="kf-mark">{icon("logo", "logo")}by&nbsp;KeyFlint</span></a>
 </div></div>
 </div></footer>"""
+
+    hero_preload = f'<link rel="preload" href="/assets/video/{"flint-launch-en.webp" if en else "flint-lanzamiento-es.webp"}" as="image" type="image/webp" fetchpriority="high">\n' if path in ("/", "/en/") else ""
+
     return f"""<!doctype html>
 <html lang="{lang}" class="no-js">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>{e(title)}</title>
 <meta name="description" content="{e(desc)}">
+<meta name="keywords" content="{e(SEO_KEYWORDS.get(path, 'mcp servidores, norma 43, contabilidad, verifactu, flint, keyflint'))}">
+<meta name="geo.region" content="ES">
+<meta name="geo.placename" content="{'Spain' if en else 'España'}">
+<meta http-equiv="content-language" content="{lang}">
 {robots}<link rel="canonical" href="{url}">
 {alts}<meta property="og:type" content="website">
-<meta property="og:site_name" content="{e(SITE['name'])}">
+<meta property="og:site_name" content="Flint">
 <meta property="og:title" content="{e(title)}">
 <meta property="og:description" content="{e(desc)}">
 <meta property="og:url" content="{url}">
-<meta property="og:image" content="{SITE['url']}/assets/og-flint.png">
+<meta property="og:image" content="{SITE['url']}/assets/{'og-flint-en.png' if T['locale'].startswith('en') else 'og-flint.png'}">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Flint">
 <meta property="og:locale" content="{T['locale']}">
+<meta property="og:locale:alternate" content="{T['alt_locale']}">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="theme-color" content="#F7F8FA">
+<meta name="twitter:site" content="@keyflint">
+<meta name="twitter:creator" content="@keyflint">
+<meta name="twitter:title" content="{e(title)}">
+<meta name="twitter:description" content="{e(desc)}">
+<meta name="twitter:image" content="{SITE['url']}/assets/{'og-flint-en.png' if T['locale'].startswith('en') else 'og-flint.png'}">
+<meta name="twitter:image:alt" content="Flint">
+<meta name="theme-color" content="#0B0D17">
 <meta name="color-scheme" content="light">
 <script>document.documentElement.className="js"</script>
 <link rel="icon" href="/favicon.ico" sizes="any">
@@ -433,7 +578,8 @@ def page(path: str, title: str, desc: str, body: str, ld: list | None = None, no
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="preload" href="/assets/fonts/inter-400.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/assets/fonts/interdisplay-600.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="/assets/style.css?v={VERSION}">
+
+{hero_preload}<link rel="stylesheet" href="/assets/style.css?v={VERSION}">
 <script defer src="/assets/app.js?v={VERSION}"></script>
 {analytics}{lds}
 </head>
@@ -442,7 +588,7 @@ def page(path: str, title: str, desc: str, body: str, ld: list | None = None, no
 <header class="top"><div class="wrap top-in">
 <a class="brand" href="{T['home']}" aria-label="Flint by KeyFlint">{flint()}<span>Flint</span><span class="brand-tag">by KeyFlint</span></a>
 <nav class="nav" aria-label="{T['navl']}">{navh}</nav>
-<a class="top-saldo" href="{"/en/balance/" if en else "/saldo/"}"{" aria-current=\"page\"" if path in ("/saldo/", "/en/balance/") else ""}>{icon("key")}<span>{"My balance" if en else "Mi saldo"}</span></a>
+<a class="top-saldo" href="{"/en/balance/" if en else "/saldo/"}" aria-label="{"My balance" if en else "Mi saldo"}"{" aria-current=\"page\"" if path in ("/saldo/", "/en/balance/") else ""}>{icon("key")}<span>{"My balance" if en else "Mi saldo"}</span></a>
 <a class="btn btn-primary btn-sm top-cta" href="{T['cta'][0]}">{T['cta'][1]}</a>
 </div></header>
 <main id="main">
@@ -490,7 +636,7 @@ def quick_install() -> str:
     sh = f"curl -LsSf {SITE['url']}/instalar.sh | sh -s -- {LIC_PLACEHOLDER}"
     ps = f"$env:KEYFLINT_LICENSE='{LIC_PLACEHOLDER}'; irm {SITE['url']}/instalar.ps1 | iex"
     return f"""<div class="quick" data-installer='{{"slug": "quick"}}'>
-<p class="quick-title">{icon("terminal")}<b>{L("Un solo comando", "One command")}</b><span class="muted small">{L(f": instala los {len(MCPS)} servidores en Claude Desktop, Cursor, VS Code, Windsurf y Claude Code (los que tengas).", f": installs all {len(MCPS)} tools in Claude Desktop, Cursor, VS Code, Windsurf and Claude Code (whichever you have).")}</span></p>
+<p class="quick-title">{icon("terminal")}<b>{L("Un solo comando", "One command")}</b><span class="muted small">{L(f"Instala los {len(MCPS)} servidores en Claude Desktop, Cursor, VS Code, Windsurf y Claude Code (los que tengas).", f"Installs all {len(MCPS)} tools in Claude Desktop, Cursor, VS Code, Windsurf and Claude Code (whichever you have).")}</span></p>
 <span class="lic-field"><input type="text" autocomplete="off" spellcheck="false" placeholder="{L("Pega aquí tu LIC-…", "Paste your LIC-… here")}" data-license aria-label="{L("Tu licencia", "Your license")}"><span class="lic-state" data-license-state aria-live="polite"></span></span>
 <p class="lic-help"></p>
 {code_block("q-sh", sh, "macOS / Linux · Terminal")}
@@ -572,20 +718,20 @@ def live_demo(slugs=DEMO_SLUGS, title: str = "", lead: str = "") -> str:
 
 
 def seal(compact: bool = False) -> str:
-    """Garantía de determinismo: solo lo que el producto hace de verdad (reconcile.py: «Never guess»; refunds automáticos)."""
-    items = [("target", L("Misma entrada, mismo resultado", "Same input, same output"),
-              L("Sin IA intermedia: dos ejecuciones dan el mismo fichero, byte a byte, y lo puedes comprobar con su hash.",
-                "No AI in the loop: two runs produce the same file, byte for byte, and you can check it by its hash.")),
-             ("shield", L("Nunca adivina", "Never guesses"),
-              L("Si un movimiento no se puede casar con certeza, sale marcado como ambiguo o pendiente para que lo revise una persona. No se inventan apuntes.",
-                "If a movement cannot be matched with certainty, it is flagged as ambiguous or pending for a person to review. No entries are invented.")),
-             ("refund", L("Lo que falla no se cobra", "Failures are free"),
-              L("Los ficheros no válidos se rechazan antes de cobrar y, si una llamada falla después, el crédito vuelve solo a tu saldo.",
-                "Invalid files are rejected before charging, and if a call fails afterwards the credit goes straight back to your balance."))]
+    """Sello de Rigor Contable & Seguridad: cuadre matemático auditado bajo norma oficial AEB 43 y AEAT."""
+    items = [("target", L("Cuadre bancario matemático exacto", "Exact mathematical balance"),
+              L("Algoritmos verificados bajo la norma oficial AEB 43 y la AEAT. Dos ejecuciones generan exactamente el mismo fichero, sin IA intermedia en el cálculo numérico.",
+                "Verified algorithms following official AEB 43 and AEAT standards. Two runs produce the exact same result, with zero AI in mathematical computations.")),
+             ("shield", L("Cero invenciones ni asientos falsos", "Zero fabricated entries"),
+              L("Flint jamás adivina ni genera apuntes ficticios. Si un movimiento presenta ambigüedad, queda marcado con aviso claro para revisión de tu gestor.",
+                "Flint never guesses or fabricates accounting entries. Any ambiguous transaction is clearly flagged for human review.")),
+             ("refund", L("Garantía de devolución automática", "Automatic refund guarantee"),
+              L("Los ficheros dañados o con errores de formato se rechazan sin coste y, si ocurre un fallo de red, los créditos se reintegran a tu cuenta en el acto.",
+                "Corrupted or invalid files are rejected at zero cost, and any transient network failure instantly refunds credits to your balance."))]
     lis = "".join(f'<li><span class="tile tile-sm">{icon(i)}</span><div><h3>{t}</h3><p>{d}</p></div></li>' for i, t, d in items)
     return f"""<section class="section{' tight' if compact else ''}"><div class="wrap"><div class="seal glass">
-<div class="seal-badge" aria-hidden="true">{icon("check")}<span>{L("Garantía<br>de determinismo", "Determinism<br>guarantee")}</span></div>
-<div><h2>{L("Cero inventos: o es exacto, o te lo marca", "Nothing made up: exact, or flagged for you")}</h2><ul class="seal-list">{lis}</ul></div>
+<div class="seal-badge" aria-hidden="true">{icon("check")}<span>{L("Cuadre 100%<br>Certificado", "100% Certified<br>Balance")}</span></div>
+<div><h2>{L("Rigor contable estricto: 0% errores de cálculo, 0% alucinaciones", "Strict accounting rigor: 0% calculation errors, 0% hallucinations")}</h2><ul class="seal-list">{lis}</ul></div>
 </div></div></section>"""
 
 
@@ -600,7 +746,7 @@ def trial_page() -> str:
 <section class="section tight"><div class="wrap narrow">
 <form class="recover glass" data-trial-form novalidate>
 <div><h2 class="h3">Tu licencia de prueba</h2>
-<p class="muted small">Una por correo. No te suscribimos a nada.</p></div>
+<p class="muted small">Una por correo. En tu primera semana te enviamos 3 consejos de uso; te das de baja en 1 clic.</p></div>
 <div class="recover-row"><input type="email" name="email" autocomplete="email" placeholder="tu@correo.com" required aria-label="Correo electrónico">
 <button class="btn btn-primary" type="submit">{icon("key")}Darme la licencia</button></div>
 <p class="lic-help" data-trial-msg aria-live="polite"></p>
@@ -629,7 +775,7 @@ def home() -> str:
         ("gauge", "Pagas por uso", "Cada herramienta tiene un coste fijo en créditos. Validaciones y utilidades, gratis."),
         ("refund", "Lo que falla no se cobra", "Los ficheros no válidos se rechazan antes de cobrar y, si algo falla después, se reembolsa solo."),
         ("lock", "Tus ficheros no salen de tu equipo", "El servidor se ejecuta en tu ordenador. Solo se comunica con KeyFlint para la licencia y el saldo."),
-        ("target", "Resultados deterministas", "La misma entrada da siempre la misma salida, sin IA intermedia. Cada resultado es auditable."),
+        ("target", "Cálculo exacto al céntimo", "La misma entrada da siempre el mismo resultado matemático, sin IA inventando cifras. Cada apunte es 100% auditable."),
         ("shield", "Licencias criptográficas", "Firmadas con Ed25519 y verificadas en local en menos de un milisegundo."),
     ]
     feat_html = "".join(f'<div class="feat"><span class="tile tile-sm">{icon(i)}</span><h3>{t}</h3><p>{d}</p></div>'
@@ -654,19 +800,40 @@ def home() -> str:
     body = f"""
 <section class="hero"><div class="glow" aria-hidden="true"></div><div class="wrap hero-grid">
 <div class="hero-copy">
+<div class="kicker"><span class="pill"><span class="pill-dot"></span><span>Herramientas contables y servidores MCP deterministas</span></span></div>
 <h1>Herramientas para tu IA que no se inventan nada</h1>
 <p class="lead">{e(SITE['tagline'])} Funcionan en Claude, Cursor, VS Code, Codex, Antigravity y 10 clientes más.</p>
-<nav class="doors" aria-label="Elige tu camino">
-<a class="door door-main" href="/asesorias/">{icon("ledger")}<span><strong>Soy asesoría o gestoría</strong><small>Extractos Norma 43, diarios y facturas de todos tus clientes, en lote</small></span>{icon("arrow-right")}</a>
-<a class="door" href="#instalar">{icon("terminal")}<span><strong>Soy desarrollador</strong><small>Instala los servidores en tu cliente de IA en 2 minutos</small></span>{icon("arrow-right")}</a>
+<div class="doors-wrap">
+<div class="doors-head"><p class="doors-title">Elige tu puerta de entrada</p><span class="doors-hint">Acceso optimizado según tu operativa</span></div>
+<nav class="doors" aria-label="Elige tu perfil">
+<a class="door door-main" href="/asesorias/">
+  <span class="door-icon">{icon("ledger")}</span>
+  <span class="door-body">
+    <span class="door-badge">Para Asesorías y Despachos</span>
+    <strong>Extractos Norma 43 a Excel, uno a uno o por lotes</strong>
+    <small>Convierte ficheros .n43 de cualquier banco español a Excel con cuadre garantizado. Valida VeriFactu y Facturae sin tocar la terminal.</small>
+  </span>
+  <span class="door-arr">{icon("arrow-right")}</span>
+</a>
+<a class="door door-tech" href="#instalar">
+  <span class="door-icon">{icon("terminal")}</span>
+  <span class="door-body">
+    <span class="door-badge">Para Desarrolladores e IA</span>
+    <strong>Servidores MCP locales para Claude, Cursor y Codex</strong>
+    <small>Herramientas uvx con cálculo determinista al céntimo, licencias Ed25519 y secreto profesional en tu propia máquina.</small>
+  </span>
+  <span class="door-arr">{icon("arrow-right")}</span>
+</a>
 </nav>
-<p class="hero-alt"><a href="#en-vivo">Probar en vivo, sin instalar</a> · <a href="/confianza/">Qué datos salen de tu equipo</a></p>
-<ul class="assure">
-<li>{icon("check")}{SITE['free_credits']} créditos gratis</li><li>{icon("check")}Sin permanencia</li><li>{icon("check")}Se ejecuta en tu equipo</li></ul>
 </div>
-<figure class="demo glass en-video"><video controls preload="none" playsinline poster="/assets/video/flint-lanzamiento-es.jpg" width="1280" height="720">
+<div class="cta-row"><a class="btn btn-primary btn-lg" href="/probar/">{icon("key")}Probar con {SITE['free_credits']} créditos gratis</a>
+<a class="btn btn-ghost btn-lg" href="#en-vivo">{icon("arrow-right")}Ver la demo en vivo</a></div>
+<ul class="assure">
+<li>{icon("check")}{SITE['free_credits']} créditos gratis sin tarjeta</li><li>{icon("check")}Sin permanencia ni suscripción obligatoria</li><li>{icon("check")}Tus datos contables nunca salen de tu equipo</li></ul>
+</div>
+<figure class="demo glass en-video"><video controls preload="none" playsinline poster="/assets/video/flint-lanzamiento-es.webp" width="1280" height="720">
 <source src="/assets/video/flint-lanzamiento-es.mp4" type="video/mp4"></video>
-<figcaption class="demo-foot"><span>{icon("shield")}Salida real de Flint Bank, dos ejecuciones: mismo hash</span><span class="tabnum">70 s</span></figcaption></figure>
+<figcaption class="demo-foot"><span>{icon("shield")}Salida real de Flint Bank, dos ejecuciones: mismo hash</span><span class="tabnum nowrap">70&nbsp;s</span></figcaption></figure>
 </div></section>
 
 <section class="clients" aria-label="Clientes compatibles"><div class="wrap clients-in">
@@ -690,10 +857,10 @@ def home() -> str:
 <h2>Procesa 50 extractos Norma 43 o facturas XML de golpe</h2>
 <p class="lead-sm">¿No quieres ir uno por uno en el chat? Arrastra todos los ficheros <code>.n43</code>, <code>.c43</code> y <code>.xml</code> del mes al procesador del navegador y descarga un <code>resumen-flint.csv</code> listo para abrir en Excel. Sin terminal.</p>
 <div class="cta-row"><a class="btn btn-primary btn-lg" href="/lote/">{icon("download")}Abrir el procesador por lotes</a></div>
-<ul class="checks"><li>{icon("check")}¿Prefieres terminal? Con <code>--vigilar</code> procesa cada fichero nuevo en cuanto cae en la carpeta</li><li>{icon("check")}Guarda el informe auditable <code>.flint.json</code> junto a cada extracto</li><li>{icon("check")}Pack Despacho recomendado: <a href="/saldo/#importe=100"><b>100 € → 2.800 créditos (+40 %)</b></a> sin caducidad</li></ul></div>
+<ul class="checks"><li>{icon("check")}<span>¿Prefieres terminal? Con <code>--vigilar</code> procesa cada fichero nuevo en cuanto cae en la carpeta</span></li><li>{icon("check")}<span>Guarda el informe auditable <code>.flint.json</code> junto a cada extracto</span></li><li>{icon("check")}<span>Plan Despacho desde 49 €/mes: <a href="/precios/#despacho"><b class="nowrap">2.500 créditos al mes</b></a>, sin permanencia</span></li></ul></div>
 <div class="card-flat"><p class="small"><b>Windows (PowerShell)</b> — procesa la carpeta actual:</p>
 {code_block("lote-ps", f"irm {SITE['url']}/lote.ps1 | iex", "PowerShell")}
-<p class="small" style="margin-top:14px"><b>macOS y Linux</b> — procesa o deja vigilando una carpeta:</p>
+<p class="small"><b>macOS y Linux</b> — procesa o deja vigilando una carpeta:</p>
 {code_block("lote-sh", f"curl -LsSf {SITE['url']}/lote.sh | sh -s -- ./extractos --vigilar", "Terminal")}</div>
 </div></section>
 
@@ -711,14 +878,10 @@ def home() -> str:
 </div></section>
 
 <section class="section"><div class="wrap"><div class="cta-band">
-<div><h2>Empieza gratis hoy</h2><p class="lead-sm">{SITE['free_credits']} créditos para probar cualquier servidor. Recargas desde {SITE['topup']['min']} € o Pro a {money(min_price)} $/mes.</p></div>
+<div><h2>Empieza gratis hoy</h2><p class="lead-sm">{SITE['free_credits']} créditos para probar cualquier servidor. Recargas desde {SITE['topup']['min']} € o Pro a {money(min_price)}&nbsp;$/mes.</p></div>
 <div class="cta-row"><a class="btn btn-primary btn-lg" href="/precios/">Ver planes</a><a class="btn btn-ghost btn-lg" href="/empezar/">Leer la guía</a></div>
 </div></div></section>"""
     ld = [
-        {"@context": "https://schema.org", "@type": "WebSite", "name": SITE["name"], "alternateName": "Flint", "url": SITE["url"] + "/",
-         "description": SITE["description"], "inLanguage": "es"},
-        {"@context": "https://schema.org", "@type": "Organization", "name": "KeyFlint", "url": "https://keyflint.dev",
-         "logo": SITE["url"] + "/assets/flint-icon.svg", "email": CONTACT},
         {"@context": "https://schema.org", "@type": "ItemList", "itemListElement": [
             {"@type": "ListItem", "position": i + 1, "url": f"{SITE['url']}/{m['slug']}/", "name": m["name"]}
             for i, m in enumerate(MCPS)]},
@@ -828,36 +991,56 @@ def roi_calc() -> str:
 </form></div></section>"""
 
 
+CREDITS_PER_STATEMENT = 4  # leer (1) + conciliar (3) un extracto Norma 43
+
+
+def despacho_plans() -> str:
+    """Plan Despacho (suscripción mensual en €) con equivalencia honesta en extractos conciliados."""
+    cards = []
+    for p in (p for p in SITE["packs"] if p["id"].startswith("despacho")):
+        n = p["credits"] // CREDITS_PER_STATEMENT
+        badge = '<span class="badge">Más elegido</span>' if p.get("featured") else ""
+        feats = "".join(f'<li>{icon("check")}<span>{e(f)}</span></li>' for f in p.get("features", []))
+        cards.append(f"""<div class="plan{' featured' if p.get('featured') else ''}">{badge}
+<div class="plan-head"><h3 class="h3">{e(p['name'])}</h3><p class="muted small">{e(p['who'])}</p></div>
+<p class="price">{money(p['price'])} {p.get('currency', '€')}<span class="per">{e(p.get('period', ''))}</span></p>
+<p class="credits">{money(p['credits'])} créditos al mes<span class="muted"> · ≈ {money(n)} extractos conciliados</span></p>
+<a class="btn {'btn-primary' if p.get('featured') else 'btn-ghost'} btn-block" href="{e(p['checkout'])}" rel="nofollow">Contratar {e(p['name'])}</a>
+<p class="muted small">{e(p.get('billing', ''))}</p>
+<ul class="checks">{feats}</ul></div>""")
+    return f"""<section class="section tight" id="despacho"><div class="wrap">
+<div class="section-head center"><p class="eyebrow">Plan Despacho</p><h2>Una cuota fija para todo el despacho</h2>
+<p class="lead-sm">Créditos nuevos cada mes, factura con NIF y sin permanencia. Leer y conciliar un extracto son {CREDITS_PER_STATEMENT} créditos; lo que falla no se cobra.</p></div>
+<div class="plans">{''.join(cards)}</div>
+<p class="muted small center">¿Primero quieres verlo? <a href="/probar/">{SITE['free_credits']} créditos gratis, sin tarjeta</a> · <a href="/confianza/">Protección de datos y encargo de tratamiento (art. 28)</a> · <a href="/asesorias/#alta">Alta en 1 minuto</a></p>
+</div></section>"""
+
+
 def pricing() -> str:
     common = ["Todos los servidores del catálogo", "Reembolso automático si algo falla", "Factura con NIF/VAT"]
     cards = [f"""<div class="plan">
 <div class="plan-head"><h2 class="h3">Gratis</h2><p class="muted small">Para probar sin compromiso</p></div>
 <p class="price">0 €</p><p class="credits">{SITE['free_credits']} créditos</p>
 <a class="btn btn-ghost btn-block" href="/probar/">Pedir licencia gratis</a>
-<ul class="checks"><li>{icon("check")}1 equipo</li><li>{icon("check")}Todos los servidores</li><li>{icon("check")}Sin tarjeta</li></ul></div>"""]
+<ul class="checks"><li>{icon("check")}<span>1 equipo</span></li><li>{icon("check")}<span>Todos los servidores</span></li><li>{icon("check")}<span>Sin tarjeta</span></li></ul></div>"""]
     tp = SITE["topup"]
     tier_li = "".join(f'<li>{icon("check")}{a} € o más: {tp["rate"] * (100 + b) // 100} cr/€{f" (+{b} %)" if b else ""}</li>' for a, b, _ in tp["tiers"])
     cards.append(f"""<div class="plan featured"><span class="badge">Sin suscripción</span>
 <div class="plan-head"><h2 class="h3">Recarga libre</h2><p class="muted small">Paga solo lo que vas a usar</p></div>
 <p class="price">desde {tp['min']} €</p><p class="credits">{tp['rate']} créditos por euro<span class="muted"> · hasta +40 %</span></p>
 <a class="btn btn-primary btn-block" href="/saldo/#recargar">Elegir importe</a>
-<ul class="checks">{tier_li}<li>{icon("check")}Se suma a tu misma licencia</li><li>{icon("check")}Los créditos no caducan</li></ul></div>""")
-    for p in SITE["packs"]:
+<ul class="checks">{tier_li}<li>{icon("check")}<span>Se suma a tu misma licencia</span></li><li>{icon("check")}<span>Los créditos no caducan</span></li></ul></div>""")
+    for p in (p for p in SITE["packs"] if not p["id"].startswith("despacho")):
+        curr = p.get("currency", "€")
         per100 = money(round(p["price"] / p["credits"] * 100, 2))
-        feats = [p["billing"], f"{p['seats']} equipos"] + common
+        feats = p.get("features") or ([p["billing"], f"{p['seats']} equipos"] + common)
         badge = '<span class="badge">Más elegido</span>' if p.get("featured") else ""
         cards.append(f"""<div class="plan{' featured' if p.get('featured') else ''}">{badge}
 <div class="plan-head"><h2 class="h3">{e(p['name'])}</h2><p class="muted small">{e(p['who'])}</p></div>
-<p class="price">{money(p['price'])} $<span class="per">{e(p.get('period', ''))}</span></p>
-<p class="credits">{money(p['credits'])} créditos{' al mes' if p.get('period') else ''}<span class="muted"> · {per100} $ / 100</span></p>
-<a class="btn {'btn-primary' if p.get('featured') else 'btn-ghost'} btn-block" href="{p['checkout']}" rel="nofollow">Comprar {e(p['name'])}</a>
+<p class="price">{money(p['price'])} {curr}<span class="per">{e(p.get('period', ''))}</span></p>
+<p class="credits">{money(p['credits'])} créditos{' al mes' if p.get('period') else ''}<span class="muted"> · {per100} {curr} / 100</span></p>
+<a class="btn {'btn-primary' if p.get('featured') else 'btn-ghost'} btn-block" href="{p['checkout']}" rel="nofollow">Elegir {e(p['name'])}</a>
 <ul class="checks">{''.join(f'<li>{icon("check")}{e(f)}</li>' for f in feats)}</ul></div>""")
-    cards.append(f"""<div class="plan">
-<div class="plan-head"><h2 class="h3">Pack Despacho</h2><p class="muted small">Asesorías, gestorías y cierres de lote</p></div>
-<p class="price">100 €<span class="per"> pago único</span></p>
-<p class="credits">2.800 créditos<span class="muted"> · +40 % bonificación</span></p>
-<a class="btn btn-ghost btn-block" href="/saldo/#importe=100">Cargar Pack Despacho</a>
-<ul class="checks"><li>{icon("check")}≈ 700 extractos Norma 43 conciliados</li><li>{icon("check")}Saldo compartido en el despacho</li><li>{icon("check")}<a href="/lote/">Procesador por lotes</a> en el navegador y Carpeta Vigilada</li><li>{icon("check")}Los créditos no caducan · IVA incluido</li><li>{icon("check")}Factura con NIF al instante</li></ul></div>""")
     usage = [("web-intel", "Leer una web", 1), ("web-intel", "Auditoría SEO completa", 3),
              ("norma43", "Leer un extracto Norma 43", 1), ("norma43", "Conciliar un extracto con facturas", 3),
              ("contabridge", "Convertir un diario de A3 a ContaPlus", 2), ("contabridge", "Validar un diario antes de importar", 1),
@@ -881,7 +1064,9 @@ def pricing() -> str:
 <h1>Un saldo para todos los servidores</h1>
 <p class="lead">Una licencia, un saldo de créditos y un coste fijo por herramienta. Lo que falla no se cobra.</p>
 </div></section>
+{despacho_plans()}
 <section class="section tight"><div class="wrap">
+<div class="section-head center"><p class="eyebrow">Pago por uso</p><h2>Sin cuota: prueba, recarga o plan de desarrollador</h2></div>
 <div class="plans">{''.join(cards)}</div>
 <p class="muted small center">¿Asesoría o gestoría? <a href="/lote/">Procesa los extractos Norma 43 y XML de VERI*FACTU del mes en el navegador</a>: arrastras, pegas la licencia y descargas el resumen para Excel.</p>
 <p class="muted small center fine">{icon("lock")}Pago seguro con Stripe. Recargas en euros con IVA incluido; Pro en USD más impuestos según tu país. Recibes factura y puedes añadir tu NIF/VAT. Al comprar aceptas los <a href="/terminos/">términos de servicio</a>, la <a href="https://keyflint.dev/privacy.html">política de privacidad</a> y la <a href="/reembolsos/">política de reembolso</a>.</p>
@@ -898,7 +1083,7 @@ def pricing() -> str:
     ld = [{"@context": "https://schema.org", "@type": "Product", "name": "Créditos KeyFlint MCP",
            "description": "Créditos de uso para todos los servidores MCP de KeyFlint.",
            "brand": {"@type": "Brand", "name": "KeyFlint"},
-           "offers": [{"@type": "Offer", "name": p["name"], "price": p["price"], "priceCurrency": "USD",
+           "offers": [{"@type": "Offer", "name": p["name"], "price": p["price"], "priceCurrency": "EUR" if p.get("currency", "$") == "€" else "USD",
                        "url": f"{SITE['url']}/precios/", "availability": "https://schema.org/InStock"} for p in SITE["packs"]]
                      + [{"@type": "Offer", "name": "Recarga libre", "price": SITE["topup"]["min"], "priceCurrency": "EUR",
                          "url": f"{SITE['url']}/saldo/", "availability": "https://schema.org/InStock"}]},
@@ -924,7 +1109,7 @@ def onboarding_block() -> str:
 <form class="recover" data-trial-form novalidate>
 <div class="recover-row"><input type="email" name="email" autocomplete="email" placeholder="despacho@correo.com" required aria-label="Correo del despacho">
 <button class="btn btn-primary" type="submit">{icon("key")}Darme {SITE['free_credits']} créditos gratis</button></div>
-<p class="lic-help" data-trial-msg aria-live="polite">Sin tarjeta. Una por correo. ¿Ya tienes licencia? Pégala en el paso 2.</p>
+<p class="lic-help" data-trial-msg aria-live="polite">Sin tarjeta. Una por correo, con 3 consejos de uso la primera semana (baja en 1 clic). ¿Ya tienes licencia? Pégala en el paso 2.</p>
 </form>
 <div data-trial-out hidden><p class="small">Lista y guardada en este navegador: el comando del paso 2 ya la lleva.</p>
 {code_block("lic-trial", "LIC-…", "KEYFLINT_LICENSE")}</div></li>
@@ -945,66 +1130,113 @@ def onboarding_block() -> str:
 
 
 def advisors_page() -> str:
-    """Landing no técnica para asesorías y gestorías (/asesorias/)."""
+    """Landing ejecutiva y optimizada para asesorías y gestorías (/asesorias/). Cada herramienta en su sitio."""
     by = {m["slug"]: m for m in MCPS}
-    pains = [
-        ("landmark", "Bancos conciliados sin picar", "Le pasas los extractos del banco (el fichero Norma 43 / cuaderno 43 que descargas de la banca online) y te devuelve cada movimiento casado con su factura, con la puntuación y el motivo."),
-        ("ledger", "Diarios que entran a la primera", "Convierte asientos entre A3, ContaPlus / Sage 50, Xero y QuickBooks, y revisa que cuadran antes de importarlos. Sin plantillas de Excel."),
-        ("shield", "VeriFactu y Facturae revisados antes de enviar", "Comprueba la cadena de registros (huellas, enlaces, duplicados), el XML contra el XSD de la AEAT, el QR tributario y las facturas Facturae."),
-    ]
-    pains_html = "".join(f'<div class="feat"><span class="tile tile-sm">{icon(i)}</span><h3>{t}</h3><p>{d}</p></div>' for i, t, d in pains)
-    steps = [("key", "Pide tu licencia gratis", f"Con tu correo. {SITE['free_credits']} créditos, sin tarjeta."),
-             ("download", "Instálalo una vez", "Un comando lo deja listo en Claude Desktop o Cursor. Si prefieres, lo hace tu informático en dos minutos."),
-             ("chat", "Pídeselo en castellano", "«Concilia este extracto con las facturas de octubre». El asistente usa la herramienta y te enseña el resultado.")]
-    steps_html = "".join(f'<li class="step"><span class="tile tile-sm">{icon(i)}</span><div><h3><span class="step-n">{n}</span>{t}</h3><p>{d}</p></div></li>'
-                         for n, (i, t, d) in enumerate(steps, 1))
+    
     faq = [
-        ("¿Tengo que saber de informática?", "No. Se instala una vez con un comando que copias y pegas (o con un clic en Claude Desktop). Después solo hablas con el asistente."),
-        ("¿Mis datos salen del despacho?", "Con la instalación local, no: los ficheros se procesan en tu ordenador y a KeyFlint solo llega la licencia y el consumo de créditos. En el modo remoto (navegador o carpeta vigilada) el fichero viaja cifrado, se procesa en memoria y no se guarda. Detalle y encargo de tratamiento en /confianza/."),
-        ("¿Y si la IA se equivoca con un apunte?", "Las herramientas no usan IA para calcular: aplican reglas fijas y dan siempre el mismo resultado. Lo que no se puede casar con certeza queda marcado para que lo revises."),
-        ("¿Sustituye a mi programa de contabilidad?", "No. Prepara y revisa los ficheros para que entren limpios en A3, ContaPlus, Sage 50, Xero o QuickBooks."),
-        ("¿Se procesa solo aunque apague el ordenador?", "Sí. El alta deja la carpeta vigilada arrancando sola cada vez que inicias sesión. Los ficheros que dejes mientras está apagado se procesan al volver a encenderlo, y ninguno se cobra dos veces."),
-        ("¿Cuánto cuesta?", f"Pagas por uso: conciliar un extracto son 4 créditos (unos 0,20 €). Empiezas con {SITE['free_credits']} créditos gratis y recargas desde {SITE['topup']['min']} €, sin cuotas."),
+        ("¿Tengo que saber de informática para usarlo?", "No. Puedes usar el procesador en el navegador arrastrando los extractos sin instalar nada, o dejar una carpeta vigilada en tu ordenador con un solo comando."),
+        ("¿Mis datos bancarios salen del despacho?", "Con la instalación local o carpeta vigilada, no: los ficheros se procesan en tu equipo. En el navegador viajan cifrados bajo TLS a la UE, se procesan en memoria volátil y nunca se almacenan (cumplimiento estricto RGPD Art. 28)."),
+        ("¿Y si la herramienta se equivoca con un apunte?", "Flint no utiliza IA para el cálculo numérico: aplica el algoritmo matemático oficial del cuaderno AEB 43. Verifica saldo inicial, sumas de debe y haber y saldo final. Error de cálculo: 0%."),
+        ("¿Es compatible con ContaSol, A3 y Sage?", "Sí. Exporta ficheros de asientos directamente compatibles con ContaSol (DELSOL), plantillas de diario para A3 y hojas de cálculo normalizadas para Excel y Sage 50."),
+        ("¿Cuánto cuesta?", "Empiezas con 25 créditos totalmente gratuitos. Después eliges: Plan Despacho desde 49 €/mes (2.500 créditos al mes, unos 625 extractos leídos y conciliados, sin permanencia) o recargas sueltas desde 5 € que no caducan."),
     ]
+    
     body = f"""
 <section class="hero"><div class="glow" aria-hidden="true"></div><div class="wrap narrow center">
-<p class="eyebrow">Para asesorías y gestorías</p>
-<h1>La IA que concilia bancos y revisa tus ficheros fiscales, sin inventarse nada</h1>
-<p class="lead">Extractos Norma 43, diarios de A3 o ContaPlus y registros VeriFactu, preparados en segundos desde Claude o Cursor. Con la instalación local, tus datos no salen de tu despacho.</p>
-<div class="cta-row center"><a class="btn btn-primary btn-lg" href="#en-vivo">{icon("arrow-right")}Verlo con un extracto de ejemplo</a>
-<a class="btn btn-ghost btn-lg" href="#alta">Alta automática en 1 minuto</a></div>
-<ul class="assure center"><li>{icon("check")}Sin cuotas ni permanencia</li><li>{icon("check")}<a href="/confianza/">Modo local: tus datos no salen</a></li><li>{icon("check")}Factura con NIF</li><li>{icon("check")}Soporte en castellano</li></ul>
+<div class="kicker"><span class="pill"><span class="pill-dot"></span><span>Software para despachos contables y asesorías</span></span></div>
+<h1>Conciliación bancaria Norma 43 y facturas en 1 segundo, sin picar datos</h1>
+<p class="lead">Pasa extractos bancarios (.n43, .c43) y facturas XML directamente a Excel, ContaSol o A3 con 100% de cuadre matemático certificado. Sin suscripciones cautivas ni módulos costosos.</p>
+<div class="cta-row center">
+<a class="btn btn-primary btn-lg" href="/lote/">{icon("download")}Abrir procesador por lotes</a>
+<a class="btn btn-ghost btn-lg" href="/norma43-a-excel/">{icon("table")}Demo extracto en 1 clic</a>
+</div>
+<ul class="assure center"><li>{icon("check")}<span>25 extractos de prueba gratis</span></li><li>{icon("check")}<span>Sin tarjeta</span></li><li>{icon("check")}<span>RGPD Art. 28 estricto</span></li><li>{icon("check")}<span>Soporte en España</span></li></ul>
 </div></section>
-<section class="section"><div class="wrap">
-<div class="section-head"><p class="eyebrow">Lo que te quita de encima</p><h2>Menos horas picando datos, menos sustos con Hacienda</h2></div>
-<div class="feat-grid">{pains_html}</div>
-<p class="muted small center">Fichas técnicas: <a href="/norma43/">{e(by["norma43"]["name"])}</a> · <a href="/contabridge/">{e(by["contabridge"]["name"])}</a> · <a href="/verifactu/">{e(by["verifactu"]["name"])}</a></p>
+
+<!-- 1. SOLUCIONES DIRECTAS: ARRIBA Y SIN ESPERAS -->
+<section class="section tight" id="soluciones"><div class="wrap">
+<div class="section-head"><p class="eyebrow">Herramientas Inmediatas</p><h2>Elige tu flujo de trabajo sin configurar nada</h2></div>
+<div class="grid-3">
+  <div class="card glass">
+    <span class="tile">{icon("table")}</span>
+    <h3>Norma 43 a Excel</h3>
+    <p>Convierte extractos .n43 y .c43 de cualquier banco español a Excel (.csv con ; y decimales en coma) con columnas normalizadas y saldo verificado.</p>
+    <div style="margin-top:auto;padding-top:16px"><a class="btn btn-primary" href="/norma43-a-excel/">{icon("table")}<span>Convertir a Excel</span></a></div>
+  </div>
+  <div class="card glass">
+    <span class="tile">{icon("landmark")}</span>
+    <h3>Norma 43 a ContaSol</h3>
+    <p>Genera directamente el fichero de apuntes contables para importar en DELSOL en segundos, asignando subcuentas 572 y comprobando saldos sin teclear.</p>
+    <div style="margin-top:auto;padding-top:16px"><a class="btn btn-primary" href="/norma43-a-contasol/">{icon("landmark")}<span>Procesar para ContaSol</span></a><p class="muted small" style="margin-top:8px">También para <a href="/norma43-a-a3/">a3</a> y <a href="/norma43-a-contaplus/">ContaPlus</a>.</p></div>
+  </div>
+  <div class="card glass">
+    <span class="tile">{icon("download")}</span>
+    <h3>Procesador por lotes</h3>
+    <p>¿Tienes 50 extractos o facturas del mes? Arrástralos todos juntos al navegador y descarga el resumen completo unificado. Sin límite de entidades.</p>
+    <div style="margin-top:auto;padding-top:16px"><a class="btn btn-primary" href="/lote/">{icon("download")}<span>Abrir por lotes</span></a></div>
+  </div>
+</div>
 </div></section>
-{live_demo(("norma43", "contabridge"), "Míralo funcionar con un ejemplo", "Un extracto bancario y dos asientos de prueba. Pulsa el botón: es la herramienta real, sin instalar nada.")}
-{seal(compact=True)}
-{onboarding_block()}
+
+<!-- 2. MODO CARPETA VIGILADA (PARA DESPACHOS CON ALTO VOLUMEN) -->
 <section class="section alt" id="lote"><div class="wrap install-grid">
-<div class="section-head left"><p class="eyebrow">Modo Carpeta Vigilada · Sin abrir el chat</p>
-<h2>Procesa 50 extractos Norma 43 o facturas XML de golpe</h2>
-<p class="lead-sm">¿No quieres ir uno por uno en el chat? Arrastra todos los ficheros <code>.n43</code>, <code>.c43</code> y <code>.xml</code> del mes al procesador del navegador y descarga un <code>resumen-flint.csv</code> listo para abrir en Excel. Sin terminal.</p>
-<div class="cta-row"><a class="btn btn-primary btn-lg" href="/lote/">{icon("download")}Abrir el procesador por lotes</a></div>
-<ul class="checks"><li>{icon("check")}¿Prefieres terminal? Con <code>--vigilar</code> procesa cada fichero nuevo en cuanto cae en la carpeta</li><li>{icon("check")}Guarda el informe auditable <code>.flint.json</code> junto a cada extracto</li><li>{icon("check")}Pack Despacho recomendado: <a href="/saldo/#importe=100"><b>100 € → 2.800 créditos (+40 %)</b></a> sin caducidad</li></ul></div>
-<div class="card-flat"><p class="small"><b>Windows (PowerShell)</b> — procesa la carpeta actual:</p>
+<div class="section-head left"><p class="eyebrow">Modo Carpeta Vigilada · Cero fricción</p>
+<h2>Procesa 50 extractos de golpe sin abrir ningún programa</h2>
+<p class="lead-sm">Arrastra todos los ficheros <code>.n43</code>, <code>.c43</code> y <code>.xml</code> del mes al navegador, o deja una carpeta vigilada en Windows que procese cada extracto en cuanto lo guardes de la banca online.</p>
+<ul class="checks">
+<li>{icon("check")}<span>Windows: un comando en PowerShell y vigila la carpeta de clientes</span></li>
+<li>{icon("check")}<span>Genera el informe auditable <code>.flint.json</code> junto a cada extracto</span></li>
+<li>{icon("check")}<span>Plan Despacho desde 49 €/mes: <a href="/precios/#despacho"><b class="nowrap">2.500 créditos al mes</b></a>, sin permanencia</span></li>
+</ul>
+<div class="cta-row" style="margin-top:18px"><a class="btn btn-primary" href="/lote/">{icon("download")}<span>Abrir procesador online</span></a></div>
+</div>
+<div class="card-flat"><p class="small"><b>Windows (PowerShell)</b> — procesa o vigila tu carpeta de extractos:</p>
 {code_block("lote-ps", f"irm {SITE['url']}/lote.ps1 | iex", "PowerShell")}
-<p class="small" style="margin-top:14px"><b>macOS y Linux</b> — procesa o deja vigilando una carpeta:</p>
+<p class="small"><b>macOS y Linux</b> — terminal:</p>
 {code_block("lote-sh", f"curl -LsSf {SITE['url']}/lote.sh | sh -s -- ./extractos --vigilar", "Terminal")}</div>
 </div></section>
+
+<!-- 2b. CONECTOR ÚNICO PARA EL DESPACHO (Norma 43 + ContaBridge en una URL) -->
+<section class="section" id="conector"><div class="wrap install-grid">
+<div class="section-head left"><p class="eyebrow">Un solo conector · Claude, ChatGPT, Antigravity</p>
+<h2>Todo el despacho con una sola URL</h2>
+<p class="lead-sm">Extractos Norma 43, conciliación, facturas al diario, exportación a a3, ContaPlus, Sage 50 o ContaSol y remesas SEPA en el mismo conector. Lo añades una vez y entras con el código de 6 dígitos que te llega por correo.</p>
+<ul class="checks">
+<li>{icon("check")}<span><code>reconcile_movements</code>, <code>bank_to_journal</code>, <code>invoices_to_journal</code>, <code>convert_journal</code>, <code>sepa_direct_debits</code> y el resto</span></li>
+<li>{icon("check")}<span>Mismos precios y créditos que cada herramienta por separado; los fallos se reembolsan</span></li>
+<li>{icon("check")}<span>Claude: Ajustes → Conectores → Añadir conector personalizado → pega la URL</span></li>
+</ul>
+</div>
+<div class="card-flat"><p class="small"><b>URL del conector</b>:</p>
+{code_block("despacho-url", f"{SITE['url']}/despacho/mcp", "URL")}
+<p class="small muted" style="margin-top:14px">Clientes con cabeceras (Claude Code, Cursor, VS Code): <code>Authorization: Bearer LIC-…</code> y sin OAuth.</p></div>
+</div></section>
+
+<!-- 3. SELLO DE RIGOR CONTABLE & SEGURIDAD -->
+{seal(compact=True)}
+
+<!-- 4. CALCULADORA DE RENTABILIDAD / ROI PARA EL DESPACHO -->
 {roi_calc()}
-<section class="section alt"><div class="wrap install-grid">
-<div class="section-head left"><p class="eyebrow">Cómo empezar</p><h2>Listo en tres pasos</h2><ol class="steps">{steps_html}</ol></div>
+
+<!-- 4b. PLAN DESPACHO -->
+{despacho_plans()}
+
+<!-- 5. ALTA EN 1 MINUTO: LICENCIA GRATUITA -->
+{onboarding_block()}
+
+<!-- 6. PREGUNTAS FRECUENTES -->
+<section class="section alt"><div class="wrap narrow">
+<div class="section-head center"><p class="eyebrow">Dudas habituales</p><h2>Preguntas frecuentes de asesorías</h2></div>
 <div class="faq">{faq_html(faq)}</div>
 </div></section>
+
+<!-- 7. BANDA DE CIERRE -->
 <section class="section"><div class="wrap"><div class="cta-band">
-<div><h2>Prueba con tus extractos de este mes</h2><p class="lead-sm">{SITE['free_credits']} créditos gratis: unos 6 extractos conciliados. Sin tarjeta.</p></div>
-<div class="cta-row"><a class="btn btn-primary btn-lg" href="/probar/">Pedir licencia gratis</a><a class="btn btn-ghost btn-lg" href="{SITE['contact']}">Hablar con nosotros</a></div>
+<div><h2>Prueba con los extractos de este mes</h2><p class="lead-sm">{SITE['free_credits']} créditos gratis: suficientes para probar todo el flujo de tu despacho. Sin tarjeta.</p></div>
+<div class="cta-row"><a class="btn btn-primary btn-lg" href="/probar/">{icon("key")}<span>Pedir licencia gratis</span></a><a class="btn btn-ghost btn-lg" href="/norma43-a-excel/"><span>Ver demo en 1 clic</span></a></div>
 </div></div></section>"""
-    return page("/asesorias/", "Conciliación bancaria y VeriFactu con IA para asesorías · Flint by KeyFlint",
-                "Concilia extractos Norma 43, convierte diarios de A3 y ContaPlus y revisa VeriFactu desde Claude o Cursor. Resultados exactos, pago por uso y 25 créditos gratis.",
+    return page("/asesorias/", "Conciliación bancaria Norma 43 y facturas para asesorías · Flint by KeyFlint",
+                "Concilia extractos bancarios Norma 43, exporta asientos para ContaSol y A3 y audita facturas electrónicas. 0% errores de cálculo y 25 créditos gratis.",
                 body, [faq_ld(faq)])
 
 
@@ -1022,12 +1254,13 @@ def batch_page() -> str:
 </div></section>
 <section class="section tight"><div class="wrap narrow" data-batch>
 <form class="saldo-form glass batch" data-batch-form novalidate>
-<label class="lic"><span class="lic-label">{icon("key")}{L("Tu licencia", "Your license")}</span>
-<span class="lic-field"><input type="text" name="license" autocomplete="off" spellcheck="false" placeholder="LIC-…" required aria-describedby="lote-help" data-batch-lic></span>
-<span id="lote-help" class="lic-help">{L(f'Se guarda solo en este navegador. ¿Aún sin licencia? <a href="{U("try")}">{SITE["free_credits"]} créditos gratis</a>.', f'Stored only in this browser. No license yet? <a href="{U("try")}">{SITE["free_credits"]} free credits</a>.')}</span></label>
-<label class="drop" data-batch-drop><input type="file" multiple accept=".n43,.c43,.q43,.xml,.xsig" class="sr-only" data-batch-input>
+<label class="lic"><span class="lic-label">{icon("key")}{L("Tu correo o licencia", "Your email or license")}</span>
+<span class="lic-field"><input type="text" name="license" autocomplete="email" spellcheck="false" placeholder="{L("tu@correo.com o LIC-…", "you@company.com or LIC-…")}" required aria-describedby="lote-help" data-batch-lic></span>
+<span id="lote-help" class="lic-help">{L(f'Escribe tu correo para activar <b>{SITE["free_credits"]} créditos gratis</b> al instante (o cargar tu licencia activa), o pega tu clave LIC-….', f'Enter your email to activate <b>{SITE["free_credits"]} free credits</b> instantly (or load your active license), or paste your LIC-… key.')}</span></label>
+<label class="drop" data-batch-drop><input type="file" multiple accept=".n43,.c43,.q43,.csv,.pdf,.xml,.xsig" class="sr-only" data-batch-input>
 <span class="tile">{icon("download")}</span><b>{L("Arrastra aquí los ficheros o haz clic para elegirlos", "Drop files here or click to choose them")}</b>
-<span class="muted small">.n43 · .c43 · .q43 · .xml · .xsig · {L("hasta 10 MB cada uno", "up to 10 MB each")}</span></label>
+<span class="muted small">.n43 · .c43 · .q43 · .csv · .pdf · .xml · .xsig · {L("hasta 10 MB cada uno", "up to 10 MB each")}</span></label>
+<div class="sample-bar"><button type="button" class="btn-sample" data-batch-sample>{icon("refresh")}<span>{L("Cargar extracto de prueba (demo en 1 clic)", "Load sample bank statement (1-click demo)")}</span></button></div>
 <div class="tw batch-list" data-batch-list hidden><table class="uso-t"><thead><tr><th>{L("Fichero", "File")}</th><th>{L("Tipo", "Type")}</th><th>{L("Estado", "Status")}</th><th>{L("Detalle", "Detail")}</th><th class="num"></th></tr></thead><tbody data-batch-rows></tbody></table></div>
 <div class="batch-actions"><button class="btn btn-primary btn-lg" type="submit" data-batch-go disabled>{icon("refresh")}<span>{L("Procesar", "Process")}</span></button>
 <button class="btn btn-ghost" type="button" data-batch-stop hidden>{L("Detener", "Stop")}</button>
@@ -1036,25 +1269,27 @@ def batch_page() -> str:
 <p class="note" data-batch-msg aria-live="polite" hidden>{icon("info")}<span></span></p>
 <div class="batch-out" data-batch-out hidden><h2 class="h4">{icon("check")}{L("Resultados listos", "Results ready")}</h2>
 <p class="muted small">{L("El resumen se abre directamente en Excel (separador ; y coma decimal). El ZIP incluye además el informe auditable .flint.json de cada fichero.", "The summary opens straight in Excel. The ZIP also holds the auditable .flint.json report of each file.")}</p>
-<div class="cta-row"><button class="btn btn-primary" type="button" data-batch-csv>{icon("table")}{L("Descargar resumen .csv", "Download summary .csv")}</button>
+<div class="cta-row"><button class="btn btn-primary" type="button" data-batch-csv>{icon("table")}{L("Descargar resumen Excel (.csv)", "Download Excel summary (.csv)")}</button>
 <button class="btn btn-ghost" type="button" data-batch-zip>{icon("download")}{L("Descargar todo (.zip)", "Download everything (.zip)")}</button>
-<a class="btn btn-quiet" href="{U("balance")}">{L("Ver saldo", "Check balance")}</a></div></div>
+<a class="btn btn-primary" href="{U("balance")}#recargar">{icon("arrow-right")}{L("Recargar saldo (desde 5 €)", "Top up credits (from €5)")}</a>
+<a class="btn btn-quiet" href="{U("pricing")}">{L("Ver precios", "View pricing")}</a></div></div>
 </form>
 <div class="install-grid batch-info">
 <div><h2 class="h3">{L("Qué hace con cada fichero", "What it does with each file")}</h2>
-<ul class="checks"><li>{icon("check")}{L("Norma 43: comprueba totales y saldos como el banco y saca IBAN, movimientos y saldo inicial y final.", "Norma 43: checks totals and balances the way the bank does and returns IBAN, movements and opening and closing balance.")}</li>
-<li>{icon("check")}{L("XML de VERI*FACTU: valida contra el XSD de la AEAT y audita huellas y encadenamiento.", "VERI*FACTU XML: validates against the AEAT XSD and audits fingerprints and chaining.")}</li>
-<li>{icon("check")}{L("Facturae: XSD, cuadre de importes, NIF, DIR3 y si está firmada.", "Facturae: XSD, amount checks, NIF, DIR3 and whether it is signed.")}</li>
-<li>{icon("check")}{L("Envía los bytes exactos: respeta Ñ y acentos de los ficheros CP850/Latin-1 y las firmas XAdES.", "Sends the exact bytes: keeps CP850/Latin-1 accents and XAdES signatures intact.")}</li>
-<li>{icon("check")}{L("Si un fichero falla, no se cobra. Puedes reintentar solo los pendientes.", "If a file fails, it is not charged. Retry only the pending ones.")}</li></ul></div>
+<ul class="checks"><li>{icon("check")}<span>{L("Norma 43: comprueba totales y saldos como el banco y saca IBAN, movimientos y saldo inicial y final.", "Norma 43: checks totals and balances the way the bank does and returns IBAN, movements and opening and closing balance.")}</span></li>
+<li>{icon("check")}<span>{L("XML de VERI*FACTU: valida contra el XSD de la AEAT y audita huellas y encadenamiento.", "VERI*FACTU XML: validates against the AEAT XSD and audits fingerprints and chaining.")}</span></li>
+<li>{icon("check")}<span>{L("Facturae: XSD, cuadre de importes, NIF, DIR3 y si está firmada.", "Facturae: XSD, amount checks, NIF, DIR3 and whether it is signed.")}</span></li>
+<li>{icon("check")}<span>{L("Envía los bytes exactos: respeta Ñ y acentos de los ficheros CP850/Latin-1 y las firmas XAdES.", "Sends the exact bytes: keeps CP850/Latin-1 accents and XAdES signatures intact.")}</span></li>
+<li>{icon("check")}<span>{L("Si un fichero falla, no se cobra. Puedes reintentar solo los pendientes.", "If a file fails, it is not charged. Retry only the pending ones.")}</span></li></ul></div>
 <div><h2 class="h3">{L("Cuánto cuesta", "What it costs")}</h2>
 <div class="tw uso"><table class="uso-t"><thead><tr><th>{L("Fichero", "File")}</th><th>{L("Herramienta", "Tool")}</th><th class="num">{L("Créditos", "Credits")}</th></tr></thead><tbody>{crows}</tbody></table></div>
-<p class="muted small">{L('Para despachos: <a href="/saldo/#importe=100">100 € → 2.800 créditos (+40 %)</a>, sin caducidad.', 'Credits never expire. <a href="/en/balance/">Top up from €5</a>.')}</p>
+<p class="muted small">{L('Para despachos: <a href="/saldo/#importe=100"><span class="nowrap">100 € → 2.800 créditos</span> <span class="nowrap">(+40 %)</span></a>, sin caducidad.', 'Credits never expire. <a href="/en/balance/">Top up from €5</a>.')}</p>
 <p class="muted small">{L("Privacidad: cada fichero viaja cifrado a nuestro servidor, se procesa en memoria y no se guarda. Solo registramos herramienta, resultado y créditos.", "Privacy: each file travels encrypted to our server, is processed in memory and never stored. We only log tool, result and credits.")}</p></div>
 </div>
 <div class="card-flat batch-term"><p class="small"><b>{L("¿Prefieres dejar una carpeta vigilada?", "Prefer a watched folder?")}</b> {L("El mismo proceso por terminal procesa cada fichero nuevo en cuanto cae en la carpeta:", "The same process from a terminal handles each new file as soon as it lands in the folder:")}</p>
 {code_block("lote-sh", term, "Terminal")}
 <p class="muted small">Windows: <code>irm {SITE['url']}/lote.ps1 | iex</code></p></div>
+{bank_links_section() if _LANG[-1] == "es" else ""}
 </div></section>
 <script defer src="/assets/lote.js?v={VERSION}"></script>"""
     return page(U("batch"), L("Procesador por lotes Norma 43, VERI*FACTU y Facturae · Flint by KeyFlint", "Batch processor for Norma 43, VERI*FACTU and Facturae · Flint by KeyFlint"),
@@ -1066,6 +1301,500 @@ def batch_page() -> str:
 def en_batch() -> str:
     with lang_ctx("en"):
         return batch_page()
+
+
+def norma43_excel_page() -> str:
+    """Landing SEO de alta intención: /norma43-a-excel/."""
+    faq = [
+        ("¿Qué entidades bancarias generan ficheros Norma 43 (.n43 o .c43)?",
+         "Prácticamente todas las entidades financieras que operan en España: Banco Santander, BBVA, CaixaBank, Sabadell, Bankinter, Unicaja, Ibercaja, Kutxabank, Abanca, Cajamar, Laboral Kutxa, Deutsche Bank España y cooperativas de crédito."),
+        ("¿Por qué Excel no abre bien los ficheros .n43 directamente?",
+         "Norma 43 no es una hoja de cálculo ni un CSV común: es un estándar bancario español de registros de longitud fija (80 caracteres por línea) con codificación bancaria CP850/Latin-1. Si lo abres directamente en Excel, todo el contenido queda pegado en una única columna ilegible. Flint lo procesa de forma nativa y genera un fichero CSV con delimitador de punto y coma (;) y coma decimal (,) listo para filtrar, ordenar y conciliar en Excel en español."),
+        ("¿Cómo comprueba Flint el cuadre bancario del extracto?",
+         "Flint aplica el algoritmo matemático oficial del cuaderno AEB 43: verifica el registro 11 (saldo inicial), suma algebraicamente los movimientos de los registros 22 y 23 (debe y haber) y comprueba que coincidan de forma exacta con el registro 33 (saldo final). Si falta un movimiento o el fichero está cortado, te avisa antes de que descuadre tu contabilidad."),
+        ("¿Mis datos bancarios están protegidos (RGPD)?",
+         "Totalmente. Los ficheros viajan cifrados bajo TLS, se procesan exclusivamente en memoria volátil y se descartan inmediatamente tras generar el resultado. Nunca se almacenan ni se usan para entrenar modelos de IA (RGPD Art. 28). Para despachos con máxima exigencia de secreto profesional, el modo local con uvx procesa el extracto 100% dentro de tu propio ordenador sin que salga a internet."),
+        ("¿Cuánto cuesta convertir extractos bancarios a Excel?",
+         "Comienzas con 25 créditos totalmente gratuitos (unos 25 extractos bancarios, sin tarjeta). Después puedes recargar saldo libremente desde 5 € (unos 5 céntimos por extracto) sin cuotas mensuales fijas obligatorias: pagas solo lo que procesas y los créditos no caducan."),
+    ]
+    term = f"curl -LsSf {SITE['url']}/lote.sh | sh -s -- ./extractos --vigilar"
+    body = f"""
+<section class="hero"><div class="glow" aria-hidden="true"></div><div class="wrap narrow">
+<nav class="crumbs" aria-label="Ruta"><a href="/">Inicio</a>{icon("chevron-right")}<span aria-current="page">Norma 43 a Excel</span></nav>
+<h1>Convertir extractos bancarios Norma 43 a Excel online</h1>
+<p class="lead">Pasa extractos bancarios (.n43, .c43, .q43) de cualquier banco español a Excel o CSV limpio con cuadre de saldos automático. Sin programas pesados, sin errores de tecleo y con 25 conversiones gratuitas.</p>
+</div></section>
+
+<section class="section tight"><div class="wrap narrow" data-batch>
+<form class="saldo-form glass batch" data-batch-form novalidate>
+<label class="lic"><span class="lic-label">{icon("key")}Tu correo o licencia</span>
+<span class="lic-field"><input type="text" name="license" autocomplete="email" spellcheck="false" placeholder="tu@correo.com o LIC-…" required aria-describedby="n43-help" data-batch-lic></span>
+<span id="n43-help" class="lic-help">Escribe tu correo para activar <b>25 créditos gratis</b> al instante (sin salir de aquí) o pega tu clave LIC-….</span></label>
+
+<label class="drop" data-batch-drop><input type="file" multiple accept=".n43,.c43,.q43,.csv,.pdf" class="sr-only" data-batch-input>
+<span class="tile">{icon("download")}</span><b>Arrastra aquí tus extractos bancarios (.n43, .c43 o PDF digital) o haz clic para elegirlos</b>
+<span class="muted small">Santander, BBVA, CaixaBank, Sabadell, Bankinter… hasta 10 MB cada uno</span></label>
+<div class="sample-bar"><button type="button" class="btn-sample" data-batch-sample>{icon("refresh")}<span>Cargar extracto de prueba (demo en 1 clic)</span></button></div>
+
+<div class="tw batch-list" data-batch-list hidden><table class="uso-t"><thead><tr><th>Fichero</th><th>Tipo</th><th>Estado</th><th>Detalle</th><th class="num"></th></tr></thead><tbody data-batch-rows></tbody></table></div>
+<div class="batch-actions"><button class="btn btn-primary btn-lg" type="submit" data-batch-go disabled>{icon("refresh")}<span>Convertir a Excel</span></button>
+<button class="btn btn-ghost" type="button" data-batch-stop hidden>Detener</button>
+<button class="btn btn-quiet" type="button" data-batch-clear hidden>Vaciar lista</button>
+<span class="muted small tabnum" data-batch-cost aria-live="polite"></span></div>
+<p class="note" data-batch-msg aria-live="polite" hidden>{icon("info")}<span></span></p>
+
+<div class="batch-out" data-batch-out hidden><h2 class="h4">{icon("check")}Extractos convertidos con éxito</h2>
+<p class="muted small">Descarga tu resumen listo para abrir en Excel en español (separador ; y coma decimal) o el archivo comprimido ZIP con el informe auditable de cada cuenta.</p>
+<div class="cta-row"><button class="btn btn-primary" type="button" data-batch-csv>{icon("table")}Descargar resumen Excel (.csv)</button>
+<button class="btn btn-ghost" type="button" data-batch-zip>{icon("download")}Descargar todo (.zip)</button>
+<a class="btn btn-primary" href="/saldo/#recargar">{icon("arrow-right")}Recargar créditos (desde 5 €)</a>
+<a class="btn btn-quiet" href="/precios/">Ver precios</a></div></div>
+</form>
+
+<div class="install-grid batch-info">
+<div><h2 class="h3">Estructura del libro Excel generado</h2>
+<p class="small muted">Cada fila del fichero Excel corresponde a un movimiento bancario individual, con las columnas normalizadas para su explotación contable:</p>
+<ul class="checks">
+<li>{icon("check")}<span><b>Fecha operación y Fecha valor:</b> formato estándar AAAA-MM-DD para filtrado cronológico.</span></li>
+<li>{icon("check")}<span><b>Concepto común y propio:</b> código de operación bancaria normalizado según el cuaderno 43.</span></li>
+<li>{icon("check")}<span><b>Concepto detallado (Registros 23):</b> descripción completa del movimiento (hasta 5 líneas de detalle).</span></li>
+<li>{icon("check")}<span><b>Importe (€):</b> debe (-) y haber (+) separados con signo contable exacto.</span></li>
+<li>{icon("check")}<span><b>Saldo final comprobado:</b> cuadre matemático garantizado con el saldo bancario real.</span></li>
+</ul></div>
+
+<div><h2 class="h3">Por qué usar Flint frente a otros métodos</h2>
+<div class="tw uso"><table class="uso-t"><thead><tr><th>Método</th><th>Tiempo</th><th>Riesgo error</th><th>Coste</th></tr></thead>
+<tbody>
+<tr><td>Picar a mano en Excel</td><td>20 min/cuenta</td><td>Muy alto</td><td>Horas perdidas</td></tr>
+<tr><td>Software tradicional de escritorio</td><td>5 min/cuenta</td><td>Medio</td><td>300 €/año + licencias</td></tr>
+<tr><td><b>Flint Norma 43 a Excel</b></td><td><b>1 segundo</b></td><td><b>0% (AEB 43)</b></td><td><b>25 gratis · Recarga libre desde 5 €</b></td></tr>
+</tbody></table></div>
+<p class="muted small">Garantía de privacidad: procesamiento en memoria volátil bajo RGPD Art. 28, sin guardar tus ficheros. <a href="/confianza/">Ver informe de confianza</a>.</p></div>
+</div>
+
+<div class="card-flat batch-term"><p class="small"><b>¿Gestionas decenas de extractos bancarios al mes en tu despacho?</b> Deja una carpeta vigilada en tu ordenador: cualquier extracto bancario que guardes se convertirá a Excel automáticamente en segundo plano:</p>
+{code_block("lote-sh", term, "Terminal")}
+<p class="muted small">Windows (PowerShell): <code>irm {SITE['url']}/lote.ps1 | iex</code></p></div>
+
+<div class="faq" style="margin-top:40px"><h2 class="h3" style="margin-bottom:20px">Preguntas frecuentes sobre Norma 43 a Excel</h2>{faq_html(faq)}</div>
+</div></section>
+<script defer src="/assets/lote.js?v={VERSION}"></script>"""
+    return page("/norma43-a-excel/", "Convertir extractos Norma 43 (.n43, .c43) a Excel online · Flint by KeyFlint",
+                "Convierte ficheros bancarios Norma 43 a Excel (.csv delimitado por punto y coma) gratis y al instante. Cuadre bancario matemático según cuaderno AEB 43.",
+                body, [faq_ld(faq)])
+
+
+N43_TARGETS = {
+    "contasol": {
+        "path": "/norma43-a-contasol/", "program": "ContaSol (DELSOL)", "short": "ContaSol", "file": "APU.ods",
+        "import": "En ContaSol: <b>Utilidades &gt; Importaciones</b>, importación Excel/Calc de <b>Apuntes</b>, y eliges el fichero APU.ods.",
+        "title": "Pasar extractos Norma 43 a ContaSol (APU.ods) · Flint by KeyFlint",
+        "desc": "Convierte extractos bancarios Norma 43 (.n43, .c43) en el fichero de apuntes APU.ods que importa ContaSol, con la subcuenta 572 de tu banco y sin picar asientos.",
+        "faq_extra": ("¿Qué fichero genera para ContaSol?", "Un APU.ods con el formato de importación Excel/Calc de apuntes de ContaSol (columnas A a Q). Se importa en Utilidades > Importaciones. Antes de pasarlo a una empresa real, haz una primera importación en una empresa de pruebas."),
+    },
+    "a3": {
+        "path": "/norma43-a-a3/", "program": "a3ASESOR, a3ECO y a3CON", "short": "A3", "file": "SUENLACE.DAT",
+        "import": "En a3: <b>Utilidades &gt; Enlace contable / Importar</b> el fichero SUENLACE.DAT (apuntes tipo 0, formato de 5 dígitos por defecto).",
+        "title": "Importar extractos Norma 43 en a3 (SUENLACE.DAT) · Flint by KeyFlint",
+        "desc": "Convierte extractos bancarios Norma 43 (.n43, .c43) en un SUENLACE.DAT listo para importar en a3ASESOR, a3ECO o a3CON, con la subcuenta 572 del banco.",
+        "faq_extra": ("¿Qué fichero genera para a3?", "Un SUENLACE.DAT con apuntes tipo 0, el formato estándar de enlace contable de a3ASESOR, a3ECO y a3CON. Por defecto usa el código de empresa 00001; si tu empresa en a3 tiene otro código, cámbialo antes de importar."),
+    },
+    "contaplus_ascii": {
+        "path": "/norma43-a-contaplus/", "program": "Sage ContaPlus y Sage 50", "short": "ContaPlus", "file": "XDiario.txt",
+        "import": "En ContaPlus: <b>Útiles &gt; Importación de ficheros ASCII</b>, eliges Diario y el fichero XDiario.txt.",
+        "title": "Pasar extractos Norma 43 a ContaPlus (XDiario) · Flint by KeyFlint",
+        "desc": "Convierte extractos bancarios Norma 43 (.n43, .c43) en un diario XDiario.txt para importar en Sage ContaPlus, con la subcuenta 572 del banco.",
+        "faq_extra": ("¿Qué fichero genera para ContaPlus?", "Un XDiario.txt de ancho fijo, el formato de importación ASCII de diario de Sage ContaPlus. Si usas Sage 50 con importación CSV, Flint también puede generar el diario en CSV desde Claude o Cursor."),
+    },
+}
+
+
+def norma43_target_page(target: str) -> str:
+    """Landing SEO + conversor real: Norma 43 -> fichero de importación del programa contable (contabridge bank_to_journal)."""
+    t = N43_TARGETS[target]
+    short, prog, fname = t["short"], t["program"], t["file"]
+    faq = [
+        (f"¿Cómo se importan los extractos bancarios en {short}?",
+         f"Flint convierte cada movimiento del extracto en un asiento: abono, Debe banco / Haber contrapartida; cargo, al revés. Descargas {fname} y lo importas. {t['import'].replace('<b>', '').replace('</b>', '').replace('&gt;', '>')}"),
+        t["faq_extra"],
+        ("¿Qué pasa con los movimientos que no sabe a qué cuenta van?",
+         "Van a la 555 (partidas pendientes de aplicación) y se marcan para revisión. Flint nunca adivina una contrapartida. Desde Claude o Cursor puedes darle reglas (por ejemplo, IBERDROLA a la 628) y se aplican siempre igual."),
+        ("¿Cuánto cuesta?",
+         f"Convertir un extracto son 3 créditos (unos 0,15 €). Si el fichero falla, no se cobra. Con la prueba gratis tienes {SITE['free_credits']} créditos y el Plan Despacho empieza en 49 €/mes."),
+        ("¿Puedo procesar todas las empresas del despacho a la vez?",
+         "Sí. Arrastra todos los extractos del mes: los asientos se numeran seguidos y descargas un ZIP con un fichero por extracto. La carpeta vigilada hace lo mismo sin abrir el navegador."),
+    ]
+    body = f"""
+<section class="hero"><div class="glow" aria-hidden="true"></div><div class="wrap narrow">
+<nav class="crumbs" aria-label="Ruta"><a href="/">Inicio</a>{icon("chevron-right")}<span aria-current="page">Norma 43 a {e(short)}</span></nav>
+<h1>Importar extractos Norma 43 en {e(short)} sin picar asientos</h1>
+<p class="lead">Arrastra los extractos bancarios (.n43, .c43) de cualquier banco español y descarga el {e(fname)} para {e(prog)}. Saldos comprobados como lo hace el banco, la subcuenta 572 que tú elijas y lo dudoso a la 555 para revisar.</p>
+</div></section>
+
+<section class="section tight"><div class="wrap narrow" data-batch data-batch-target="{target}">
+<form class="saldo-form glass batch" data-batch-form novalidate>
+<label class="lic"><span class="lic-label">{icon("key")}Tu correo o licencia</span>
+<span class="lic-field"><input type="text" name="license" autocomplete="email" spellcheck="false" placeholder="tu@correo.com o LIC-…" required aria-describedby="t-help" data-batch-lic></span>
+<span id="t-help" class="lic-help">Escribe tu correo para activar <b>{SITE['free_credits']} créditos gratis</b> al instante (o cargar tu licencia activa), o pega tu clave LIC-….</span></label>
+<label class="lic"><span class="lic-label">{icon("landmark")}Subcuenta del banco</span>
+<span class="lic-field"><input type="text" name="bank" inputmode="numeric" autocomplete="off" value="57200001" pattern="57[0-9]{{2,10}}" required data-batch-bank aria-describedby="b-help"></span>
+<span id="b-help" class="lic-help">La 572 de la cuenta bancaria en {e(short)} (con los dígitos de tu plan de cuentas).</span></label>
+
+<label class="drop" data-batch-drop><input type="file" multiple accept=".n43,.c43,.q43,.csv,.pdf" class="sr-only" data-batch-input>
+<span class="tile">{icon("download")}</span><b>Arrastra aquí tus extractos Norma 43 (.n43, .c43), CSV bancarios (.csv) o PDF digitales</b>
+<span class="muted small">Vista previa instantánea de movimientos · De cualquier banco o pasarela · hasta 10 MB</span></label>
+<div class="sample-bar"><button type="button" class="btn-sample" data-batch-sample>{icon("refresh")}<span>Cargar extracto de prueba</span></button></div>
+
+<div class="tw batch-list" data-batch-list hidden><table class="uso-t"><thead><tr><th>Fichero</th><th>Tipo</th><th>Estado</th><th>Detalle</th><th class="num"></th></tr></thead><tbody data-batch-rows></tbody></table></div>
+<div class="batch-actions"><button class="btn btn-primary btn-lg" type="submit" data-batch-go disabled>{icon("refresh")}<span>Convertir para {e(short)}</span></button>
+<button class="btn btn-ghost" type="button" data-batch-stop hidden>Detener</button>
+<button class="btn btn-quiet" type="button" data-batch-clear hidden>Vaciar lista</button>
+<span class="muted small tabnum" data-batch-cost aria-live="polite"></span></div>
+<p class="note" data-batch-msg aria-live="polite" hidden>{icon("info")}<span></span></p>
+
+<div class="batch-out" data-batch-out hidden><h2 class="h4">{icon("check")}Asientos generados</h2>
+<p class="muted small">Un extracto: descargas {e(fname)}. Varios: un ZIP con un fichero por extracto, con los asientos numerados seguidos. Revisa los marcados como REVISAR_555 antes de cerrar.</p>
+<div class="cta-row"><button class="btn btn-primary" type="button" data-batch-csv>{icon("download")}Descargar {e(fname)}</button>
+<button class="btn btn-ghost" type="button" data-batch-zip>{icon("table")}Todo con resumen (.zip)</button>
+<a class="btn btn-quiet" href="/precios/#despacho">Plan Despacho</a></div></div>
+</form>
+
+<div class="install-grid batch-info">
+<div><h2 class="h3">Cómo importarlo en {e(short)}</h2>
+<ol class="steps" style="margin-top:14px">
+<li class="step"><span class="tile tile-sm">{icon("download")}</span><div><h3><span class="step-n">1</span>Arrastra los extractos</h3><p>Los .n43 o .c43 que descargas de la banca online de cada cliente.</p></div></li>
+<li class="step"><span class="tile tile-sm">{icon("refresh")}</span><div><h3><span class="step-n">2</span>Descarga {e(fname)}</h3><p>Flint comprueba los saldos del extracto y genera un asiento por movimiento.</p></div></li>
+<li class="step"><span class="tile tile-sm">{icon("landmark")}</span><div><h3><span class="step-n">3</span>Impórtalo</h3><p>{t['import']} La primera vez, pruébalo en una empresa de pruebas.</p></div></li>
+</ol></div>
+<div><h2 class="h3">Qué cuesta</h2>
+<div class="tw uso"><table class="uso-t"><thead><tr><th>Concepto</th><th class="num">Créditos</th></tr></thead>
+<tbody><tr><td>Convertir un extracto a {e(short)}</td><td class="num">3 cr</td></tr>
+<tr><td>Fichero que falla</td><td class="num">0 cr</td></tr></tbody></table></div>
+<p class="muted small">Con la instalación local, los extractos no salen del despacho. <a href="/confianza/">Cómo tratamos los datos (art. 28)</a>.</p></div>
+</div>
+
+<div class="faq" style="margin-top:40px"><h2 class="h3" style="margin-bottom:20px">Preguntas frecuentes sobre Norma 43 en {e(short)}</h2>{faq_html(faq)}</div>
+{bank_links_section() if target == "contasol" else ""}
+</div></section>
+<script defer src="/assets/lote.js?v={VERSION}"></script>"""
+    return page(t["path"], t["title"], t["desc"], body, [faq_ld(faq)])
+
+
+def norma43_contasol_page() -> str:
+    return norma43_target_page("contasol")
+
+
+# --- pSEO bancos y pasarelas -> ContaSol --------------------------------------------------------------------
+# Texto verificado contra contabridge bank.movements_from_csv: el CSV necesita cabeceras Fecha/Date (o Fecha
+# operación, Fecha valor, Booking date, Transaction date) + Importe/Amount (o Cargo y Abono) y Concepto/Description.
+# Las cabeceras de Revolut, Stripe y PayPal no se reconocen tal cual: cada página dice qué columna renombrar.
+BANK_PAGES = {
+    "revolut": {
+        "path": "/revolut-a-contasol/", "name": "Revolut", "kind": "pasarela", "csv": True,
+        "h1": "Convertir extracto Revolut (CSV) a ContaSol APU.ods",
+        "desc": "Pasa el extracto CSV de Revolut Business o Revolut personal a un APU.ods para ContaSol: un asiento por movimiento contra tu 572, sin OCR y con lo dudoso en la 555.",
+        "lead": "Revolut no da Norma 43, pero sí un extracto en CSV. Flint lo convierte en el fichero de apuntes APU.ods que importa ContaSol, con la subcuenta 572 que uses para Revolut.",
+        "export": [
+            "En la app o en la web de Revolut abre la cuenta en euros y pide el extracto del periodo.",
+            "Elige el formato Excel/CSV (no PDF) y descárgalo.",
+            "Si tienes varias divisas, descarga un extracto por divisa y convierte solo el de euros.",
+        ],
+        "cols": [("Completed Date (o Date completed)", "Fecha"), ("Amount", "Importe"), ("Description", "Concepto (ya se reconoce)")],
+        "cols_note": "Flint aún no reconoce las cabeceras en inglés de Revolut. Renombra la fecha y el importe en Excel o LibreOffice, guarda como CSV y arrástralo. Usa la fecha de completado: es la del cargo real en la cuenta.",
+        "tips": [
+            ("Una subcuenta por cuenta Revolut", "Da de alta en ContaSol una 572 propia (por ejemplo 57200005 Revolut EUR) para que el saldo cuadre con el de la app."),
+            ("Sin conversión de divisas", "Flint no convierte importes ni inventa tipos de cambio. Un CSV en USD o GBP se contabilizaría tal cual: no lo mezcles con el de euros."),
+            ("Comisiones", "Si la columna Fee trae importes, el Amount ya es el movimiento real de la cuenta. Las comisiones que Revolut cobra como fila aparte salen como otro apunte que puedes llevar a la 626."),
+        ],
+        "faq": [
+            ("¿Sirve para Revolut Business y para Revolut personal?", "Sí, mientras el CSV tenga una fecha, un importe con signo y una descripción por fila. Las dos versiones traen esas columnas; solo hay que renombrarlas a Fecha, Importe y Concepto."),
+            ("¿Por qué no aceptáis el PDF de Revolut?", "Esta página trabaja con CSV, que trae los importes exactos sin leer un documento impreso. Así no hay errores de lectura ni céntimos perdidos."),
+            ("¿Qué pasa con las transferencias entre mis cuentas Revolut?", "Cada movimiento sin regla va a la 555 para revisar. Así ves los traspasos entre bolsillos o divisas y los llevas a mano a la 572 que corresponda, sin que Flint adivine nada."),
+        ],
+        "kw": "revolut a contasol, extracto revolut contasol, importar revolut business contasol, revolut csv apu.ods, contabilizar revolut contasol",
+    },
+    "stripe": {
+        "path": "/stripe-a-contasol/", "name": "Stripe", "kind": "pasarela", "csv": True,
+        "h1": "Contabilizar Stripe (CSV) en ContaSol y A3 sin picar asientos",
+        "desc": "Convierte el informe CSV de saldo de Stripe en apuntes para ContaSol (APU.ods) o A3 (SUENLACE.DAT): cobros, comisiones y transferencias al banco, cada uno a su sitio y sin picar asientos.",
+        "lead": "Stripe junta cobros, comisiones, reembolsos y transferencias a tu banco. Flint convierte el CSV de saldo en un asiento por fila contra la subcuenta que uses para Stripe, listo para ContaSol o A3.",
+        "export": [
+            "En el panel de Stripe abre los informes de saldo y elige el periodo (un mes cerrado).",
+            "Descarga las transacciones del saldo en CSV, en la moneda de tu cuenta (EUR).",
+            "Si te interesa separar la comisión, descarga la versión con columnas de importe bruto, comisión y neto.",
+        ],
+        "cols": [("Created (UTC) o Available On", "Fecha"), ("Net (neto) o Amount (bruto)", "Importe"), ("Description", "Concepto (ya se reconoce)")],
+        "cols_note": "Flint aún no reconoce las cabeceras en inglés de Stripe. Renombra la fecha y el importe, guarda como CSV y arrástralo. Deja una sola columna llamada Importe: si dejas Amount y Net a la vez, se usaría la primera que aparezca.",
+        "tips": [
+            ("Stripe es una cuenta, no un cliente", "Trata el saldo de Stripe como una 572 aparte (por ejemplo 57200009 Stripe). Las transferencias (payouts) son un traspaso de esa 572 a la de tu banco."),
+            ("Neto o bruto", "Con Net, cada cobro entra ya sin comisión y el saldo cuadra con lo que llega al banco; la comisión la apuntas a la 626 en un asiento resumen del mes. Con Amount, la comisión debe venir como fila propia."),
+            ("Lo dudoso a la 555", "Flint no sabe qué cliente pagó cada cargo. Todo lo que no tenga regla va a la 555 para que lo apliques a la 430 o a ventas, sin cuentas inventadas."),
+        ],
+        "faq": [
+            ("¿Sirve también para A3?", "Sí. Esta página genera el APU.ods de ContaSol; el mismo CSV en la página CSV a A3 genera el SUENLACE.DAT para a3ASESOR, a3ECO y a3CON."),
+            ("¿Contabiliza el IVA de cada venta?", "No. Desde el extracto solo se conoce el dinero que se mueve. El IVA sale de las facturas: desde Claude o Cursor, la herramienta invoices_to_journal las contabiliza con IVA y luego casa los cobros de Stripe con ellas."),
+            ("¿Y los reembolsos y disputas?", "Son filas con importe negativo y salen como cargos en la cuenta de Stripe. Van a la 555 para que decidas si anulan una venta o son un gasto."),
+        ],
+        "kw": "contabilizar stripe contasol, stripe a contasol, stripe a3, importar stripe contabilidad, csv stripe asientos, comisiones stripe contabilidad",
+    },
+    "paypal": {
+        "path": "/paypal-a-contasol/", "name": "PayPal", "kind": "pasarela", "csv": True,
+        "h1": "Convertir movimientos PayPal (CSV) a ContaSol y A3",
+        "desc": "Pasa el informe de actividad CSV de PayPal a apuntes para ContaSol (APU.ods) o A3 (SUENLACE.DAT): cobros, pagos y retiradas al banco con su 572, sin picar asientos.",
+        "lead": "El informe de actividad de PayPal trae cada cobro, pago y retirada. Flint lo convierte en apuntes contra la subcuenta que uses para PayPal y te da el APU.ods para ContaSol.",
+        "export": [
+            "En PayPal abre Actividad y busca la opción de descargar el informe de actividad.",
+            "Elige el periodo, el tipo de transacciones (todas o solo las que afectan al saldo) y el formato CSV.",
+            "Descarga el fichero en euros; si cobras en otras divisas, filtra o separa esas filas.",
+        ],
+        "cols": [("Fecha (o Date)", "Fecha (ya se reconoce)"), ("Neto o Bruto (Net o Gross)", "Importe"), ("Nombre o Asunto", "Concepto")],
+        "cols_note": "La fecha de PayPal ya se reconoce. El importe no: renombra la columna que quieras usar a Importe y deja solo una. Si el fichero trae las cifras entre comillas con coma decimal, no hace falta tocarlas.",
+        "tips": [
+            ("Una 572 para PayPal", "Da de alta una subcuenta propia (por ejemplo 57200008 PayPal) para que el saldo de ContaSol cuadre con el de PayPal."),
+            ("Filas que no mueven saldo", "El informe completo incluye retenciones y autorizaciones que no son dinero real. Descarga solo las transacciones que afectan al saldo para no duplicar movimientos."),
+            ("Retiradas al banco", "Cada retirada es un traspaso a la 572 del banco. Flint la deja en la 555 para que la casas con el abono del extracto bancario."),
+        ],
+        "faq": [
+            ("¿Sirve también para A3?", "Sí. Con el mismo CSV, la página CSV a A3 genera el SUENLACE.DAT. ContaPlus también tiene su página."),
+            ("¿Qué columna de importe uso, Bruto o Neto?", "Neto si quieres que el saldo cuadre con el dinero que queda en PayPal; Bruto si vas a apuntar la tarifa de PayPal aparte a la 626. Deja solo una columna llamada Importe."),
+            ("¿Detecta qué cliente pagó?", "No lo adivina. Los cobros sin regla van a la 555. Desde Claude o Cursor puedes pasar las facturas pendientes y Flint casa cada cobro con la 430 cuando importe y referencia coinciden."),
+        ],
+        "kw": "paypal a contasol, contabilizar paypal contasol, paypal a3, informe actividad paypal csv contabilidad, importar paypal apu.ods",
+    },
+    "caixabank": {
+        "path": "/caixabank-a-contasol/", "name": "CaixaBank", "kind": "banco", "csv": False,
+        "h1": "Importar extracto CaixaBank (Norma 43 o CSV) en ContaSol",
+        "desc": "Convierte el extracto de CaixaBank (Norma 43 o CSV) en el APU.ods de ContaSol con la 572 del banco. Norma 43 con saldos comprobados; lo dudoso a la 555.",
+        "lead": "CaixaBank permite descargar los movimientos en Norma 43 (cuaderno 43) desde la banca de empresas. Es el formato más fiable: Flint comprueba los saldos del fichero antes de generar el APU.ods para ContaSol.",
+        "export": [
+            "En CaixaBankNow (empresas) busca la descarga de movimientos de cuentas en formato Norma 43 o cuaderno 43.",
+            "Elige la cuenta y el periodo y descarga el fichero (suele tener extensión .txt, .n43 o .aeb).",
+            "Si solo tienes la exportación a Excel, guárdala como CSV y revisa las columnas (abajo).",
+        ],
+        "cols": [("Fecha", "Fecha (ya se reconoce)"), ("Importe", "Importe (ya se reconoce)"), ("Movimiento", "Concepto")],
+        "cols_note": "Si tu exportación trae una columna Movimiento con el texto del apunte antes de Importe, renómbrala a Concepto: si no, Flint la tomaría como importe y rechazaría el fichero sin cobrarlo.",
+        "tips": [
+            ("Mejor Norma 43 que CSV", "El fichero Norma 43 trae saldo inicial, final y totales de control: Flint verifica que saldo inicial + abonos - cargos = saldo final. El CSV no permite esa comprobación."),
+            ("Extensión del fichero", "Si CaixaBank lo descarga como .txt, cámbiale la extensión a .n43 antes de arrastrarlo."),
+            ("Varias cuentas", "Un mismo Norma 43 puede traer varias cuentas. Si tienen subcuentas 572 distintas, conviértelas desde Claude o Cursor con bank_accounts; aquí todas van a la 572 del formulario."),
+        ],
+        "faq": [
+            ("¿Qué formato me conviene descargar de CaixaBank?", "Norma 43. Es el estándar de la banca española, trae los importes exactos y los saldos de control, y Flint los comprueba antes de generar nada."),
+            ("¿Funciona con CaixaBankNow de particulares?", "Si tu acceso solo ofrece Excel o CSV, también vale: guárdalo como CSV con columnas de fecha, importe y concepto."),
+            ("¿Qué hace con los recibos y transferencias?", "Un asiento por movimiento contra la 572. Lo que no tiene regla va a la 555 para revisar. Desde Claude o Cursor puedes añadir reglas (por ejemplo, ENDESA a la 628)."),
+        ],
+        "kw": "caixabank contasol, importar extracto caixabank contasol, norma 43 caixabank, caixabanknow norma 43, extracto caixabank apu.ods",
+    },
+    "bbva": {
+        "path": "/bbva-a-contasol/", "name": "BBVA", "kind": "banco", "csv": False,
+        "h1": "Importar extracto BBVA (Norma 43 o CSV) en ContaSol",
+        "desc": "Convierte el extracto de BBVA (Norma 43 o CSV) en el APU.ods de ContaSol con la 572 del banco, comprobando los saldos del fichero y sin picar asientos.",
+        "lead": "BBVA ofrece los movimientos en Norma 43 en la banca de empresas y en Excel en la web. Flint convierte cualquiera de los dos en el APU.ods de ContaSol, y con Norma 43 además cuadra los saldos.",
+        "export": [
+            "En BBVA net cash (empresas) busca la descarga de movimientos en formato Norma 43 o AEB 43.",
+            "En la web de particulares o autónomos, descarga los movimientos en Excel y guárdalos como CSV.",
+            "Descarga un mes cerrado por cuenta para que la numeración de asientos sea limpia.",
+        ],
+        "cols": [("Fecha", "Fecha (ya se reconoce)"), ("Importe", "Importe (ya se reconoce)"), ("Concepto", "Concepto (ya se reconoce)")],
+        "cols_note": "Si tu exportación trae también una columna Movimiento con texto antes de Importe, renómbrala o bórrala: si no, Flint la tomaría como importe y rechazaría el fichero sin cobrarlo.",
+        "tips": [
+            ("Norma 43 con cuadre", "Con el Norma 43, Flint comprueba los totales del registro 33 y que saldo inicial + movimientos = saldo final antes de generar los apuntes."),
+            ("Quita las filas de cabecera", "No hace falta: Flint busca la fila de títulos en las primeras 40 filas y salta los totales del final."),
+            ("Cuenta de valores o tarjeta", "Convierte solo la cuenta corriente. Las liquidaciones de tarjeta de crédito suelen llevar otra 52x en tu plan de cuentas."),
+        ],
+        "faq": [
+            ("¿Qué formato me conviene descargar de BBVA?", "Norma 43 si tienes acceso a la banca de empresas: trae los saldos de control. Si no, el Excel de movimientos guardado como CSV."),
+            ("¿Acepta el Excel (.xlsx) directamente?", "No: guárdalo como CSV desde Excel o LibreOffice (separador punto y coma o coma, los dos valen)."),
+            ("¿Cuánto cuesta?", "3 créditos por fichero convertido, unos 0,15 €. Si el fichero no se puede leer, no se cobra."),
+        ],
+        "kw": "bbva contasol, importar extracto bbva contasol, norma 43 bbva, bbva net cash norma 43, extracto bbva apu.ods",
+    },
+    "santander": {
+        "path": "/santander-a-contasol/", "name": "Banco Santander", "kind": "banco", "csv": False,
+        "h1": "Importar extracto Banco Santander (Norma 43 o CSV) en ContaSol",
+        "desc": "Convierte el extracto de Banco Santander (Norma 43 o CSV) en el APU.ods de ContaSol con la 572 del banco. Saldos comprobados y lo dudoso a la 555.",
+        "lead": "Banco Santander permite descargar los movimientos en Norma 43 desde la banca de empresas y en Excel desde la web. Flint convierte los dos en el APU.ods que importa ContaSol.",
+        "export": [
+            "En la banca de empresas de Santander busca la descarga de movimientos en cuaderno 43 o Norma 43.",
+            "En la web de particulares, descarga los movimientos en Excel y guárdalos como CSV.",
+            "Descarga un fichero por cuenta y por mes para cuadrar con el extracto en papel.",
+        ],
+        "cols": [("Fecha Operación", "Fecha (ya se reconoce)"), ("Importe", "Importe (ya se reconoce)"), ("Concepto", "Concepto (ya se reconoce)")],
+        "cols_note": "Con las columnas Fecha Operación, Fecha Valor, Concepto, Importe y Saldo no hay que tocar nada. Si tu descarga usa otros títulos, renómbralos a Fecha, Importe y Concepto.",
+        "tips": [
+            ("Fecha de operación o valor", "Flint usa la fecha de operación para el asiento. Desde Claude o Cursor puedes pedir la fecha valor (use_value_date)."),
+            ("Norma 43 con cuadre", "Con el Norma 43, Flint comprueba que saldo inicial + abonos - cargos = saldo final y marca el fichero si no cuadra."),
+            ("Mezcla de bancos", "Puedes arrastrar a la vez el Santander y los de otros bancos del cliente. Los asientos se numeran seguidos; cambia la 572 del formulario entre lotes si cada banco tiene la suya."),
+        ],
+        "faq": [
+            ("¿Qué formato me conviene descargar de Santander?", "Norma 43 si lo tienes: trae los saldos de control. Si no, el Excel de movimientos guardado como CSV funciona igual."),
+            ("¿Sirve para Santander Empresas y Particulares?", "Sí. El formato Norma 43 es el mismo en todos los bancos españoles, y el CSV vale si tiene fecha, importe y concepto."),
+            ("¿Sube mis datos a algún sitio?", "En esta página cada fichero viaja cifrado a nuestro servidor, se procesa en memoria y no se guarda. Con la instalación local, los extractos no salen del despacho hacia nosotros: solo viajan la licencia y el crédito."),
+        ],
+        "kw": "santander contasol, importar extracto santander contasol, norma 43 santander, cuaderno 43 santander empresas, extracto santander apu.ods",
+    },
+}
+SEO_KEYWORDS.update({b["path"]: b["kw"] for b in BANK_PAGES.values()})
+
+
+def bank_links_section() -> str:
+    """Enlaces cruzados a las páginas pSEO de BANK_PAGES (solo en las páginas en español)."""
+    cards = "".join(f'<li><a href="{b["path"]}">{icon("landmark" if b["kind"] == "banco" else "refresh")}<span><b>{e(b["name"])}</b>'
+                    f'<span class="muted small"> · {"Norma 43 o CSV" if b["kind"] == "banco" else "CSV"}</span></span></a></li>'
+                    for b in BANK_PAGES.values())
+    return (f'<div class="bank-links" style="margin-top:40px"><h2 class="h3">Bancos y pasarelas compatibles</h2>'
+            f'<p class="muted small">Guías paso a paso para llevar el extracto de cada uno a ContaSol.</p>'
+            f'<ul class="checks" style="columns:2;margin-top:12px">{cards}</ul></div>')
+
+
+def bank_page(key: str) -> str:
+    b = BANK_PAGES[key]
+    t = N43_TARGETS["contasol"]
+    csv = b["csv"]
+    accept = ".csv" if csv else ".n43,.c43,.q43,.csv"
+    drop = (f"Suelta aquí el CSV de {b['name']} (.csv)" if csv
+            else f"Suelta aquí el Norma 43 (.n43, .c43) o el CSV de {b['name']}")
+    steps = "".join(f'<li class="step"><span class="tile tile-sm">{icon(ic)}</span><div><h3><span class="step-n">{i}</span>{e(h)}</h3><p>{e(s)}</p></div></li>'
+                    for i, (s, ic, h) in enumerate(zip(b["export"], ("landmark", "download", "check"),
+                                                       (f"Entra en {b['name']}", "Descarga el fichero", "Antes de convertir")), 1))
+    cols = "".join(f'<tr><td style="white-space:normal">{e(a)}</td><td style="white-space:normal">{e(c)}</td></tr>' for a, c in b["cols"])
+    tips = "".join(f'<li>{icon("check")}<span><b>{e(h)}:</b> {e(x)}</span></li>' for h, x in b["tips"])
+    others = " · ".join(f'<a href="{o["path"]}">{e(o["name"])}</a>' for k, o in BANK_PAGES.items() if k != key)
+    a3 = ' ¿Usas A3? Con el mismo CSV, <a href="/csv-a-a3/">CSV a A3 (SUENLACE.DAT)</a>.' if b["kind"] == "pasarela" else ""
+    faq = list(b["faq"])
+    if not any("cuesta" in q for q, _ in faq):
+        faq.append(("¿Cuánto cuesta y hay suscripción?",
+                    f"Cada fichero convertido son 3 créditos (unos 0,15 €) y si falla no se cobra. Con tu correo tienes {SITE['free_credits']} créditos gratis sin tarjeta; después recargas desde 5 € o usas el Plan Despacho."))
+    body = f"""
+<section class="hero"><div class="glow" aria-hidden="true"></div><div class="wrap narrow">
+<nav class="crumbs" aria-label="Ruta"><a href="/">Inicio</a>{icon("chevron-right")}<a href="/norma43-a-contasol/">ContaSol</a>{icon("chevron-right")}<span aria-current="page">{e(b["name"])}</span></nav>
+<h1>{e(b["h1"])}</h1>
+<p class="lead">{e(b["lead"])}</p>
+</div></section>
+
+<section class="section tight"><div class="wrap narrow" data-batch data-batch-target="contasol"{' data-batch-csv-mode="1"' if csv else ""}>
+<form class="saldo-form glass batch" data-batch-form novalidate>
+<label class="lic"><span class="lic-label">{icon("key")}Tu correo o licencia</span>
+<span class="lic-field"><input type="text" name="license" autocomplete="email" spellcheck="false" placeholder="tu@correo.com o LIC-…" required aria-describedby="bk-help" data-batch-lic></span>
+<span id="bk-help" class="lic-help">Escribe tu correo para activar <b>{SITE['free_credits']} créditos gratis</b> al instante (sin tarjeta) o pega tu clave LIC-….</span></label>
+<label class="lic"><span class="lic-label">{icon("landmark")}Subcuenta de {e(b["name"])}</span>
+<span class="lic-field"><input type="text" name="bank" inputmode="numeric" autocomplete="off" value="57200001" pattern="57[0-9]{{2,10}}" required data-batch-bank aria-describedby="bkb-help"></span>
+<span id="bkb-help" class="lic-help">La 572 que usas para {e(b["name"])} en ContaSol. Los apuntes sin regla van a la 555 para revisar.</span></label>
+
+<label class="drop" data-batch-drop><input type="file" multiple accept="{accept}" class="sr-only" data-batch-input>
+<span class="tile">{icon("download")}</span><b>{e(drop)}</b>
+<span class="muted small">Vista previa instantánea · Sin OCR · hasta 10 MB</span></label>
+<div class="sample-bar"><button type="button" class="btn-sample" data-batch-sample>{icon("refresh")}<span>Cargar extracto de prueba (demo en 1 clic)</span></button></div>
+
+<div class="tw batch-list" data-batch-list hidden><table class="uso-t"><thead><tr><th>Fichero</th><th>Tipo</th><th>Estado</th><th>Detalle</th><th class="num"></th></tr></thead><tbody data-batch-rows></tbody></table></div>
+<div class="batch-actions"><button class="btn btn-primary btn-lg" type="submit" data-batch-go disabled>{icon("refresh")}<span>Convertir para ContaSol</span></button>
+<button class="btn btn-ghost" type="button" data-batch-stop hidden>Detener</button>
+<button class="btn btn-quiet" type="button" data-batch-clear hidden>Vaciar lista</button>
+<span class="muted small tabnum" data-batch-cost aria-live="polite"></span></div>
+<p class="note" data-batch-msg aria-live="polite" hidden>{icon("info")}<span></span></p>
+
+<div class="batch-out" data-batch-out hidden><h2 class="h4">{icon("check")}APU.ods generado</h2>
+<p class="muted small">Un fichero: descargas APU.ods. Varios: un ZIP con todos, con los asientos numerados seguidos. Revisa los marcados como REVISAR_555 antes de cerrar.</p>
+<div class="cta-row"><button class="btn btn-primary" type="button" data-batch-csv>{icon("download")}Descargar APU.ods</button>
+<button class="btn btn-ghost" type="button" data-batch-zip>{icon("table")}Todo con resumen (.zip)</button>
+<a class="btn btn-quiet" href="/precios/#despacho">Ver tarifas y recargas</a></div></div>
+</form>
+
+<div class="install-grid batch-info">
+<div><h2 class="h3">Cómo descargar el extracto de {e(b["name"])}</h2>
+<ol class="steps" style="margin-top:14px">{steps}</ol></div>
+<div><h2 class="h3">Columnas que necesita Flint</h2>
+<div class="tw uso"><table class="uso-t"><thead><tr><th style="white-space:normal">En tu fichero de {e(b["name"])}</th><th>Llámala</th></tr></thead><tbody>{cols}</tbody></table></div>
+<p class="muted small">{e(b["cols_note"])}</p></div>
+</div>
+
+<div style="margin-top:32px"><h2 class="h3">Contabilizar {e(b["name"])} en ContaSol sin sorpresas</h2>
+<ul class="checks" style="margin-top:12px">{tips}</ul>
+<p class="muted small">Importación: {t["import"]} La primera vez, pruébalo en una empresa de pruebas.{a3}</p></div>
+
+<div class="faq" style="margin-top:40px"><h2 class="h3" style="margin-bottom:20px">Preguntas frecuentes sobre {e(b["name"])} y ContaSol</h2>{faq_html(faq)}</div>
+<p class="muted small" style="margin-top:24px">Otros bancos y pasarelas: {others} · <a href="/csv-a-contasol/">Cualquier CSV</a> · <a href="/norma43-a-contasol/">Cualquier Norma 43</a></p>
+</div></section>
+<script defer src="/assets/lote.js?v={VERSION}"></script>"""
+    return page(b["path"], f"{b['h1']} · Flint by KeyFlint", b["desc"], body, [faq_ld(faq)])
+
+
+def csv_target_page(target: str) -> str:
+    """Landing SEO directa para competir en Convertir CSV a ContaSol / A3 / ContaPlus."""
+    t = N43_TARGETS[target]
+    short, prog, fname = t["short"], t["program"], t["file"]
+    slug_map = {"contasol": "/csv-a-contasol/", "a3": "/csv-a-a3/", "contaplus_ascii": "/csv-a-contaplus/"}
+    path = slug_map[target]
+    title = f"Convertir CSV a {short} ({fname}) online · Sin OCR · Flint by KeyFlint"
+    desc = f"Prepara movimientos CSV bancarios (Revolut, Stripe, PayPal, CaixaBank, BBVA, Santander) directamente para {prog} ({fname}). Vista previa instantánea y 25 créditos gratis."
+    faq = [
+        ("¿Qué datos necesita el archivo CSV?",
+         "Solo necesita una columna de fecha (Fecha, Date, Fecha operación), una de importe (o columnas separadas de Cargo/Debe y Abono/Haber) y una de concepto o descripción. Flint detecta automáticamente el delimitador (; , tabulador) y salta las filas de cabeceras o totales."),
+        (f"¿Cómo se importa el archivo resultante en {short}?",
+         f"Flint transforma cada fila del CSV en un asiento cuadrado contra la subcuenta 572 que indiques (y lleva lo pendiente a la 555 sin inventar cuentas). Descargas {fname} listo para importar. {t['import'].replace('<b>', '').replace('</b>', '').replace('&gt;', '>')}"),
+        ("¿Sirve para Revolut, Wise, Stripe, PayPal y bancos españoles?",
+         "Sí, si el CSV tiene columnas de fecha, importe y concepto. Los bancos españoles suelen traerlas con esos nombres; en Revolut, Stripe y PayPal hay que renombrar alguna columna antes. Cada guía explica cuál: Revolut, Stripe, PayPal, CaixaBank, BBVA y Santander."),
+        ("¿Hay suscripción obligatoria?",
+         f"No. Al escribir tu correo tienes {SITE['free_credits']} créditos gratis al instante sin tarjeta (8 extractos convertidos gratis). Después puedes recargar desde 5 € pago por uso sin suscripción, o usar el Plan Despacho."),
+    ]
+    n43_link = "contaplus" if target == "contaplus_ascii" else target
+    body = f"""
+<section class="hero"><div class="glow" aria-hidden="true"></div><div class="wrap narrow">
+<nav class="crumbs" aria-label="Ruta"><a href="/">Inicio</a>{icon("chevron-right")}<span aria-current="page">CSV a {e(short)}</span></nav>
+<h1>Convertir CSV a {e(short)} ({e(fname)})</h1>
+<p class="lead">Prepara movimientos CSV bancarios o de pasarelas (Revolut, Stripe, PayPal, CaixaBank, BBVA, Santander) directamente para {e(prog)}, sin extracción PDF ni OCR. Vista previa inmediata y lotes en ZIP.</p>
+</div></section>
+
+<section class="section tight"><div class="wrap narrow" data-batch data-batch-target="{target}" data-batch-csv-mode="1">
+<form class="saldo-form glass batch" data-batch-form novalidate>
+<label class="lic"><span class="lic-label">{icon("key")}Tu correo o licencia</span>
+<span class="lic-field"><input type="text" name="license" autocomplete="email" spellcheck="false" placeholder="tu@correo.com o LIC-…" required aria-describedby="c-help" data-batch-lic></span>
+<span id="c-help" class="lic-help">Escribe tu correo para activar <b>{SITE['free_credits']} créditos gratis</b> al instante (sin tarjeta) o pega tu clave LIC-….</span></label>
+<label class="lic"><span class="lic-label">{icon("landmark")}Subcuenta del banco</span>
+<span class="lic-field"><input type="text" name="bank" inputmode="numeric" autocomplete="off" value="57200001" pattern="57[0-9]{{2,10}}" required data-batch-bank aria-describedby="cb-help"></span>
+<span id="cb-help" class="lic-help">La subcuenta 572 en {e(short)} (p. ej. 57200001). Los apuntes sin regla van a la 555 para revisar.</span></label>
+
+<label class="drop" data-batch-drop><input type="file" multiple accept=".csv,.n43,.c43,.q43,.pdf" class="sr-only" data-batch-input>
+<span class="tile">{icon("download")}</span><b>Suelta aquí tus archivos CSV, Norma 43 o PDF digitales (.csv, .n43, .pdf)</b>
+<span class="muted small">Vista previa automática de filas verificadas · Sin suscripción</span></label>
+<div class="sample-bar"><button type="button" class="btn-sample" data-batch-sample>{icon("refresh")}<span>Cargar CSV bancario de prueba (demo en 1 clic)</span></button></div>
+
+<div class="tw batch-list" data-batch-list hidden><table class="uso-t"><thead><tr><th>Fichero</th><th>Tipo</th><th>Estado</th><th>Detalle</th><th class="num"></th></tr></thead><tbody data-batch-rows></tbody></table></div>
+<div class="batch-actions"><button class="btn btn-primary btn-lg" type="submit" data-batch-go disabled>{icon("refresh")}<span>Convertir para {e(short)}</span></button>
+<button class="btn btn-ghost" type="button" data-batch-stop hidden>Detener</button>
+<button class="btn btn-quiet" type="button" data-batch-clear hidden>Vaciar lista</button>
+<span class="muted small tabnum" data-batch-cost aria-live="polite"></span></div>
+<p class="note" data-batch-msg aria-live="polite" hidden>{icon("info")}<span></span></p>
+
+<div class="batch-out" data-batch-out hidden><h2 class="h4">{icon("check")}Fichero {e(fname)} generado</h2>
+<p class="muted small">Un archivo: descargas {e(fname)} directo. Varios archivos: descargas un ZIP con todos los lotes numerados seguidos.</p>
+<div class="cta-row"><button class="btn btn-primary" type="button" data-batch-csv>{icon("download")}Descargar {e(fname)}</button>
+<button class="btn btn-ghost" type="button" data-batch-zip>{icon("table")}Todo con resumen (.zip)</button>
+<a class="btn btn-quiet" href="/precios/#despacho">Ver tarifas y recargas</a></div></div>
+</form>
+
+<div class="install-grid batch-info">
+<div><h2 class="h3">¿Qué datos necesita el CSV?</h2>
+<ul class="checks">
+<li>{icon("check")}<span><b>Fecha e importe:</b> detecta automáticamente columnas de Fecha e Importe (o Cargo y Abono separados).</span></li>
+<li>{icon("check")}<span><b>Cualquier formato europeo o anglosajón:</b> coma o punto decimal, fechas DD/MM/AAAA o AAAA-MM-DD.</span></li>
+<li>{icon("check")}<span><b>Flujo CSV directo sin OCR:</b> conversión determinista al 100%, sin errores de lectura óptica ni cuentas inventadas.</span></li>
+<li>{icon("check")}<span><b>También acepta Norma 43 (.n43, .c43):</b> puedes mezclar archivos CSV y cuadernos 43 en el mismo lote.</span></li>
+</ul></div>
+<div><h2 class="h3">{e(short)} ({e(fname)})</h2>
+<p class="muted small">{t["import"]}</p>
+<div class="tw uso" style="margin-top:12px"><table class="uso-t"><thead><tr><th>Concepto</th><th class="num">Créditos</th></tr></thead>
+<tbody><tr><td>Convertir un CSV o extracto a {e(short)}</td><td class="num">3 cr (≈ 0,15 €)</td></tr>
+<tr><td>Archivo con error de formato</td><td class="num">0 cr (gratis)</td></tr></tbody></table></div>
+<p class="muted small">También disponible como conector directo en Claude (<code>https://mcp.keyflint.dev/despacho/mcp</code>). <a href="/norma43-a-{n43_link}/">Ver conversor Norma 43 a {e(short)}</a>.</p></div>
+</div>
+
+<div class="faq" style="margin-top:40px"><h2 class="h3" style="margin-bottom:20px">Preguntas frecuentes sobre convertir CSV a {e(short)}</h2>{faq_html(faq)}</div>
+{bank_links_section() if target == "contasol" else ""}
+</div></section>
+<script defer src="/assets/lote.js?v={VERSION}"></script>"""
+    return page(path, title, desc, body, [faq_ld(faq)])
+
 
 
 def start() -> str:
@@ -1120,7 +1849,7 @@ def start() -> str:
 
 def balance_page() -> str:
     tp = SITE["topup"]
-    pro = SITE["packs"][0]
+    pro = next(p for p in SITE["packs"] if p["id"] == "pro")
     presets = "".join(f'<button type="button" class="preset" data-preset="{a}" data-tier-min="{a}" aria-pressed="false" title="{e(n)}: {tp["rate"] * (100 + b) // 100} {L("créditos por euro", "credits per euro")}">'
                       f'<b class="tabnum">{L(f"{a} €", f"€{a}")}</b><span class="preset-bonus{" base" if not b else ""}">{(L(f"+{b} %", f"+{b}%")) if b else "base"}</span></button>'
                       for a, b, n in tp["tiers"])
@@ -1255,7 +1984,10 @@ EN_TOOLS = [
      "Verifies VERI*FACTU fingerprints and chaining, validates the XML against the AEAT schema, builds the tax QR and creates or validates Facturae 3.2.2. It reviews files: it is not a certified invoicing system."),
 ]
 EN_PACKS = {
-    "pro": ("For daily use", "1,000 new credits every month, cancel anytime", "/mo"),
+    "despacho-basico": ("Small accounting firms & solo advisors", "2,500 credits/mo, 3 seats, cancel anytime", "/mo"),
+    "despacho-pro": ("Growing accounting firms & gestorías", "6,000 credits/mo, 10 seats, cancel anytime", "/mo"),
+    "despacho-empresa": ("Enterprise accounting practices", "15,000 credits/mo, unlimited seats, high availability", "/mo"),
+    "pro": ("For developers and single users", "1,000 new credits every month, cancel anytime", "/mo"),
 }
 
 
@@ -1275,6 +2007,9 @@ def en_tool_card(t) -> str:
 </div>"""
 
 
+EN_PACK_NAMES = {"pro": "Pro (Developer)"}
+
+
 def en_plans() -> str:
     free = f"""<div class="plan">
 <div class="plan-head"><h3 class="h3">Free</h3><p class="muted small">Try it on your own files</p></div>
@@ -1289,13 +2024,14 @@ def en_plans() -> str:
 <a class="btn btn-primary btn-block" href="/en/balance/#recargar">Top up</a>
 <ul class="checks">{tiers}<li>{icon("check")}Adds to the same license</li><li>{icon("check")}Credits never expire</li></ul></div>"""
     out = [free, topup]
-    for p in SITE["packs"]:
+    for p in (p for p in SITE["packs"] if not p["id"].startswith("despacho")):
         who, billing, per = EN_PACKS.get(p["id"], ("", "", ""))
         feat, badge = "", ""
+        name = EN_PACK_NAMES.get(p["id"], p["name"])
         out.append(f"""<div class="plan{feat}">{badge}
-<div class="plan-head"><h3 class="h3">{e(p['name'])}</h3><p class="muted small">{e(who)}</p></div>
+<div class="plan-head"><h3 class="h3">{e(name)}</h3><p class="muted small">{e(who)}</p></div>
 <p class="price">${p['price']:,}<span class="muted small">{per}</span></p><p class="credits">{p['credits']:,} credits</p>
-<a class="btn {'btn-primary' if p.get('featured') else 'btn-ghost'} btn-block" href="{e(p['checkout'])}" rel="noopener" data-checkout>Buy {e(p['name'])}</a>
+<a class="btn {'btn-primary' if p.get('featured') else 'btn-ghost'} btn-block" href="{e(p['checkout'])}" rel="noopener" data-checkout>Buy {e(name)}</a>
 <ul class="checks"><li>{icon("check")}{e(billing)}</li><li>{icon("check")}{p.get('seats', 3)} devices</li><li>{icon("check")}Failed calls are free</li></ul></div>""")
     return "".join(out)
 
@@ -1394,14 +2130,37 @@ def en_home() -> str:
     body = f"""
 <section class="hero"><div class="glow" aria-hidden="true"></div><div class="wrap hero-grid">
 <div class="hero-copy">
-<p class="eyebrow">MCP tools for money, accounting and data</p>
+<div class="kicker"><span class="pill"><span class="pill-dot"></span><span>Deterministic Accounting Tools &amp; MCP Servers</span></span></div>
 <h1>Deterministic tools your AI can trust with numbers</h1>
 <p class="lead">AI is great at writing and bad at numbers. Flint gives Claude, ChatGPT, Cursor and VS Code tools that compute instead of guess: bank reconciliation, accounting exports, e-invoicing checks, data cleaning and web audits.</p>
+<div class="doors-wrap">
+<div class="doors-head"><p class="doors-title">Choose your entry path</p><span class="doors-hint">Direct path tailored to your workflow</span></div>
+<nav class="doors" aria-label="Choose your profile">
+<a class="door door-main" href="/en/batch/">
+  <span class="door-icon">{icon("table")}</span>
+  <span class="door-body">
+    <span class="door-badge">For Accounting &amp; Finance Teams</span>
+    <strong>Batch Statement &amp; Invoice Processing</strong>
+    <small>Convert bank statements (Norma 43) to Excel and audit XML invoices online with zero setup.</small>
+  </span>
+  <span class="door-arr">{icon("arrow-right")}</span>
+</a>
+<a class="door door-tech" href="#install">
+  <span class="door-icon">{icon("terminal")}</span>
+  <span class="door-body">
+    <span class="door-badge">For AI Engineers &amp; Developers</span>
+    <strong>Deterministic MCP Servers for Claude &amp; Cursor</strong>
+    <small>Run local tools via uvx with Ed25519 verified licenses. 0% calculation hallucinations.</small>
+  </span>
+  <span class="door-arr">{icon("arrow-right")}</span>
+</a>
+</nav>
+</div>
 <div class="cta-row"><a class="btn btn-primary btn-lg" href="/en/try/">{icon("key")}Get {SITE['free_credits']} free credits</a>
 <a class="btn btn-ghost btn-lg" href="#live">{icon("arrow-right")}Try it live, no install</a></div>
 <ul class="assure"><li>{icon("check")}No card</li><li>{icon("check")}Pay per successful call</li><li>{icon("check")}Source on GitHub</li></ul>
 </div>
-<figure class="demo glass en-video"><video controls preload="none" playsinline poster="/assets/video/flint-launch-en.jpg" width="1280" height="720">
+<figure class="demo glass en-video"><video controls preload="none" playsinline poster="/assets/video/flint-launch-en.webp" width="1280" height="720">
 <source src="/assets/video/flint-launch-en.mp4" type="video/mp4"></video>
 <figcaption class="demo-foot"><span>{icon("shield")}Real output from Flint Bank, run twice: same hash</span><span class="tabnum">63 s</span></figcaption></figure>
 </div></section>
@@ -1459,7 +2218,7 @@ def en_home() -> str:
            "operatingSystem": "Windows, macOS, Linux", "url": SITE["url"] + "/en/", "inLanguage": "en",
            "offers": {"@type": "Offer", "price": 0, "priceCurrency": "USD"}},
           faq_ld(faq)]
-    return page("/en/", "Flint by KeyFlint: deterministic MCP tools for bank files, accounting and CSVs",
+    return page("/en/", "Flint: deterministic MCP tools for bank files, accounting and CSVs",
                 "MCP tools for Claude, ChatGPT, Cursor and VS Code that compute instead of guess: Norma 43 reconciliation, A3/ContaPlus/QuickBooks/Xero exports, VeriFactu checks, CSV cleaning and SEO audits.",
                 body, ld, lang="en")
 
@@ -1495,7 +2254,7 @@ def en_try() -> str:
 <p class="muted small">By getting a license you accept the <a href="/terminos/">terms</a> (in Spanish, summarised in the <a href="/en/#pricing">FAQ</a>).</p></div>
 <div class="install-card glass">{quick}<p class="quick-or muted small">or pick a tool and a client</p><div class="picker" role="group" aria-label="Pick a tool">{picker}</div>{installers}</div>
 </div></section>"""
-    return page("/en/try/", f"Try Flint by KeyFlint free: {SITE['free_credits']} credits, no card",
+    return page("/en/try/", f"Try Flint free: {SITE['free_credits']} credits, no card",
                 f"Get a free Flint license with {SITE['free_credits']} credits for all 5 MCP tools. No card.", body, lang="en")
 
 
@@ -1522,7 +2281,7 @@ ALT_LANG = {"/": "/en/", "/probar/": "/en/try/", "/saldo/": "/en/balance/", "/em
 
 
 def status_page() -> str:
-    rows = [("licenses", "Licencias y créditos", "licenses.keyflint.dev")] + [(t[1], t[2], f"/{t[1]}/mcp") for t in EN_TOOLS]
+    rows = [("licenses", "Licencias y créditos", "licenses.keyflint.dev")] + [(t[1], t[2], f"/{t[1]}/mcp") for t in EN_TOOLS] + [("despacho", "Flint Despacho (Norma 43 + ContaBridge)", "/despacho/mcp")]
     lis = "".join(f'<li class="st-row"><div><b>{e(n)}</b><span class="muted small"> · <code>{e(d)}</code></span></div>'
                   f'<span class="st" data-st="{k}">Comprobando…</span></li>' for k, n, d in rows)
     body = f"""
@@ -1758,17 +2517,54 @@ def main() -> None:
     write("asesorias/index.html", advisors_page())
     write("lote/index.html", batch_page())
     write("en/batch/index.html", en_batch())
+    write("norma43-a-excel/index.html", norma43_excel_page())
+    write("norma43-a-contasol/index.html", norma43_contasol_page())
+    write("norma43-a-a3/index.html", norma43_target_page("a3"))
+    write("norma43-a-contaplus/index.html", norma43_target_page("contaplus_ascii"))
+    write("csv-a-contasol/index.html", csv_target_page("contasol"))
+    write("csv-a-a3/index.html", csv_target_page("a3"))
+    write("csv-a-contaplus/index.html", csv_target_page("contaplus_ascii"))
+    for _k, _b in BANK_PAGES.items():
+        write(_b["path"].strip("/") + "/index.html", bank_page(_k))
     installer_files()
+    try:
+        import subprocess
+        for _f in [OUT / "assets" / "app.js", OUT / "assets" / "lote.js", OUT / "assets" / "style.css"]:
+            if _f.exists():
+                subprocess.run(["npx", "esbuild", str(_f), "--minify", f"--outfile={_f}", "--allow-overwrite"],
+                               check=True, shell=True, capture_output=True)
+    except Exception as _e:
+        print(f"Aviso esbuild: {_e}")
     if legal_missing():
         print("AVISO: faltan datos del titular en data/catalog.json -> site.legal:", ", ".join(legal_missing()))
     for m in MCPS:
         write(f"{m['slug']}/index.html", mcp_page(m))
-    paths = ["/", "/probar/", "/empezar/", "/precios/", "/terminos/", "/reembolsos/", "/aviso-legal/", "/en/", "/en/try/", "/en/start/", "/estado/", "/asesorias/", "/lote/", "/en/batch/"] + [f"/{m['slug']}/" for m in MCPS]
+    paths = ["/", "/probar/", "/empezar/", "/precios/", "/terminos/", "/reembolsos/", "/aviso-legal/", "/confianza/", "/norma43-a-excel/", "/norma43-a-contasol/", "/norma43-a-a3/", "/norma43-a-contaplus/", "/csv-a-contasol/", "/csv-a-a3/", "/csv-a-contaplus/"] + [b["path"] for b in BANK_PAGES.values()] + ["/en/", "/en/try/", "/en/start/", "/estado/", "/asesorias/", "/lote/", "/en/batch/"] + [f"/{m['slug']}/" for m in MCPS]
     write("sitemap.xml", '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
           + "".join(f"<url><loc>{SITE['url']}{p}</loc><lastmod>{TODAY}</lastmod></url>\n" for p in paths) + "</urlset>\n")
+    indexnow_key = "8f4e2a9c1b7d3e5f6a0c8b2d4e6f1a3b"
+    write(f"{indexnow_key}.txt", f"{indexnow_key}\n")
+    write("indexnow-urls.json", json.dumps([f"{SITE['url']}{p}" for p in paths], ensure_ascii=False))
+    from email.utils import formatdate
+    rfc_date = formatdate(usegmt=True)
+    rss_items = [
+        ("Conector único /despacho/mcp para Claude (17 herramientas contables y bancarias)", f"{SITE['url']}/asesorias/#conector", "Norma 43 + ContaBridge en una sola URL con OAuth 2.1 y código de 6 dígitos por correo."),
+        ("Convertir extractos bancarios PDF y CSV a ContaSol, A3 y ContaPlus", f"{SITE['url']}/csv-a-contasol/", "Lectura determinista de extractos bancarios PDF digitales, CSV y Norma 43 con cuadre al céntimo y vista previa inmediata."),
+        ("Extractos de CaixaBank, BBVA, Santander, Revolut, Stripe y PayPal a ContaSol", f"{SITE['url']}/revolut-a-contasol/", "Páginas dedicadas para pasar exportaciones de bancos y pasarelas de pago a diario contable APU.ods o SUENLACE.DAT."),
+    ] + [(f"{m['name']} MCP ({m['slug']})", f"{SITE['url']}/{m['slug']}/", m["headline"]) for m in MCPS]
+    write("feed.xml", '<?xml version="1.0" encoding="UTF-8"?>\n<rss version="2.0">\n<channel>\n'
+          f'<title>{e(SITE["name"])}</title>\n<link>{SITE["url"]}/</link>\n'
+          f'<description>{e(SITE["description"])}</description>\n<language>es</language>\n<lastBuildDate>{rfc_date}</lastBuildDate>\n'
+          + "".join(f'<item><title>{e(t)}</title><link>{u}</link><guid isPermaLink="true">{u}</guid><pubDate>{rfc_date}</pubDate><description>{e(d)}</description></item>\n' for t, u, d in rss_items)
+          + "</channel>\n</rss>\n")
     write("robots.txt", f"User-agent: *\nAllow: /\nDisallow: /gracias/\nDisallow: /saldo/\nDisallow: /en/balance/\nDisallow: /api/\n\nSitemap: {SITE['url']}/sitemap.xml\n")
-    write("llms.txt", f"# {SITE['name']}\n\n> {SITE['description']}\n\n## Servidores\n\n"
+    write("llms.txt", f"# {SITE['name']}\n\n> {SITE['description']}\n\n## Conector único y servidores MCP\n\n"
+          f"- [Conector único Despacho (/despacho/mcp)]({SITE['url']}/asesorias/#conector): 17 herramientas de Norma 43 y ContaBridge en una URL OAuth.\n"
           + "".join(f"- [{m['name']}]({SITE['url']}/{m['slug']}/): {m['headline']}\n" for m in MCPS)
+          + f"\n## Conversores web sin instalación\n\n"
+          + f"- [Procesador por lotes (/lote/)]({SITE['url']}/lote/)\n"
+          + f"- [CSV y PDF a ContaSol]({SITE['url']}/csv-a-contasol/)\n"
+          + f"- [Norma 43 a Excel]({SITE['url']}/norma43-a-excel/)\n"
           + f"\n## Más\n\n- [Precios]({SITE['url']}/precios/)\n- [Guía de instalación]({SITE['url']}/empezar/)\n")
     print(f"OK: {len(paths)} páginas indexables en {OUT}")
 

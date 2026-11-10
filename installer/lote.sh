@@ -5,7 +5,8 @@
 set -eu
 tmp="$(mktemp)"; trap 'rm -f "$tmp"' EXIT
 curl -fsSL __SITE__/lote.py -o "$tmp"
-if command -v python3 >/dev/null 2>&1; then
+case " $* " in *" --al-iniciar "*|*" --autostart "*) NEED_UV=1 ;; *) NEED_UV=0 ;; esac
+if [ "$NEED_UV" = 0 ] && command -v python3 >/dev/null 2>&1; then
   RUN="python3"
 else
   if ! command -v uv >/dev/null 2>&1; then
