@@ -2529,10 +2529,15 @@ def main() -> None:
     installer_files()
     try:
         import subprocess
-        for _f in [OUT / "assets" / "app.js", OUT / "assets" / "lote.js", OUT / "assets" / "style.css"]:
-            if _f.exists():
-                subprocess.run(["npx", "esbuild", str(_f), "--minify", f"--outfile={_f}", "--allow-overwrite"],
-                               check=True, shell=True, capture_output=True)
+        local_bin = ROOT / "node_modules" / ".bin" / ("esbuild.cmd" if shutil.which("cmd") and not shutil.which("esbuild") else "esbuild")
+        esbuild_bin = str(local_bin) if local_bin.exists() else shutil.which("esbuild")
+        npx_bin = shutil.which("npx")
+        if esbuild_bin or npx_bin:
+            base_cmd = [esbuild_bin] if esbuild_bin else [npx_bin, "--no-install", "esbuild"]
+            for _f in [OUT / "assets" / "app.js", OUT / "assets" / "lote.js", OUT / "assets" / "style.css"]:
+                if _f.exists():
+                    subprocess.run([*base_cmd, str(_f), "--minify", f"--outfile={_f}", "--allow-overwrite"],
+                                   check=True, shell=False, capture_output=True, timeout=30)
     except Exception as _e:
         print(f"Aviso esbuild: {_e}")
     if legal_missing():
