@@ -37,3 +37,21 @@ test("el visor Norma 43 valida saldos y totales sin red", async () => {
   const bad = window.__visorN43.parse(text.replace(String(170000).padStart(14, "0"), String(170001).padStart(14, "0"))).accts[0];
   assert.ok(bad.ok.some((x) => !x[0]));
 });
+
+test("el validador IBAN, NIF, NIE, CIF y SEPA funciona en el navegador sin red", async () => {
+  const { readFileSync } = await import("node:fs");
+  const js = readFileSync("assets/validador.js", "utf8");
+  assert.doesNotMatch(js, /fetch\(|XMLHttpRequest|sendBeacon/);
+  globalThis.document = { querySelector: () => null };
+  globalThis.window = {};
+  (0, eval)(js);
+  const v = window.__validador;
+  assert.equal(v.validateOne("ES9121000418450200051332").valid, true);
+  assert.equal(v.validateOne("ES9121000418440200051332").valid, false); // falla DC interno aunque cambies digitos
+  assert.equal(v.validateOne("B84372291").valid, true);
+  assert.equal(v.validateOne("B84372295").valid, false);
+  assert.equal(v.validateOne("12345678Z").valid, true);
+  assert.equal(v.validateOne("X0000001R").valid, true);
+  assert.equal(v.validateOne("ES14000B84372291").valid, true);
+  assert.equal(v.validateOne("ES99000B84372291").valid, false);
+});

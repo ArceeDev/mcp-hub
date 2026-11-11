@@ -378,15 +378,18 @@
     tf.addEventListener("submit", function (ev) {
       ev.preventDefault();
       var btn = tf.querySelector("button"), email = tf.email.value.trim();
+      var newsletter = Boolean(tf.newsletter && tf.newsletter.checked);
       if (!tf.email.checkValidity() || !email) { say("warn", M.bad); return; }
       btn.disabled = true; btn.setAttribute("aria-busy", "true"); say("", M.wait);
-      fetch("/api/prueba", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ email: email }) })
+      fetch("/api/prueba", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ email: email, newsletter: newsletter }) })
         .then(function (r) { return r.json(); })
         .then(function (d) {
           if (d.ok && d.license && SAFE.test(d.license)) {
             document.getElementById("lic-trial").firstChild.textContent = d.license;
             store(KEY, d.license); apply(d.license);
             tout.hidden = false; tf.hidden = true;
+            var nNote = document.querySelector("[data-trial-news-note]");
+            if (nNote) nNote.hidden = !d.newsletter_sent;
             setTimeout(function () { tout.scrollIntoView({ behavior: "smooth", block: "center" }); }, 50);
           } else if (d.ok && d.emailed) { say("good", M.mailed); }
           else if (d.used) { say("warn", M.used || d.error, [T("/saldo/#recuperar", "/en/balance/#recuperar"), M.rec]); }
@@ -397,6 +400,53 @@
         .then(function () { btn.disabled = false; btn.removeAttribute("aria-busy"); });
     });
   }
+
+  /* boletín del cierre: alta, confirmación y baja */
+  $$("[data-news-form]").forEach(function (nf) {
+    var msg = nf.querySelector("[data-news-msg]"), src = nf.getAttribute("data-news-source") || "web";
+    nf.addEventListener("submit", function (ev) {
+      ev.preventDefault();
+      var btn = nf.querySelector("button"), email = nf.email.value.trim();
+      if (!nf.email.checkValidity() || !email) {
+        msg.className = "lic-help warn"; msg.textContent = "Escribe un correo válido."; return;
+      }
+      btn.disabled = true; btn.setAttribute("aria-busy", "true");
+      msg.className = "lic-help"; msg.textContent = "Enviando enlace de confirmación…";
+      fetch("/api/boletin/alta", {
+        method: "POST", headers: { "content-type": "application/json" },
+        body: JSON.stringify({ email: email, source: src }),
+      })
+        .then(function (r) { return r.json(); })
+        .then(function (d) {
+          if (!d.ok) { msg.className = "lic-help warn"; msg.textContent = d.error || "No se pudo completar el alta."; return; }
+          msg.className = "lic-help good";
+          msg.textContent = d.already ? "Ese correo ya estaba confirmado en el boletín." : "Te enviamos un correo con el enlace de confirmación (revisa spam si no llega).";
+          if (!d.already) nf.email.value = "";
+        })
+        .catch(function () { msg.className = "lic-help warn"; msg.textContent = "No se pudo conectar. Inténtalo en un minuto."; })
+        .then(function () { btn.disabled = false; btn.removeAttribute("aria-busy"); });
+    });
+  });
+
+  function runNewsToken(sel, endpoint, okText, alreadyText, fallbackErr) {
+    var box = document.querySelector(sel);
+    if (!box) return;
+    var tok = (new URLSearchParams(location.search).get("token") || "").trim();
+    var msg = box.querySelector("[data-news-status]");
+    if (!/^[0-9a-f]{48}$/i.test(tok)) {
+      msg.className = "note warn"; msg.textContent = fallbackErr; return;
+    }
+    fetch(endpoint, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ token: tok }) })
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        if (!d.ok) { msg.className = "note warn"; msg.textContent = d.error || fallbackErr; return; }
+        msg.className = "status ok";
+        msg.textContent = d.already && alreadyText ? alreadyText : okText;
+      })
+      .catch(function () { msg.className = "note warn"; msg.textContent = "No se pudo conectar. Inténtalo en un minuto."; });
+  }
+  runNewsToken("[data-news-confirm]", "/api/boletin/confirmar", "Suscripción confirmada. Recibirás un correo al mes (y podrás darte de baja en 1 clic).", null, "Enlace de confirmación no válido o caducado.");
+  runNewsToken("[data-news-unsub]", "/api/boletin/baja", "Baja confirmada. Ya no te enviaremos el boletín.", "Este correo ya estaba dado de baja.", "Enlace de baja no válido.");
 
   /* demos sin instalación en las fichas */
   function el(tag, cls, text) { var x = document.createElement(tag); if (cls) x.className = cls; if (text != null) x.textContent = text; return x; }

@@ -30,6 +30,9 @@ SEO_KEYWORDS = {
     "/asesorias/": "software conciliacion bancaria asesorias, automatizacion gestorias contabilidad, norma 43 asesorias, verifactu gestorias, contabilidad automatica pymes, claude asesorias, programa para asesorias",
     "/precios/": "precios norma 43, tarifa plana conciliacion bancaria, planes gestorias contabilidad, keyflint precios, mcp precios espana, comprar creditos mcp",
     "/visor-norma-43/": "visor norma 43 online, abrir fichero n43, lector cuaderno 43, ver c43 online, comprobar extracto norma 43, visor aeb43",
+    "/validar-iban-cif/": "validador iban espana, comprobar cif nif nie online, validar acreedor sepa at02, comprobar digito control ccc iban, validar listado cif iban",
+    "/que-es-norma-43/": "que es norma 43, formato cuaderno 43 aeb, registros 11 22 23 33 88 norma 43, estructura fichero n43 80 caracteres",
+    "/boletin/": "boletin contable asesorias, trucos norma 43 contasol a3, newsletter gestorias espana, cierre trimestral bancos",
     "/lote/": "procesador por lotes norma 43, convertir multiples extractos bancarios, lote n43 c43 xml facturae, conciliar bancos por lotes, visor norma 43 online",
     "/confianza/": "rgpd art 28 contabilidad, proteccion datos asesorias, secreto profesional extractos bancarios, subencargados software contable, dpa gestorias, seguridad datos contables",
     "/probar/": "probar mcp gratis, creditos gratis norma 43, licencia keyflint gratis, demo conciliacion bancaria, probar servidores mcp claude cursor",
@@ -475,7 +478,7 @@ def build_page_ld(path: str, title: str, desc: str, lang: str = "es", custom_ld:
 
     # WebApplication schema for tool & batch pages
     is_tool = any(path.startswith(f"/{m['slug']}/") for m in MCPS)
-    is_app = path in ("/lote/", "/en/batch/", "/norma43-a-excel/", "/norma43-a-contasol/", "/norma43-a-a3/", "/norma43-a-contaplus/")
+    is_app = path in ("/lote/", "/en/batch/", "/norma43-a-excel/", "/norma43-a-contasol/", "/norma43-a-a3/", "/norma43-a-contaplus/", "/visor-norma-43/", "/validar-iban-cif/")
     has_app = any(isinstance(x, dict) and x.get("@type") in ("SoftwareApplication", "WebApplication") for x in custom)
     if (is_tool or is_app) and not has_app:
         items.append({
@@ -526,7 +529,7 @@ def page(path: str, title: str, desc: str, body: str, ld: list | None = None, no
 <div class="foot-brand"><a class="brand" href="/">{flint()}<span>Flint</span><span class="brand-tag">by KeyFlint</span></a>
 <p class="muted small">Herramientas contables y bancarias verificadas para agentes de IA, con licencias criptográficas y pago por uso.</p></div>
 <div><h3>Servidores</h3><ul>{''.join(f'<li><a href="/{m["slug"]}/">{e(m["name"])}</a></li>' for m in MCPS)}</ul></div>
-<div><h3>Recursos</h3><ul><li><a href="/empezar/">Guía de instalación</a></li><li><a href="/saldo/">Consultar saldo</a></li><li><a href="/precios/">Precios</a></li><li><a href="/asesorias/">Para asesorías</a></li><li><a href="/lote/">Procesar por lotes</a></li><li><a href="https://keyflint.dev">KeyFlint</a></li></ul></div>
+<div><h3>Recursos</h3><ul><li><a href="/visor-norma-43/">Visor Norma 43</a></li><li><a href="/validar-iban-cif/">Validador IBAN y CIF</a></li><li><a href="/que-es-norma-43/">Qué es Norma 43</a></li><li><a href="/boletin/">Boletín del cierre</a></li><li><a href="/asesorias/">Para asesorías</a></li><li><a href="/lote/">Procesar por lotes</a></li><li><a href="/empezar/">Guía de instalación</a></li><li><a href="https://keyflint.dev">KeyFlint</a></li></ul></div>
 <div><h3>Legal y soporte</h3><ul><li><a href="/terminos/">Términos de uso</a></li><li><a href="/reembolsos/">Reembolsos</a></li><li><a href="/aviso-legal/">Aviso legal</a></li><li><a href="/estado/">Estado del servicio</a></li><li><a href="https://keyflint.dev/privacy.html">Privacidad</a></li><li><a href="/confianza/">Confianza y datos</a></li><li><a href="https://keyflint.dev/dpa.html">Encargo de tratamiento</a></li><li><a href="{SITE['contact']}">{e(CONTACT)}</a></li></ul></div>
 </div>
 <div class="foot-base">
@@ -750,12 +753,14 @@ def trial_page() -> str:
 <p class="muted small">Una por correo. En tu primera semana te enviamos 3 consejos de uso; te das de baja en 1 clic.</p></div>
 <div class="recover-row"><input type="email" name="email" autocomplete="email" placeholder="tu@correo.com" required aria-label="Correo electrónico">
 <button class="btn btn-primary" type="submit">{icon("key")}Darme la licencia</button></div>
+<label class="news-opt"><input type="checkbox" name="newsletter"><span>Quiero recibir también el <b>Boletín del cierre</b> (1 correo al mes con trucos de Norma 43, ContaSol y a3; requiere confirmar enlace).</span></label>
 <p class="lic-help" data-trial-msg aria-live="polite"></p>
 </form>
 <div class="reveal glass" data-trial-out hidden>
 <div class="reveal-head"><span class="tile tile-sm">{icon("check")}</span><div><h2 class="h3">Lista: {SITE['free_credits']} créditos</h2>
 <p class="muted small">Guardada en este navegador: los fragmentos de abajo ya la llevan puesta.</p></div></div>
 {code_block("lic-trial", "LIC-…", "KEYFLINT_LICENSE")}
+<p class="lic-help good" data-trial-news-note hidden>Te enviamos también el correo de confirmación para el Boletín del cierre.</p>
 </div>
 </div></section>
 <section class="section" id="instalar"><div class="wrap install-grid">
@@ -2521,8 +2526,9 @@ def n43_guide_page(key: str) -> str:
 <ul class="checks" style="margin-top:12px"><li>{icon("check")}<span><a href="/visor-norma-43/">Revísalo en el visor gratuito</a>: saldos y totales, sin subirlo a ningún sitio.</span></li>
 <li>{icon("check")}<span>Conviértelo: <a href="/norma43-a-contasol/?utm_source=guia-{key}&amp;utm_medium=web&amp;utm_campaign=guias-n43">ContaSol</a> · <a href="/norma43-a-a3/?utm_source=guia-{key}&amp;utm_medium=web&amp;utm_campaign=guias-n43">A3</a> · <a href="/norma43-a-contaplus/?utm_source=guia-{key}&amp;utm_medium=web&amp;utm_campaign=guias-n43">ContaPlus</a> · <a href="/norma43-a-excel/?utm_source=guia-{key}&amp;utm_medium=web&amp;utm_campaign=guias-n43">Excel</a>.</span></li></ul>
 <div class="cta-row" style="margin-top:12px"><a class="btn btn-primary" href="/probar/?utm_source=guia-{key}&amp;utm_medium=web&amp;utm_campaign=guias-n43">{icon("key")}<span>Probar gratis (25 créditos)</span></a></div></div>
+{newsletter_box(f"guia-{key}", "Boletín del cierre: trucos mensuales para tu despacho", "Un correo al mes con guías reales de Norma 43, ContaSol, a3 y cambios de bancos. Sin spam y con baja en 1 clic.")}
 <div class="faq" style="margin-top:40px"><h2 class="h3" style="margin-bottom:20px">Preguntas frecuentes</h2>{faq_html(faq)}</div>
-<p class="muted small" style="margin-top:24px">Otros bancos: {others} · <a href="/visor-norma-43/">Visor Norma 43</a></p>
+<p class="muted small" style="margin-top:24px">Otros bancos: {others} · <a href="/que-es-norma-43/">Qué es el Norma 43</a> · <a href="/visor-norma-43/">Visor Norma 43</a></p>
 </div></section>"""
     return page(path, f"Descargar Norma 43 de {n}: guía paso a paso · Flint by KeyFlint",
                 f"Cómo descargar el extracto Norma 43 (Cuaderno 43) de {n}, comprobarlo gratis y pasarlo a ContaSol, A3 o ContaPlus.", body, [faq_ld(faq)])
@@ -2551,14 +2557,221 @@ def visor_page() -> str:
 </div>
 <div data-visor-out hidden style="margin-top:24px"></div>
 <div class="card-flat" style="margin-top:32px"><h2 class="h4">¿Y ahora qué?</h2>
-<p class="muted small">Si el extracto cuadra, llévalo a tu programa contable sin teclear: <a href="/norma43-a-contasol/">Norma 43 a ContaSol</a> · <a href="/norma43-a-a3/">a A3</a> · <a href="/norma43-a-contaplus/">a ContaPlus</a> · <a href="/norma43-a-excel/">a Excel</a>. ¿Cómo lo descargo? {" · ".join(f'<a href="/descargar-norma-43-{k}/">{v["name"]}</a>' for k, v in N43_GUIDES.items())}</p>
-<div class="cta-row" style="margin-top:12px"><a class="btn btn-primary" href="/probar/?utm_source=visor&amp;utm_medium=web&amp;utm_campaign=visor-n43">{icon("key")}<span>Probar gratis (25 créditos)</span></a></div></div>
+<p class="muted small">Si el extracto cuadra, llévalo a tu programa contable sin teclear: <a href="/norma43-a-contasol/">Norma 43 a ContaSol</a> · <a href="/norma43-a-a3/">a A3</a> · <a href="/norma43-a-contaplus/">a ContaPlus</a> · <a href="/norma43-a-excel/">a Excel</a>. ¿Cómo lo descargo? {" · ".join(f'<a href="/descargar-norma-43-{k}/">{v["name"]}</a>' for k, v in N43_GUIDES.items())} · <a href="/que-es-norma-43/">Estructura Norma 43</a></p>
+<div class="cta-row" style="margin-top:12px"><a class="btn btn-primary" href="/probar/?utm_source=visor&amp;utm_medium=web&amp;utm_campaign=visor-n43">{icon("key")}<span>Probar gratis (25 créditos)</span></a><a class="btn btn-quiet" href="/validar-iban-cif/">Validador IBAN y CIF</a></div></div>
+{newsletter_box("visor-n43", "Recibe el Boletín del cierre (1 correo al mes)", "Trucos reales de conciliación bancaria, errores de la 555 y fechas clave de cierre sin publicidad. Doble confirmación.")}
 <div class="faq" style="margin-top:40px"><h2 class="h3" style="margin-bottom:20px">Preguntas frecuentes</h2>{faq_html(faq)}</div>
 </div></section>
 <script defer src="/assets/visor.js?v={VERSION}"></script>"""
     return page("/visor-norma-43/", "Visor de Norma 43 online gratis (n43, c43) · Flint by KeyFlint",
                 "Abre un fichero Norma 43 (Cuaderno 43) en el navegador y comprueba saldos, totales y movimientos. Gratis, sin subir el fichero.",
                 body, [faq_ld(faq)])
+
+
+def newsletter_box(source: str, title: str = "Boletín del cierre", lead: str = "Un correo al mes con casos reales de ContaSol, a3, Norma 43 y fechas de cierre. Sin spam.") -> str:
+    """Caja reutilizable de captura por doble opt-in (/api/boletin/alta)."""
+    return f"""<form class="recover glass" data-news-form data-news-source="{e(source)}" style="margin-top:28px" novalidate>
+<div><h2 class="h4">{e(title)}</h2>
+<p class="muted small">{e(lead)}</p></div>
+<div class="recover-row"><input type="email" name="email" autocomplete="email" placeholder="tu@despacho.es" required aria-label="Correo para el boletín">
+<button class="btn btn-ghost" type="submit">{icon("arrow-right")}Apuntarme (doble confirmación)</button></div>
+<p class="lic-help" data-news-msg aria-live="polite">Solo te daremos de alta cuando pulses el enlace que enviaremos a tu correo.</p>
+</form>"""
+
+
+def newsletter_page() -> str:
+    faq = [
+        ("¿Con qué frecuencia escribís?", "Una vez al mes, antes del cierre o del trimestre, con trucos prácticos para despachos y novedades reales de Flint."),
+        ("¿Cómo funciona la doble confirmación?", "Al apuntarte te enviamos un enlace a tu correo. No guardamos tu dirección en la lista hasta que pulsas ese enlace (LSSI y RGPD)."),
+        ("¿Cómo me doy de baja?", "Cada correo lleva un enlace directo de baja en 1 clic sin contraseñas."),
+    ]
+    body = f"""<section class="hero hero-sub"><div class="wrap narrow">
+<nav class="crumbs" aria-label="Ruta"><a href="/">Inicio</a>{icon("chevron-right")}<span aria-current="page">Boletín</span></nav>
+<p class="eyebrow">Lista de despachos</p>
+<h1>Boletín del cierre: 1 correo al mes</h1>
+<p class="lead">Soluciones reales a errores de conciliación (cuenta 555, cuadre Norma 43, enlaces a ContaSol y a3) y herramientas gratuitas para asesorías.</p>
+</div></section>
+<section class="section tight"><div class="wrap narrow">
+{newsletter_box("boletin", "Apúntate al Boletín del cierre", "Sin envíos comerciales ni correo diario. Doble confirmación y baja en 1 clic.")}
+<div class="card-flat" style="margin-top:24px"><h2 class="h4">Herramientas gratuitas ya disponibles</h2>
+<ul class="checks" style="margin-top:12px">
+<li>{icon("check")}<span><a href="/visor-norma-43/">Visor Norma 43 online</a>: comprueba saldos y registro 33 sin subir el fichero.</span></li>
+<li>{icon("check")}<span><a href="/validar-iban-cif/">Validador de IBAN, NIF, NIE, CIF y acreedor SEPA</a>: valida lotes desde Excel en el navegador.</span></li>
+<li>{icon("check")}<span><a href="/probar/">25 créditos gratis</a> para probar la conversión real a ContaSol, a3, ContaPlus o Excel.</span></li>
+</ul></div>
+<div class="faq" style="margin-top:40px"><h2 class="h3" style="margin-bottom:20px">Preguntas frecuentes</h2>{faq_html(faq)}</div>
+</div></section>"""
+    return page("/boletin/", "Boletín del cierre para asesorías · Flint by KeyFlint",
+                "Boletín mensual gratuito para despachos sobre Norma 43, ContaSol, a3 y herramientas contables deterministas. Doble confirmación.", body, [faq_ld(faq)])
+
+
+def newsletter_confirm_page() -> str:
+    body = f"""<section class="hero hero-sub"><div class="wrap narrow">
+<h1>Confirmación del boletín</h1>
+<p class="lead">Validando tu enlace de doble confirmación…</p>
+</div></section>
+<section class="section tight"><div class="wrap narrow" data-news-confirm>
+<div class="card-flat"><p class="note" data-news-status aria-live="polite">Comprobando enlace…</p>
+<div class="cta-row" style="margin-top:20px">
+<a class="btn btn-primary" href="/visor-norma-43/">Abrir visor Norma 43</a>
+<a class="btn btn-ghost" href="/validar-iban-cif/">Validador IBAN y CIF</a>
+<a class="btn btn-quiet" href="/probar/">Activar 25 créditos gratis</a>
+</div></div></div></section>"""
+    return page("/boletin/confirmar/", "Confirmar suscripción · Flint by KeyFlint", "Confirmación del Boletín del cierre.", body, noindex=True)
+
+
+def newsletter_unsub_page() -> str:
+    body = """<section class="hero hero-sub"><div class="wrap narrow">
+<h1>Baja del boletín</h1>
+<p class="lead">Tramitando tu baja en un clic…</p>
+</div></section>
+<section class="section tight"><div class="wrap narrow" data-news-unsub>
+<div class="card-flat"><p class="note" data-news-status aria-live="polite">Procesando baja…</p>
+<div class="cta-row" style="margin-top:20px"><a class="btn btn-quiet" href="/">Volver al inicio</a></div></div>
+</div></section>"""
+    return page("/boletin/baja/", "Baja del boletín · Flint by KeyFlint", "Baja en un clic del Boletín del cierre.", body, noindex=True)
+
+
+def validator_page() -> str:
+    """Herramienta gratuita B2: validador IBAN / NIF / NIE / CIF / acreedor SEPA 100 % en navegador."""
+    faq = [
+        ("¿Los datos de clientes se suben a algún servidor?", "No. Todo el cálculo matemático (mod 97, CCC español, letra de NIF/NIE y dígito de control de CIF) ocurre en JavaScript en tu navegador. No hay llamadas de red."),
+        ("¿Puedo pegar una columna entera desde Excel?", "Sí. Pega hasta 500 valores separados por saltos de línea, comas o punto y coma y se validan al instante."),
+        ("¿Qué valida exactamente en un IBAN español?", "Comprueba la longitud (24 caracteres), el algoritmo ISO 13616 (mod 97) y además verifica los dos dígitos de control internos del Código Cuenta Cliente (entidad, oficina y cuenta)."),
+        ("¿Cómo valida un identificador de acreedor SEPA (AT-02)?", "Elimina el sufijo de 3 caracteres del esquema (ej. 000), verifica el mod 97 ISO 13616 y, si el código nacional empieza por ES con 9 caracteres, valida también el NIF o CIF contenido."),
+    ]
+    body = f"""<section class="hero hero-sub"><div class="wrap narrow">
+<nav class="crumbs" aria-label="Ruta"><a href="/">Inicio</a>{icon("chevron-right")}<span aria-current="page">Validador IBAN y CIF</span></nav>
+<p class="eyebrow">Herramienta gratuita</p>
+<h1>Validador gratuito de IBAN, NIF, NIE, CIF y acreedor SEPA</h1>
+<p class="lead">Comprueba códigos individuales o pega una columna desde Excel (hasta 500 filas). Se calcula al instante en tu navegador, sin enviar datos de tus clientes.</p>
+</div></section>
+<section class="section tight"><div class="wrap narrow">
+<form class="saldo-form glass" data-val-form novalidate>
+<label class="demo-field"><span>Pega uno o varios códigos (uno por línea, coma o punto y coma)</span>
+<textarea rows="6" spellcheck="false" placeholder="ES9121000418450200051332&#10;B84372291&#10;12345678Z&#10;ES14000B84372291" data-val-input></textarea></label>
+<div class="cta-row"><button class="btn btn-primary" type="submit">{icon("check")}Validar ahora</button>
+<button class="btn btn-ghost" type="button" data-val-sample>{icon("refresh")}Cargar ejemplos válidos</button></div>
+<div data-val-out hidden style="margin-top:8px"></div>
+</form>
+<div class="card-flat" style="margin-top:28px"><h2 class="h4">¿Necesitas también conciliar extractos o generar remesas?</h2>
+<p class="muted small">Si además limpias remesas SEPA o pasas extractos Norma 43 y CSV a ContaSol, A3 o ContaPlus, prueba Flint gratis con 25 créditos (o verifica ficheros gratis en el <a href="/visor-norma-43/">visor Norma 43</a>).</p>
+<div class="cta-row" style="margin-top:12px"><a class="btn btn-primary" href="/probar/?utm_source=validador&amp;utm_medium=web&amp;utm_campaign=validador-iban-cif">{icon("key")}<span>Probar gratis (25 créditos)</span></a><a class="btn btn-ghost" href="/lote/">Procesador por lotes</a></div></div>
+{newsletter_box("validador-iban", "Boletín del cierre para despachos", "Un correo al mes con herramientas gratuitas, trucos de Norma 43 y validaciones AEAT/SEPA.")}
+<div class="faq" style="margin-top:40px"><h2 class="h3" style="margin-bottom:20px">Preguntas frecuentes</h2>{faq_html(faq)}</div>
+</div></section>
+<script defer src="/assets/validador.js?v={VERSION}"></script>"""
+    return page("/validar-iban-cif/", "Validador IBAN, NIF, NIE, CIF y acreedor SEPA gratis · Flint by KeyFlint",
+                "Comprueba online y gratis códigos IBAN (ES con DC bancario), NIF, NIE, CIF y acreedor SEPA por lotes sin enviar datos.", body, [faq_ld(faq)])
+
+
+def n43_what_page() -> str:
+    """Guía A6: estructura de un fichero Norma 43 (registros 11, 22, 23, 33 y 88)."""
+    faq = [
+        ("¿Por qué cada línea del Norma 43 mide exactamente 80 caracteres?", "Es el estándar clásico del Cuaderno 43 de la Asociación Española de Banca (AEB) de ancho fijo, pensado para garantizar el mismo esquema posicional en todos los bancos españoles."),
+        ("¿Cómo sé si falta un registro o no cuadra el archivo?", "Compruébalo gratis en el Visor de Norma 43: verifica saldo inicial más movimientos igual al saldo final y los contadores de registro 33."),
+        ("¿Qué hago si mi banco ya solo da CSV o PDF?", "Para bancos o pasarelas sin Cuaderno 43 (como Revolut, Stripe o cuentas particulares), usa los conversores de CSV/PDF a ContaSol, A3 o ContaPlus."),
+    ]
+    rows = "".join(
+        f"<tr><td><code>{e(c)}</code></td><td>{e(n)}</td><td style='white-space:normal'>{e(d)}</td></tr>"
+        for c, n, d in [
+            ("11", "Cabecera de cuenta", "Código de banco, oficina, cuenta, fecha inicio/fin, signo y saldo inicial, divisa (978 = EUR) y titular."),
+            ("22", "Movimiento principal", "Fecha operación y fecha valor (AAMMDD), concepto común y propio, signo debe/haber (1 cargo, 2 abono), importe en céntimos y referencias."),
+            ("23", "Concepto complementario", "Hasta 5 líneas de detalle del movimiento anterior (texto del recibo, factura, ordenante o concepto ampliado)."),
+            ("33", "Fin de cuenta", "Número y suma total de cargos (debe), número y suma total de abonos (haber) y saldo final para auditoría matemática."),
+            ("88", "Fin de fichero", "Cierre del Cuaderno 43 con el recuento total de registros incluidos."),
+        ]
+    )
+    body = f"""<section class="hero hero-sub"><div class="wrap narrow">
+<nav class="crumbs" aria-label="Ruta"><a href="/">Inicio</a>{icon("chevron-right")}<span aria-current="page">Qué es Norma 43</span></nav>
+<p class="eyebrow">Guía de referencia · Cuaderno 43</p>
+<h1>Qué es el fichero Norma 43 y cómo leer sus registros</h1>
+<p class="lead">Todo sobre el formato AEB Cuaderno 43 (extensiones .n43, .c43, .q43 o .txt): para qué sirve, qué contiene cada línea de 80 caracteres y cómo validarlo o contabilizarlo.</p>
+</div></section>
+<section class="section tight"><div class="wrap narrow">
+<h2 class="h3">Estructura de registros del Cuaderno 43</h2>
+<div class="tw uso" style="margin-top:12px"><table class="uso-t"><thead><tr><th>Registro</th><th>Nombre</th><th>Qué contiene</th></tr></thead><tbody>{rows}</tbody></table></div>
+<div class="card-flat" style="margin-top:28px"><h2 class="h4">Errores habituales al abrir un Norma 43</h2>
+<ul class="checks" style="margin-top:12px">
+<li>{icon("check")}<span><b>Acentos cortados o símbolos raros:</b> muchos bancos exportan en Windows-1252 o CP850 en lugar de UTF-8. El visor y el conversor de Flint prueban ambos sin romper caracteres.</span></li>
+<li>{icon("check")}<span><b>Descuadre por filtro parcial:</b> si descargas movimientos filtrados manualmente en vez de extracto cerrado, el registro 33 puede no coincidir con la suma real.</span></li>
+<li>{icon("check")}<span><b>Saltos de línea alterados al abrir en Excel:</b> nunca guardes un .n43 con Excel (recorta ceros a la izquierda y rompe los 80 caracteres fijos).</span></li>
+</ul>
+<div class="cta-row" style="margin-top:14px"><a class="btn btn-primary" href="/visor-norma-43/">Abrir en el visor gratuito</a><a class="btn btn-ghost" href="/norma43-a-contasol/">Pasar a ContaSol</a><a class="btn btn-quiet" href="/norma43-a-a3/">Pasar a A3</a></div></div>
+{newsletter_box("guia-n43", "Boletín del cierre (1 correo al mes)", "Guías técnicas contables, calendarios de cierre y herramientas gratis para tu despacho.")}
+<div class="faq" style="margin-top:40px"><h2 class="h3" style="margin-bottom:20px">Preguntas frecuentes</h2>{faq_html(faq)}</div>
+</div></section>"""
+    return page("/que-es-norma-43/", "Qué es el fichero Norma 43 (Cuaderno 43): registros 11, 22, 23, 33 y 88 · Flint",
+                "Guía clara de la estructura Norma 43 (AEB43): qué significa cada registro, errores comunes al abrirlo y visor gratuito online.", body, [faq_ld(faq)])
+
+
+BANK_TARGET_COMBOS = [
+    ("santander", "a3"), ("bbva", "a3"), ("caixabank", "a3"),
+    ("santander", "contaplus_ascii"), ("bbva", "contaplus_ascii"), ("caixabank", "contaplus_ascii"),
+]
+for _bk, _tk in BANK_TARGET_COMBOS:
+    _bname = BANK_PAGES[_bk]["name"]
+    _slug_t = "contaplus" if _tk == "contaplus_ascii" else _tk
+    SEO_KEYWORDS[f"/{_bk}-a-{_slug_t}/"] = (
+        f"{_bk} {_slug_t}, importar extracto {_bk} {_slug_t}, norma 43 {_bk} {_slug_t}, csv {_bk} {N43_TARGETS[_tk]['file'].lower()}"
+    )
+
+
+def bank_target_page(bank_key: str, target_key: str) -> str:
+    """Páginas A2: llevar extracto de banco español concreto a A3 (SUENLACE.DAT) o ContaPlus (XDiario.txt)."""
+    b = BANK_PAGES[bank_key]
+    t = N43_TARGETS[target_key]
+    short, prog, fname = t["short"], t["program"], t["file"]
+    slug_t = "contaplus" if target_key == "contaplus_ascii" else target_key
+    path = f"/{bank_key}-a-{slug_t}/"
+    steps = "".join(
+        f'<li class="step"><span class="tile tile-sm">{icon(ic)}</span><div><h3><span class="step-n">{i}</span>{e(s)}</h3></div></li>'
+        for i, (s, ic) in enumerate(zip(b["export"], ("landmark", "download", "check")), 1)
+    )
+    cols = "".join(f'<tr><td style="white-space:normal">{e(a)}</td><td style="white-space:normal">{e(c)}</td></tr>' for a, c in b["cols"])
+    faq = [
+        (f"¿Cómo importar el extracto de {b['name']} en {short}?",
+         f"Descarga el Norma 43 (.n43/.c43) desde la banca de empresas o el CSV desde la web, súbelo aquí y descarga {fname} para {prog}. {t['import'].replace('<b>', '').replace('</b>', '').replace('&gt;', '>')}"),
+        ("¿Qué subcuentas utiliza?", "Asienta cada movimiento contra la 572 que indiques y lleva lo no clasificado a la 555 para revisión sin adivinar cuentas."),
+        ("¿Cuánto cuesta probarlo?", f"Tienes {SITE['free_credits']} créditos gratis al instante con tu correo (8 extractos), sin tarjeta; si un archivo falla no se descuenta nada."),
+    ]
+    body = f"""<section class="hero"><div class="glow" aria-hidden="true"></div><div class="wrap narrow">
+<nav class="crumbs" aria-label="Ruta"><a href="/">Inicio</a>{icon("chevron-right")}<a href="{t['path']}">Norma 43 a {e(short)}</a>{icon("chevron-right")}<span aria-current="page">{e(b['name'])}</span></nav>
+<h1>Importar extracto {e(b['name'])} (Norma 43 o CSV) en {e(short)}</h1>
+<p class="lead">Convierte el fichero de {e(b['name'])} al formato {e(fname)} de {e(prog)}, comprobando saldos antes de importar y marcando en la 555 los movimientos sin regla.</p>
+</div></section>
+<section class="section tight"><div class="wrap narrow" data-batch data-batch-target="{target_key}">
+<form class="saldo-form glass batch" data-batch-form novalidate>
+<label class="lic"><span class="lic-label">{icon("key")}Tu correo o licencia</span>
+<span class="lic-field"><input type="text" name="license" autocomplete="email" spellcheck="false" placeholder="tu@correo.com o LIC-…" required data-batch-lic></span>
+<span class="lic-help">Escribe tu correo para activar <b>{SITE['free_credits']} créditos gratis</b> al instante o pega tu clave LIC-….</span></label>
+<label class="lic"><span class="lic-label">{icon("landmark")}Subcuenta 572 de {e(b['name'])}</span>
+<span class="lic-field"><input type="text" name="bank" inputmode="numeric" autocomplete="off" value="57200001" pattern="57[0-9]{{2,10}}" required data-batch-bank></span>
+<span class="lic-help">La cuenta contable de {e(b['name'])} en {e(short)}.</span></label>
+<label class="drop" data-batch-drop><input type="file" multiple accept=".n43,.c43,.q43,.csv,.pdf" class="sr-only" data-batch-input>
+<span class="tile">{icon("download")}</span><b>Suelta aquí el Norma 43, CSV o PDF digital de {e(b['name'])}</b>
+<span class="muted small">Vista previa inmediata · Cuadre verificado · hasta 10 MB</span></label>
+<div class="sample-bar"><button type="button" class="btn-sample" data-batch-sample>{icon("refresh")}<span>Cargar extracto de prueba</span></button></div>
+<div class="tw batch-list" data-batch-list hidden><table class="uso-t"><thead><tr><th>Fichero</th><th>Tipo</th><th>Estado</th><th>Detalle</th><th class="num"></th></tr></thead><tbody data-batch-rows></tbody></table></div>
+<div class="batch-actions"><button class="btn btn-primary btn-lg" type="submit" data-batch-go disabled>{icon("refresh")}<span>Convertir a {e(fname)}</span></button>
+<button class="btn btn-ghost" type="button" data-batch-stop hidden>Detener</button>
+<button class="btn btn-quiet" type="button" data-batch-clear hidden>Vaciar lista</button>
+<span class="muted small tabnum" data-batch-cost aria-live="polite"></span></div>
+<p class="note" data-batch-msg aria-live="polite" hidden>{icon("info")}<span></span></p>
+<div class="batch-out" data-batch-out hidden><h2 class="h4">{icon("check")}Fichero {e(fname)} generado</h2>
+<div class="cta-row"><button class="btn btn-primary" type="button" data-batch-csv>{icon("download")}Descargar {e(fname)}</button>
+<button class="btn btn-ghost" type="button" data-batch-zip>{icon("table")}Todo con resumen (.zip)</button></div></div>
+</form>
+<div class="install-grid batch-info">
+<div><h2 class="h3">Cómo bajar el fichero de {e(b['name'])}</h2><ol class="steps" style="margin-top:14px">{steps}</ol></div>
+<div><h2 class="h3">Columnas si usas CSV</h2><div class="tw uso"><table class="uso-t"><thead><tr><th>En {e(b['name'])}</th><th>Llámala</th></tr></thead><tbody>{cols}</tbody></table></div><p class="muted small">{e(b['cols_note'])}</p></div>
+</div>
+<div class="faq" style="margin-top:40px"><h2 class="h3" style="margin-bottom:20px">Preguntas frecuentes</h2>{faq_html(faq)}</div>
+<p class="muted small" style="margin-top:24px">Otras rutas de {e(b['name'])}: <a href="{e(b['path'])}">a ContaSol</a> · <a href="/descargar-norma-43-{bank_key}/">cómo descargar el Norma 43</a> · <a href="/visor-norma-43/">visor gratis</a></p>
+</div></section>
+<script defer src="/assets/lote.js?v={VERSION}"></script>"""
+    return page(path, f"Importar extracto {b['name']} en {short} ({fname}) · Flint by KeyFlint",
+                f"Convierte el extracto Norma 43 o CSV de {b['name']} al formato {fname} de {prog}. 25 créditos gratis.", body, [faq_ld(faq)])
 
 
 def write(rel: str, text: str) -> None:
@@ -2602,10 +2815,21 @@ def main() -> None:
     write("csv-a-a3/index.html", csv_target_page("a3"))
     write("csv-a-contaplus/index.html", csv_target_page("contaplus_ascii"))
     write("visor-norma-43/index.html", visor_page())
+    write("validar-iban-cif/index.html", validator_page())
+    write("que-es-norma-43/index.html", n43_what_page())
+    write("boletin/index.html", newsletter_page())
+    write("boletin/confirmar/index.html", newsletter_confirm_page())
+    write("boletin/baja/index.html", newsletter_unsub_page())
     for _g in N43_GUIDES:
         write(f"descargar-norma-43-{_g}/index.html", n43_guide_page(_g))
     for _k, _b in BANK_PAGES.items():
         write(_b["path"].strip("/") + "/index.html", bank_page(_k))
+    bank_target_paths = []
+    for _bk, _tk in BANK_TARGET_COMBOS:
+        _st = "contaplus" if _tk == "contaplus_ascii" else _tk
+        _p = f"/{_bk}-a-{_st}/"
+        bank_target_paths.append(_p)
+        write(_p.strip("/") + "/index.html", bank_target_page(_bk, _tk))
     installer_files()
     try:
         import subprocess
@@ -2614,7 +2838,7 @@ def main() -> None:
         npx_bin = shutil.which("npx")
         if esbuild_bin or npx_bin:
             base_cmd = [esbuild_bin] if esbuild_bin else [npx_bin, "--no-install", "esbuild"]
-            for _f in [OUT / "assets" / "app.js", OUT / "assets" / "lote.js", OUT / "assets" / "visor.js", OUT / "assets" / "style.css"]:
+            for _f in [OUT / "assets" / "app.js", OUT / "assets" / "lote.js", OUT / "assets" / "visor.js", OUT / "assets" / "validador.js", OUT / "assets" / "style.css"]:
                 if _f.exists():
                     subprocess.run([*base_cmd, str(_f), "--minify", f"--outfile={_f}", "--allow-overwrite"],
                                    check=True, shell=False, capture_output=True, timeout=30)
@@ -2624,7 +2848,14 @@ def main() -> None:
         print("AVISO: faltan datos del titular en data/catalog.json -> site.legal:", ", ".join(legal_missing()))
     for m in MCPS:
         write(f"{m['slug']}/index.html", mcp_page(m))
-    paths = ["/", "/visor-norma-43/", *[f"/descargar-norma-43-{_g}/" for _g in N43_GUIDES], "/probar/", "/empezar/", "/precios/", "/terminos/", "/reembolsos/", "/aviso-legal/", "/confianza/", "/norma43-a-excel/", "/norma43-a-contasol/", "/norma43-a-a3/", "/norma43-a-contaplus/", "/csv-a-contasol/", "/csv-a-a3/", "/csv-a-contaplus/"] + [b["path"] for b in BANK_PAGES.values()] + ["/en/", "/en/try/", "/en/start/", "/estado/", "/asesorias/", "/lote/", "/en/batch/"] + [f"/{m['slug']}/" for m in MCPS]
+    paths = [
+        "/", "/visor-norma-43/", "/validar-iban-cif/", "/que-es-norma-43/", "/boletin/",
+        *[f"/descargar-norma-43-{_g}/" for _g in N43_GUIDES],
+        *bank_target_paths,
+        "/probar/", "/empezar/", "/precios/", "/terminos/", "/reembolsos/", "/aviso-legal/", "/confianza/",
+        "/norma43-a-excel/", "/norma43-a-contasol/", "/norma43-a-a3/", "/norma43-a-contaplus/",
+        "/csv-a-contasol/", "/csv-a-a3/", "/csv-a-contaplus/",
+    ] + [b["path"] for b in BANK_PAGES.values()] + ["/en/", "/en/try/", "/en/start/", "/estado/", "/asesorias/", "/lote/", "/en/batch/"] + [f"/{m['slug']}/" for m in MCPS]
     write("sitemap.xml", '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
           + "".join(f"<url><loc>{SITE['url']}{p}</loc><lastmod>{TODAY}</lastmod></url>\n" for p in paths) + "</urlset>\n")
     indexnow_key = "8f4e2a9c1b7d3e5f6a0c8b2d4e6f1a3b"
@@ -2633,16 +2864,17 @@ def main() -> None:
     from email.utils import formatdate
     rfc_date = formatdate(usegmt=True)
     rss_items = [
+        ("Visor Norma 43 y Validador IBAN/NIF/CIF/SEPA gratuitos en el navegador", f"{SITE['url']}/visor-norma-43/", "Herramientas gratuitas en el navegador para comprobar extractos Norma 43 y validar lotes de IBAN, NIF, NIE, CIF e identificadores SEPA."),
         ("Conector único /despacho/mcp para Claude (17 herramientas contables y bancarias)", f"{SITE['url']}/asesorias/#conector", "Norma 43 + ContaBridge en una sola URL con OAuth 2.1 y código de 6 dígitos por correo."),
         ("Convertir extractos bancarios PDF y CSV a ContaSol, A3 y ContaPlus", f"{SITE['url']}/csv-a-contasol/", "Lectura determinista de extractos bancarios PDF digitales, CSV y Norma 43 con cuadre al céntimo y vista previa inmediata."),
-        ("Extractos de CaixaBank, BBVA, Santander, Revolut, Stripe y PayPal a ContaSol", f"{SITE['url']}/revolut-a-contasol/", "Páginas dedicadas para pasar exportaciones de bancos y pasarelas de pago a diario contable APU.ods o SUENLACE.DAT."),
+        ("Extractos de Santander, BBVA y CaixaBank a A3, ContaSol y ContaPlus", f"{SITE['url']}/santander-a-a3/", "Guías paso a paso y conversor directo a SUENLACE.DAT, APU.ods y XDiario.txt."),
     ] + [(f"{m['name']} MCP ({m['slug']})", f"{SITE['url']}/{m['slug']}/", m["headline"]) for m in MCPS]
     write("feed.xml", '<?xml version="1.0" encoding="UTF-8"?>\n<rss version="2.0">\n<channel>\n'
           f'<title>{e(SITE["name"])}</title>\n<link>{SITE["url"]}/</link>\n'
           f'<description>{e(SITE["description"])}</description>\n<language>es</language>\n<lastBuildDate>{rfc_date}</lastBuildDate>\n'
           + "".join(f'<item><title>{e(t)}</title><link>{u}</link><guid isPermaLink="true">{u}</guid><pubDate>{rfc_date}</pubDate><description>{e(d)}</description></item>\n' for t, u, d in rss_items)
           + "</channel>\n</rss>\n")
-    write("robots.txt", f"User-agent: *\nAllow: /\nDisallow: /gracias/\nDisallow: /saldo/\nDisallow: /en/balance/\nDisallow: /api/\n\nSitemap: {SITE['url']}/sitemap.xml\n")
+    write("robots.txt", f"User-agent: *\nAllow: /\nDisallow: /gracias/\nDisallow: /saldo/\nDisallow: /en/balance/\nDisallow: /boletin/confirmar/\nDisallow: /boletin/baja/\nDisallow: /api/\n\nSitemap: {SITE['url']}/sitemap.xml\n")
     write("llms.txt", f"# {SITE['name']}\n\n> {SITE['description']}\n\n## Conector único y servidores MCP\n\n"
           f"- [Conector único Despacho (/despacho/mcp)]({SITE['url']}/asesorias/#conector): 17 herramientas de Norma 43 y ContaBridge en una URL OAuth.\n"
           + "".join(f"- [{m['name']}]({SITE['url']}/{m['slug']}/): {m['headline']}\n" for m in MCPS)

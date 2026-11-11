@@ -3,6 +3,7 @@
 // y para devolver solo los campos imprescindibles (la licencia solo en /api/licencia, a quien trae el cs_ del pago).
 
 import { clientIp, giveBack, hash, num, take, today } from "./limits.js";
+import { confirmNewsletter, startNewsletter, unsubscribeNewsletter } from "./newsletter.js";
 
 const LICENSE_RE = /^[A-Za-z0-9._~+\/=-]{6,1024}$/;
 const SESSION_RE = /^cs_[A-Za-z0-9_]{10,250}$/;
@@ -79,8 +80,13 @@ async function reveal(request, env, url) {
 
 async function recover(request, env, url) {
   if (!sameOrigin(request, url)) return json({ ok: false }, 403);
-  let email = "", en = false, L = (es, e) => (en ? e : es);
-  try { const b = await request.json(); email = String(b.email || "").trim(); en = b.lang === "en"; } catch (e) { /* cuerpo no válido */ }
+  let email = "", en = false, newsletter = false, L = (es, e) => (en ? e : es);
+  try {
+    const b = await request.json();
+    email = String(b.email || "").trim();
+    en = b.lang === "en";
+    newsletter = b.newsletter === true;
+  } catch (e) { /* cuerpo no válido */ }
   if (!EMAIL_RE.test(email)) return json({ ok: false, error: "Escribe un correo válido." }, 400);
   try {
     await gateway(env, "/api/v1/billing/portal/lookup", { method: "POST", body: JSON.stringify({ query: email }) });
@@ -100,8 +106,13 @@ async function trial(request, env, url) {
     const { success } = await env.TRIAL_LIMIT.limit({ key: "trial:" + ip });
     if (!success) return json({ ok: false, error: "Demasiados intentos. Espera un minuto." }, 429);
   }
-  let email = "", en = false, L = (es, e) => (en ? e : es);
-  try { const b = await request.json(); email = String(b.email || "").trim(); en = b.lang === "en"; } catch (e) { /* cuerpo no válido */ }
+  let email = "", en = false, newsletter = false, L = (es, e) => (en ? e : es);
+  try {
+    const b = await request.json();
+    email = String(b.email || "").trim();
+    en = b.lang === "en";
+    newsletter = b.newsletter === true;
+  } catch (e) { /* cuerpo no válido */ }
   if (!EMAIL_RE.test(email) || email.length > 254) return json({ ok: false, error: "Escribe un correo válido." }, 400);
   const db = env.USAGE_DB;
   if (!db) return json({ ok: false, unavailable: true, error: "La prueba gratis no está activa ahora mismo." }, 503);
@@ -129,12 +140,22 @@ async function trial(request, env, url) {
         console.error("trial issue failed", r.status);
         return json({ ok: false, error: L("KeyFlint no responde ahora mismo. Inténtalo en un minuto.", "KeyFlint is not responding right now. Please try again in a minute.") }, 502);
       }
-      return json({ ok: true, license: String(d.license_key), tier: "community", credits: 25 });
+      let extra = {};
+      if (newsletter && env.RESEND_API_KEY && env.OAUTH_KV) {
+        const nr = await startNewsletter(env, request, email, "probar").catch(() => null);
+        if (nr?.ok && !nr.already) extra = { newsletter_sent: true };
+      }
+      return json({ ok: true, license: String(d.license_key), tier: "community", credits: 25, ...extra });
     }
     const r = await gateway(env, "/api/v1/billing/trial", { method: "POST", body: JSON.stringify({ email, source: "mcp-hub" }) });
     if (r.status === 503) { await undo(); return json({ ok: false, unavailable: true, error: "La prueba gratis no está activa ahora mismo." }, 503); }
     if (!r.ok) { await undo(); return json({ ok: false, error: "KeyFlint no responde ahora mismo. Inténtalo en un minuto." }, 502); }
-    return json({ ok: true, emailed: true });
+    let extra = {};
+    if (newsletter && env.RESEND_API_KEY && env.OAUTH_KV) {
+      const nr = await startNewsletter(env, request, email, "probar").catch(() => null);
+      if (nr?.ok && !nr.already) extra = { newsletter_sent: true };
+    }
+    return json({ ok: true, emailed: true, ...extra });
   } catch (e) {
     await undo();
     return json({ ok: false, error: L("KeyFlint no responde ahora mismo. Inténtalo en un minuto.", "KeyFlint is not responding right now. Please try again in a minute.") }, 502);
@@ -206,6 +227,33 @@ async function topupStatus(request, env, url) {
   }
 }
 
+async function newsletterStart(request, env, url) {
+  if (!sameOrigin(request, url)) return json({ ok: false }, 403);
+  let body = {};
+  try { body = await request.json(); } catch (e) { /* json inválido */ }
+  const r = await startNewsletter(env, request, body.email, body.source);
+  if (!r.ok) return json({ ok: false, error: r.error }, r.status || 400);
+  return json({ ok: true, ...(r.already ? { already: true } : {}) });
+}
+
+async function newsletterConfirm(request, env, url) {
+  if (!sameOrigin(request, url)) return json({ ok: false }, 403);
+  let body = {};
+  try { body = await request.json(); } catch (e) { /* json inválido */ }
+  const r = await confirmNewsletter(env, body.token);
+  if (!r.ok) return json({ ok: false, error: r.error }, r.status || 400);
+  return json({ ok: true });
+}
+
+async function newsletterUnsub(request, env, url) {
+  if (!sameOrigin(request, url)) return json({ ok: false }, 403);
+  let body = {};
+  try { body = await request.json(); } catch (e) { /* json inválido */ }
+  const r = await unsubscribeNewsletter(env, body.token);
+  if (!r.ok) return json({ ok: false, error: r.error }, r.status || 400);
+  return json({ ok: true, ...(r.already ? { already: true } : {}) });
+}
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
@@ -215,6 +263,9 @@ export default {
     if (url.pathname === "/api/prueba" && request.method === "POST") return trial(request, env, url);
     if (url.pathname === "/api/recarga" && request.method === "POST") return topup(request, env, url);
     if (url.pathname === "/api/recarga" && request.method === "GET") return topupStatus(request, env, url);
+    if (url.pathname === "/api/boletin/alta" && request.method === "POST") return newsletterStart(request, env, url);
+    if (url.pathname === "/api/boletin/confirmar" && request.method === "POST") return newsletterConfirm(request, env, url);
+    if (url.pathname === "/api/boletin/baja" && request.method === "POST") return newsletterUnsub(request, env, url);
     if (url.pathname.startsWith("/api/")) return json({ ok: false, error: "No encontrado." }, 404);
     return env.ASSETS.fetch(request);
   },
