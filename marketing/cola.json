@@ -150,6 +150,26 @@
   "estado": "pendiente"
  },
  {
+  "id": "2026-12-05-x-en",
+  "fecha": "2026-12-05T09:30:00+01:00",
+  "canal": "x",
+  "idioma": "en",
+  "tema": "product-hunt",
+  "texto": "Flint is live on Product Hunt today: MCP servers for Spanish bookkeeping (Norma 43, A3, ContaSol, SEPA) that never guess an amount, plus fair per-call billing with automatic refunds.\n\nFeedback welcome, especially the critical kind.",
+  "url": "https://www.producthunt.com/?utm_source=x&utm_medium=social&utm_campaign=ph-2026-12-05",
+  "estado": "pendiente"
+ },
+ {
+  "id": "2026-12-05-linkedin-es",
+  "fecha": "2026-12-05T10:00:00+01:00",
+  "canal": "linkedin",
+  "idioma": "es",
+  "tema": "product-hunt",
+  "texto": "Hoy presento Flint en Product Hunt, la comunidad donde se lanzan productos tecnológicos.\n\nFlint pasa extractos bancarios (Norma 43, PDF o CSV) a ContaSol, A3 y ContaPlus comprobando los saldos, y lo que no encaja va a la 555 para revisión. Lo que falla no se cobra.\n\nSi tienes un minuto, me ayuda mucho cualquier comentario sincero.",
+  "url": "https://www.producthunt.com/?utm_source=linkedin&utm_medium=social&utm_campaign=ph-2026-12-05",
+  "estado": "pendiente"
+ },
+ {
   "id": "2026-12-07-linkedin-es",
   "fecha": "2026-12-07T08:30:00+01:00",
   "canal": "linkedin",

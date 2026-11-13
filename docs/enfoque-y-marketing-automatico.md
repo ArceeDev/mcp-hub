@@ -56,7 +56,19 @@ Opciones, de mejor a peor:
    desde 2024 PH no da ventaja por hunter, pero su red ayuda.
 3. **Lanzar el 14 igualmente** como prueba sin expectativas, sin pedir votos (pedir votos explícitamente va contra sus normas).
 
-Recomendación: opción 1. Alternativas el sáb 14 con el mismo esfuerzo: Peerlist Launchpad, Uneed, MicroLaunch,
+**Decidido por Arcee (13-nov): opción 1, Product Hunt el sábado 5 de diciembre a las 09:01.**
+El 14 siguen X y LinkedIn; el 15, Show HN y Reddit.
+
+### Calentamiento de la cuenta de PH (Arcee, ~10 min/día)
+
+| Fecha | Tarea |
+|---|---|
+| 14-20 nov | Perfil completo (foto, bio de Flint, enlaces a X/LinkedIn/GitHub). Seguir 20 makers de herramientas IA/MCP/fintech. 1 comentario útil al día en lanzamientos del día (pregunta concreta o feedback, nunca «felicidades» vacío). |
+| 21-27 nov | Votar y comentar 1-2 lanzamientos al día de tu ámbito. Publicar 1 hilo en las discusiones de PH (p. ej. «¿Cómo cobráis por un servidor MCP?»). Crear la página «Coming soon» de Flint. |
+| 28 nov-4 dic | Revisar galería (lanzamiento/product-hunt/), primer comentario y tagline. Programar el lanzamiento para el 5-dic 00:01 PT. Avisar a contactos reales con un enlace a la página, sin pedir votos (va contra las normas de PH). |
+| 5 dic | Estar disponible de 09:00 a 21:00 para responder cada comentario en menos de 30 min. Post en X y LinkedIn de la cola. |
+
+Alternativas el sáb 14 con el mismo esfuerzo: Alternativas el sáb 14 con el mismo esfuerzo: Peerlist Launchpad, Uneed, MicroLaunch,
 y los directorios MCP en los que ya estamos (Registro oficial, Glama, Arcade).
 
 ## 4. Marketing automatizado (lo que ya queda montado en el repo)
