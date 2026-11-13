@@ -9,14 +9,13 @@ No existe un plan infalible. Con 0 clientes, lo que más se acerca es **hablar c
 ## Canales ordenados por probabilidad de cliente (y horas de Arcee)
 | # | Canal | Prob. | Horas/sem | Por qué |
 |---|---|---|---|---|
-| 1 | Contacto cálido: la conocida secretaria → su asesoría | Alta | 1 | Presentación personal = confianza prestada. Es tu mejor bala: cuídala. |
-| 2 | Red personal (familia, amigos, excompañeros con negocio): «¿quién te lleva la contabilidad?» | Alta | 1 | Cada pyme tiene una asesoría; el cliente presenta al asesor. |
-| 3 | Presentación tras cada demo («¿a quién más le pasa?») | Alta | 0,5 | Los asesores se conocen entre ellos. |
-| 4 | Consultores/formadores de ContaSol, a3, ContaPlus (distribuidores, academias, YouTubers del programa) | Media | 2 | Un socio = decenas de despachos. Les das comisión del 20 % 12 meses. |
-| 5 | Colegios y asociaciones (Colegio de Gestores Administrativos de tu provincia, AECE, REAF-CGE, colegio de economistas) | Media | 1 | Charla gratis de 30 min o artículo en su boletín. Lento pero muy creíble. |
-| 6 | Grupos de Facebook/Telegram de asesores | Media-baja | 2 | Aportar el visor N43 gratis y respuestas útiles. Nunca vender en frío. |
-| 7 | LinkedIn (100 contactos ya listados) | Baja-media | 1,5 | 15–20 invitaciones/día con nota; contenido 2×/sem. |
-| 8 | SEO (guías por banco/programa ya publicadas) | Baja a 14 d, alta a 6 meses | 0 | Ya hecho; solo medir. |
+| 1 | Red personal (familia, amigos, excompañeros con negocio): «¿quién te lleva la contabilidad?» y que reenvíen el texto §1 | Alta | 2 | Cada pyme tiene una asesoría; el cliente presenta al asesor = confianza prestada. Ahora es el canal principal. |
+| 2 | Presentación tras cada demo («¿a quién más le pasa?») + referido (mes gratis para los dos) | Alta | 0,5 | Los asesores se conocen entre ellos. |
+| 3 | Consultores/formadores de ContaSol, a3, ContaPlus (distribuidores, academias, YouTubers del programa) | Media | 2,5 | Un socio = decenas de despachos. Les das comisión del 20 % 12 meses. |
+| 4 | Colegios y asociaciones (Colegio de Gestores Administrativos de tu provincia, AECE, REAF-CGE, colegio de economistas) | Media | 1,5 | Charla gratis de 30 min o artículo en su boletín. Lento pero muy creíble. |
+| 5 | Grupos de Facebook/Telegram de asesores | Media-baja | 2 | Aportar el visor N43 gratis y respuestas útiles. Nunca vender en frío. |
+| 6 | LinkedIn (100 contactos ya listados) | Baja-media | 1,5 | 15–20 invitaciones/día con nota; contenido 2×/sem. |
+| 7 | SEO (guías por banco/programa ya publicadas) | Baja a 14 d, alta a 6 meses | 0 | Ya hecho; solo medir. |
 
 ## Calendario
 | Día | Acción | Tiempo | Éxito |
@@ -25,15 +24,16 @@ No existe un plan infalible. Con 0 clientes, lo que más se acerca es **hablar c
 | sáb 14 | **Probar el kit en ContaSol y a3 reales** (empresa de pruebas). Sin esto, no hay demo | 60 min | importa sin errores + captura |
 | dom 15 | Show HN + Reddit (visibilidad dev, no ventas) | 30 min | — |
 | dom 15 | Lista de red personal: 20 nombres con negocio propio | 30 min | lista |
-| lun 16 | Mensaje a la secretaria (mensajes.md §1) | 5 min | sí a la presentación |
-| lun 16 | 5 mensajes a red personal (§2) | 20 min | 2 nombres de asesoría |
+| lun 16 | **Canal n.º 1: 10 mensajes a red personal** (mensajes.md §2, con el texto reenviable §1) | 40 min | 3 nombres de asesoría |
+| lun 16 | 3 consultores/formadores de ContaSol o a3 por su formulario (§4) | 30 min | 1 respuesta |
 | lun 16 | Entrar en 5 grupos FB/Telegram; leer normas; **no publicar aún** | 30 min | 5 grupos |
 | mar 17 | Llamar al Colegio de Gestores de tu provincia y a la delegación AECE: ofrecer charla de 30 min «Cierre bancario sin picar: Norma 43 a ContaSol/a3» (§5) | 30 min | 1 fecha o contacto |
+| mar 17 | 10 mensajes más a otras personas de la lista (a quien no contestó no se le insiste) | 30 min | 2 nombres más |
 | mar 17 | Localizar 10 consultores/formadores de ContaSol, a3, ContaPlus (web, YouTube, LinkedIn) y escribir por su formulario de contacto (§4) | 60 min | 2 respuestas |
 | mié 18 | Primera aportación en 2 grupos (§3: respuesta útil a una duda real o el visor gratis) | 30 min | 10 usos del visor con `utm_source=facebook/telegram` |
 | mié 18–jue 19 | Accountex IFEMA si sigue en esas fechas (verificar en accountex.es): ir con el portátil y el kit; no vender, preguntar | 1 día | 5 conversaciones, 2 demos agendadas |
 | jue 19 | Revisar embudo (10 min) y decidir con la tabla de abajo | 10 min | — |
-| vie 20 | **Demo con la asesoría de la conocida** (guion-demo-10min.md) | 30 min | piloto aceptado |
+| vie 20 | **Primera demo** con una asesoría presentada por la red o un consultor (guion-demo-10min.md) | 30 min | piloto aceptado |
 | lun 23 | Seguimiento de pilotos: 15 min por despacho («¿qué ha fallado?») | 30 min | uso real (≥2 conversiones) |
 | lun 23–mié 25 | Demos con presentaciones obtenidas (objetivo 3) | 2 h | 2 pilotos más |
 | jue 26 | Revisión del embudo + decisión | 15 min | — |

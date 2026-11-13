@@ -1,15 +1,12 @@
 # Mensajes listos para copiar (Arcee los envía a mano)
 Regla: solo a personas que conoces, que te han presentado o que han pedido información. Nada de envíos masivos (LSSI art. 21). Cambia [corchetes].
 
-## 1. A la secretaria (WhatsApp)
-> Hola [nombre]! Te escribo por una cosa del trabajo, a ver si me puedes ayudar 🙂 He hecho una herramienta para asesorías que pasa los extractos del banco (los ficheros Norma 43) directamente a ContaSol o a3, sin picar los apuntes a mano. Me vendría genial enseñársela 20 minutos a la asesoría con la que trabajáis, para que me digan con sinceridad si les sirve. Gratis, sin compromiso, y si les gusta la prueban un mes sin pagar.
-> ¿Te importaría preguntarles si les puedo llamar o pasar a verles? Si te va mejor, te paso un texto corto para que se lo reenvíes.
-
-Texto para que ella reenvíe:
-> Un conocido ha creado una herramienta que convierte los extractos Norma 43 en el fichero de importación de ContaSol, a3 o ContaPlus, con los saldos comprobados y lo dudoso a la 555. Busca 2-3 despachos que la prueben gratis un mes y le digan qué mejorar. Se llama Jose, ¿le puedo dar tu teléfono o correo? Info: https://mcp.keyflint.dev/piloto/?utm_source=referido&utm_campaign=secretaria
+## 1. Texto para que tu contacto lo reenvíe a su asesoría
+Úsalo con el §2: cuando alguien de tu red te diga quién le lleva la contabilidad, pásale esto para que se lo reenvíe (así el asesor recibe el mensaje de alguien de confianza, no tuyo en frío).
+> Un conocido ha creado una herramienta que convierte los extractos Norma 43 en el fichero de importación de ContaSol, a3 o ContaPlus, con los saldos comprobados y lo dudoso a la 555. Busca 2-3 despachos que la prueben gratis un mes y le digan qué mejorar. Se llama Jose, ¿le puedo dar tu teléfono o correo? Info: https://mcp.keyflint.dev/piloto/?utm_source=referido&utm_campaign=red
 
 ## 2. Red personal (amigos/familia con negocio)
-> Oye, pregunta rápida: ¿quién te lleva la contabilidad? Estoy buscando 3 asesorías que prueben gratis una herramienta que he hecho (pasa los extractos del banco a su programa contable sin teclear). Si te fías de ellos y me presentas, te debo una. Solo tienes que reenviarles esto: https://mcp.keyflint.dev/piloto/?utm_source=referido&utm_campaign=red
+> Oye, pregunta rápida: ¿quién te lleva la contabilidad? Estoy buscando 3 asesorías que prueben gratis una herramienta que he hecho (pasa los extractos del banco a su programa contable sin teclear). Si te fías de ellos y me presentas, te debo una. Solo tienes que reenviarles el texto que te paso (§1).
 
 ## 3. Grupos de Facebook/Telegram de asesores
 Antes: leer normas, presentarte si lo piden, y responder dudas de otros 1-2 semanas. Publicar como mucho 1 vez por semana en cada grupo.
