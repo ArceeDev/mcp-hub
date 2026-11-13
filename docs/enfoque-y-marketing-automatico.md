@@ -59,6 +59,11 @@ Opciones, de mejor a peor:
 **Decidido por Arcee (13-nov): opción 1, Product Hunt el sábado 5 de diciembre a las 09:01.**
 El 14 siguen X y LinkedIn; el 15, Show HN y Reddit.
 
+**Hacker News (comprobado 13-nov):** HN restringe temporalmente los Show HN de cuentas nuevas o con poca actividad
+(aviso: «become a good contributor, and then it will be fine to post an occasional Show HN»). Sin umbral público.
+Plan: intentarlo el 15; si sale el aviso, escribir a hn@ycombinator.com y mover Show HN al 5-dic tras 3 semanas
+comentando en HN (1-2 comentarios útiles al día en hilos de IA, contabilidad o herramientas para devs).
+
 ### Calentamiento de la cuenta de PH (Arcee, ~10 min/día)
 
 | Fecha | Tarea |
