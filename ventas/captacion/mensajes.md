@@ -1,12 +1,19 @@
 # Mensajes listos para copiar (Arcee los envía a mano)
-Regla: solo a personas que conoces, que te han presentado o que han pedido información. Nada de envíos masivos (LSSI art. 21). Cambia [corchetes].
+Regla: por escrito (correo, WhatsApp, LinkedIn) solo a quien te ha dado permiso o te ha presentado. Por teléfono o en persona puedes contactar con la empresa, pero pide permiso antes de enviar nada y respeta un «no». Nada de envíos masivos (LSSI art. 21). Cambia [corchetes].
 
-## 1. Texto para que tu contacto lo reenvíe a su asesoría
-Úsalo con el §2: cuando alguien de tu red te diga quién le lleva la contabilidad, pásale esto para que se lo reenvíe (así el asesor recibe el mensaje de alguien de confianza, no tuyo en frío).
-> Un conocido ha creado una herramienta que convierte los extractos Norma 43 en el fichero de importación de ContaSol, a3 o ContaPlus, con los saldos comprobados y lo dudoso a la 555. Busca 2-3 despachos que la prueben gratis un mes y le digan qué mejorar. Se llama Jose, ¿le puedo dar tu teléfono o correo? Info: https://mcp.keyflint.dev/piloto/?utm_source=referido&utm_campaign=red
+## 1. Llamada a una asesoría (90 segundos, de 9:30 a 13:30)
+> Buenos días, soy Jose Arce, de KeyFlint. Una pregunta rápida: ¿quién lleva en el despacho los extractos del banco de los clientes?
+> (Con esa persona) He hecho una herramienta que convierte los ficheros Norma 43 en el fichero de importación de [ContaSol/a3/ContaPlus], con los saldos comprobados y lo dudoso a la 555. Estoy buscando 3 despachos de [ciudad] que la prueben gratis un mes y me digan con sinceridad qué falla.
+> ¿Le puedo enviar un enlace para probarlo con un extracto de este mes, o prefiere que me pase 15 minutos por el despacho y se lo enseño?
 
-## 2. Red personal (amigos/familia con negocio)
-> Oye, pregunta rápida: ¿quién te lleva la contabilidad? Estoy buscando 3 asesorías que prueben gratis una herramienta que he hecho (pasa los extractos del banco a su programa contable sin teclear). Si te fías de ellos y me presentas, te debo una. Solo tienes que reenviarles el texto que te paso (§1).
+- Si dice que sí: correo A de `secuencia-gestorias.md` (en esta carpeta) en menos de 1 hora, con https://mcp.keyflint.dev/piloto/?utm_source=llamada&utm_campaign=zona
+- Si dice que no o «ahora no»: das las gracias, lo anotas y **no vuelves a llamar**.
+- Si pide que no le llamen más: anótalo como «no contactar».
+- Anota en la hoja: fecha, persona, programa, respuesta.
+
+## 2. Visita sin cita (presencial)
+> Buenos días, soy Jose, de aquí de [barrio/ciudad]. He hecho una herramienta para pasar los extractos del banco a [programa] sin teclear. ¿Tiene alguien 5 minutos para que se la enseñe? Si no, les dejo esta hoja y me dicen si les interesa.
+Deja el one-pager con tu teléfono escrito. Si hay interés, haz la demo allí mismo con el kit (guion-demo-10min.md).
 
 ## 3. Grupos de Facebook/Telegram de asesores
 Antes: leer normas, presentarte si lo piden, y responder dudas de otros 1-2 semanas. Publicar como mucho 1 vez por semana en cada grupo.
@@ -29,7 +36,7 @@ Respuesta cuando alguien pregunta «¿cómo meto los extractos en ContaSol/a3?»
 ## 6. LinkedIn (nota de invitación, máx. 200 caracteres)
 > Hola [nombre], trabajo en automatizar el paso de extractos Norma 43 a ContaSol/a3 para despachos. Me encantaría conectar y conocer cómo lo hacéis en [despacho].
 
-## 7. Tras cada demo (presentación)
+## 7. Tras cada demo (así empieza tu red)
 > Gracias por el rato. Una última cosa: ¿conoces a otro despacho que pierda tiempo con los extractos? Si me presentas y contratan, los dos tenéis el siguiente mes gratis.
 
 ## 8. Cierre del piloto (día 7 de uso, no día 30)
