@@ -562,3 +562,14 @@
     });
   });
 })();
+
+/* Visitas agregadas propias (sin cookies ni identificadores): ruta, dominio de origen, UTM y si es la primera página. */
+(function () {
+  try {
+    if (navigator.globalPrivacyControl || navigator.doNotTrack === "1" || !navigator.sendBeacon) return;
+    var q = new URLSearchParams(location.search), ref = document.referrer || "", own = location.hostname;
+    var ext = !ref || ref.indexOf("//" + own) === -1;
+    var body = JSON.stringify({ p: location.pathname, r: ref, s: q.get("utm_source") || q.get("ref") || "", m: q.get("utm_medium") || "", c: q.get("utm_campaign") || "", e: ext ? 1 : 0 });
+    navigator.sendBeacon("/api/v", new Blob([body], { type: "application/json" }));
+  } catch (e) { /* nunca romper la página por medir */ }
+})();

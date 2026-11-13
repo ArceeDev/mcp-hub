@@ -4,6 +4,7 @@
 
 import { clientIp, giveBack, hash, num, take, today } from "./limits.js";
 import { confirmNewsletter, startNewsletter, unsubscribeNewsletter } from "./newsletter.js";
+import { recordVisit, visitsReport } from "./visits.js";
 
 const LICENSE_RE = /^[A-Za-z0-9._~+\/=-]{6,1024}$/;
 const SESSION_RE = /^cs_[A-Za-z0-9_]{10,250}$/;
@@ -257,6 +258,8 @@ async function newsletterUnsub(request, env, url) {
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
+    if (url.pathname === "/api/v" && request.method === "POST") return recordVisit(request, env, url);
+    if (url.pathname === "/api/admin/visitas" && request.method === "GET") return visitsReport(request, env, url);
     if (url.pathname === "/api/saldo" && request.method === "GET") return balance(request, env, url);
     if (url.pathname === "/api/licencia" && request.method === "GET") return reveal(request, env, url);
     if (url.pathname === "/api/recuperar" && request.method === "POST") return recover(request, env, url);
