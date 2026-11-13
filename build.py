@@ -1962,6 +1962,32 @@ def thanks() -> str:
     return page("/gracias/", "Pago completado · Flint by KeyFlint", "Tu licencia está de camino.", body, noindex=True)
 
 
+def kit_page() -> str:
+    files = [("APU.ods", "ContaSol (Software DELSOL)", "Importación de apuntes."),
+             ("SUENLACE.DAT", "a3ASESOR / a3ECO", "Formato de enlace, tipo 0, 5.ª versión."),
+             ("XDiario.csv", "ContaPlus / Sage 50", "Diario en CSV."),
+             ("diario.csv", "Genérico", "Excel, Holded o cualquier ERP.")]
+    rows = "".join(f'<li class="step"><span class="tile tile-sm">{icon("download")}</span><div><h3><a href="/assets/kit/{f}" download>{f}</a></h3><p><strong>{e(prog)}</strong>. {e(note)}</p></div></li>' for f, prog, note in files)
+    body = f"""
+<section class="hero hero-sm center"><div class="glow" aria-hidden="true"></div><div class="wrap narrow">
+<h1>Kit de prueba para despachos</h1>
+<p class="lead">Un diario de ejemplo generado por Flint (1 factura emitida y 2 recibidas, con IVA e IRPF del 15 %) listo para importar en ContaSol, a3 y ContaPlus.</p>
+</div></section>
+<section class="section tight"><div class="wrap narrow">
+<ol class="steps">{rows}</ol>
+<h2 class="h3">Antes de importar</h2>
+<ol><li>Usa una <strong>empresa de pruebas</strong>, nunca una real.</li>
+<li>Las subcuentas son de 8 dígitos (43000001, 40000001, 40000002, 47700000, 47200000, 4751…, 62300000, 60000000). Si tu empresa de prueba usa otra longitud, Flint la ajusta con <code>account_digits</code>.</li>
+<li>Las subcuentas deben existir en el plan de la empresa de prueba o el programa las rechaza o las crea sin nombre.</li></ol>
+<h2 class="h3">Qué anotar</h2>
+<p>Para cada programa: ¿importó?, ¿cuántos asientos?, ¿cuadran debe y haber?, ¿hubo algún mensaje de error (cópialo o haz captura)?, ¿se ven bien conceptos y fechas? Cuéntanoslo en <a href="{SITE['contact']}">{e(CONTACT)}</a>.</p>
+<p class="muted small">Los conceptos largos se recortan a la longitud de cada formato (a3: 30 caracteres, ContaPlus: 25).</p>
+<div class="cta-row center"><a class="btn btn-primary btn-lg" href="/probar/">Probar gratis</a><a class="btn btn-ghost btn-lg" href="/asesorias/">Flint para asesorías</a></div>
+</div></section>"""
+    return page("/kit-prueba/", "Kit de prueba para despachos: ContaSol, a3 y ContaPlus · Flint by KeyFlint",
+                "Descarga un diario de ejemplo para importar en ContaSol, a3ASESOR y ContaPlus y comprobar el formato antes de usar Flint.", body)
+
+
 def not_found() -> str:
     return page("/404", "Página no encontrada · Flint by KeyFlint", "Página no encontrada.",
                 f'<section class="hero hero-sm center"><div class="glow" aria-hidden="true"></div><div class="wrap narrow"><p class="eyebrow">Error 404</p>'
@@ -2792,6 +2818,7 @@ def main() -> None:
     write("precios/index.html", pricing())
     write("empezar/index.html", start())
     write("gracias/index.html", thanks())
+    write("kit-prueba/index.html", kit_page())
     write("saldo/index.html", balance_page())
     write("probar/index.html", trial_page())
     write("404.html", not_found())
@@ -2852,7 +2879,7 @@ def main() -> None:
         "/", "/visor-norma-43/", "/validar-iban-cif/", "/que-es-norma-43/", "/boletin/",
         *[f"/descargar-norma-43-{_g}/" for _g in N43_GUIDES],
         *bank_target_paths,
-        "/probar/", "/empezar/", "/precios/", "/terminos/", "/reembolsos/", "/aviso-legal/", "/confianza/",
+        "/probar/", "/kit-prueba/", "/empezar/", "/precios/", "/terminos/", "/reembolsos/", "/aviso-legal/", "/confianza/",
         "/norma43-a-excel/", "/norma43-a-contasol/", "/norma43-a-a3/", "/norma43-a-contaplus/",
         "/csv-a-contasol/", "/csv-a-a3/", "/csv-a-contaplus/",
     ] + [b["path"] for b in BANK_PAGES.values()] + ["/en/", "/en/try/", "/en/start/", "/estado/", "/asesorias/", "/lote/", "/en/batch/"] + [f"/{m['slug']}/" for m in MCPS]
