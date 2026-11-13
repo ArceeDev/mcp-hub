@@ -6,8 +6,8 @@ import { fakeD1, post } from "./helpers.js";
 
 const mkEnv = () => ({ USAGE_DB: fakeD1(), KEYFLINT_ADMIN_KEY: "adm" });
 const send = (env, body, ip, extra = {}) => {
-  const r = post("/api/v", body, ip, extra);
-  Object.defineProperty(r, "cf", { value: { country: extra.cc || "ES" } });
+  const r = post("/api/v", body, ip, { "user-agent": "Mozilla/5.0 (Windows NT 10.0) Chrome/130", ...extra });
+  Object.defineProperty(r, "cf", { value: { country: extra.cc || "ES", asn: 3352 } });
   return api.fetch(r, env);
 };
 const report = (env, key = "adm") => api.fetch(new Request("https://mcp.keyflint.dev/api/admin/visitas?dias=7", { headers: { "x-admin-key": key } }), env);
@@ -27,12 +27,15 @@ test("visitas: agrega por ruta/origen/UTM/país sin guardar IP ni query", async 
   assert.equal(body.total.vistas, 4);
   assert.equal(body.total.visitas, 3);
   assert.equal(body.paises[0].k, "ES");
+  assert.equal(body.redes_asn[0].k, 3352);
+  assert.equal(body.dispositivos[0].k, "d");
 });
 
 test("visitas: ignora bots, otros orígenes y exige clave para el informe", async () => {
   const env = mkEnv();
   await send(env, { p: "/" }, "1.1.1.1", { "user-agent": "Googlebot/2.1" });
   await send(env, { p: "/" }, "1.1.1.1", { origin: "https://evil.example" });
+  await send(env, { p: "/" }, "1.1.1.1", { "user-agent": "" });
   assert.equal(env.USAGE_DB.raw.prepare("SELECT COUNT(*) c FROM visits").get().c, 0);
   assert.equal((await report(env, "nope")).status, 403);
   assert.equal((await report(env, "")).status, 403);

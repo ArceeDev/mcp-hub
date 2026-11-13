@@ -2883,6 +2883,17 @@ def main() -> None:
           + f"- [CSV y PDF a ContaSol]({SITE['url']}/csv-a-contasol/)\n"
           + f"- [Norma 43 a Excel]({SITE['url']}/norma43-a-excel/)\n"
           + f"\n## Más\n\n- [Precios]({SITE['url']}/precios/)\n- [Guía de instalación]({SITE['url']}/empezar/)\n")
+    # Descubrimiento MCP (server card, SEP-1649): los escáneres lo piden y antes recibían 404.
+    write(".well-known/mcp/server-card.json", json.dumps({
+        "serverInfo": {"name": "flint-despacho", "title": "Flint Despacho (Norma 43 + ContaBridge)", "version": "1.0.0"},
+        "description": SITE["description"],
+        "transport": {"type": "streamable-http", "endpoint": f"{SITE['url']}/despacho/mcp"},
+        "authentication": {"required": True, "schemes": ["oauth2"]},
+        "servers": [{"name": m["slug"], "title": m["name"], "endpoint": f"{SITE['url']}/{m['slug']}/mcp"} for m in MCPS],
+        "documentation": f"{SITE['url']}/empezar/",
+    }, ensure_ascii=False, indent=2) + "\n")
+    write(".well-known/security.txt", f"Contact: mailto:{CONTACT}\nExpires: {(dt.datetime.now(dt.timezone.utc) + dt.timedelta(days=365)).strftime('%Y-%m-%dT00:00:00Z')}\n"
+          f"Preferred-Languages: es, en\nCanonical: {SITE['url']}/.well-known/security.txt\n")
     print(f"OK: {len(paths)} páginas indexables en {OUT}")
 
 

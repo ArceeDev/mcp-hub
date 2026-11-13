@@ -20,7 +20,10 @@ export async function recordVisit(request, env, url) {
   const noContent = () => new Response(null, { status: 204, headers: { "cache-control": "no-store" } });
   const origin = request.headers.get("origin");
   if (origin && origin !== url.origin) return noContent();
-  if (BOT_RE.test(request.headers.get("user-agent") || "")) return noContent();
+  const ua = request.headers.get("user-agent") || "";
+  if (!ua || BOT_RE.test(ua)) return noContent();
+  const dev = /Mobi|Android|iPhone|iPad/i.test(ua) ? "m" : "d";
+  const asn = Number.isInteger(request.cf?.asn) ? request.cf.asn : 0;
   const db = env.USAGE_DB;
   if (!db) return noContent();
   let b;
@@ -32,9 +35,9 @@ export async function recordVisit(request, env, url) {
   const day = today();
   if (!(await take(db, "visit_ip", await hash(clientIp(request), "v" + day), day, MAX_PER_IP_DAY))) return noContent();
   await db.prepare(
-    "INSERT INTO visits (day, path, ref, src, med, camp, country, entry, n) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, 1) " +
-    "ON CONFLICT (day, path, ref, src, med, camp, country, entry) DO UPDATE SET n = n + 1",
-  ).bind(day, path, ref, tok(b.s), tok(b.m), tok(b.c), country, b.e ? 1 : 0).run();
+    "INSERT INTO visits (day, path, ref, src, med, camp, country, entry, dev, asn, n) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, 1) " +
+    "ON CONFLICT (day, path, ref, src, med, camp, country, entry, dev, asn) DO UPDATE SET n = n + 1",
+  ).bind(day, path, ref, tok(b.s), tok(b.m), tok(b.c), country, b.e ? 1 : 0, dev, asn).run();
   return noContent();
 }
 
@@ -59,5 +62,6 @@ export async function visitsReport(request, env, url) {
     ok: true, desde: new Date(from * 86_400_000).toISOString().slice(0, 10), total,
     por_dia: await q("day", 400), paises: await q("country"), origenes: await q("ref"),
     utm_source: await q("src"), utm_campaign: await q("camp"), paginas: await q("path", 40),
+    dispositivos: await q("dev", 5), redes_asn: await q("asn"),
   }), { headers });
 }
