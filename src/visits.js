@@ -1,5 +1,5 @@
 // Registro propio de visitas, agregado y sin datos personales (RGPD/LSSI art. 22.2: sin cookies ni almacenamiento en el equipo).
-// POST /api/v  -> suma 1 a la fila del día. GET /api/admin/visitas?dias=N (x-admin-key) -> resumen.
+// POST /api/v  -> suma 1 a la fila del día. Las rutas /ev/<paso> son pasos del embudo (licencia, conversión, descarga...). GET /api/admin/visitas?dias=N (x-admin-key) -> resumen.
 import { clientIp, hash, num, take, today } from "./limits.js";
 
 const BOT_RE = /bot|crawl|spider|slurp|preview|headless|lighthouse|monitor|curl|wget|python|httpclient|scrapy/i;
@@ -55,13 +55,16 @@ export async function visitsReport(request, env, url) {
   if (!sameKey(request.headers.get("x-admin-key") || "", want)) return new Response('{"ok":false}', { status: 403, headers });
   const from = today() - Math.min(num(url.searchParams.get("dias"), 30), 400) + 1;
   const q = async (col, limit = 25) => (await env.USAGE_DB.prepare(
-    `SELECT ${col} AS k, SUM(n) AS vistas, SUM(entry * n) AS visitas FROM visits WHERE day >= ?1 GROUP BY ${col} ORDER BY vistas DESC LIMIT ${limit}`,
+    `SELECT ${col} AS k, SUM(n) AS vistas, SUM(entry * n) AS visitas FROM visits WHERE day >= ?1 AND path NOT LIKE '/ev/%' GROUP BY ${col} ORDER BY vistas DESC LIMIT ${limit}`,
   ).bind(from).all()).results;
-  const total = await env.USAGE_DB.prepare("SELECT COALESCE(SUM(n),0) AS vistas, COALESCE(SUM(entry*n),0) AS visitas FROM visits WHERE day >= ?1").bind(from).first();
+  const total = await env.USAGE_DB.prepare("SELECT COALESCE(SUM(n),0) AS vistas, COALESCE(SUM(entry*n),0) AS visitas FROM visits WHERE day >= ?1 AND path NOT LIKE '/ev/%'").bind(from).first();
+  const embudo = (await env.USAGE_DB.prepare(
+    "SELECT substr(path, 5) AS k, SUM(n) AS n FROM visits WHERE day >= ?1 AND path LIKE '/ev/%' GROUP BY path ORDER BY n DESC LIMIT 30",
+  ).bind(from).all()).results;
   return new Response(JSON.stringify({
     ok: true, desde: new Date(from * 86_400_000).toISOString().slice(0, 10), total,
     por_dia: await q("day", 400), paises: await q("country"), origenes: await q("ref"),
     utm_source: await q("src"), utm_campaign: await q("camp"), paginas: await q("path", 40),
-    dispositivos: await q("dev", 5), redes_asn: await q("asn"),
+    dispositivos: await q("dev", 5), redes_asn: await q("asn"), embudo,
   }), { headers });
 }

@@ -388,6 +388,7 @@
             document.getElementById("lic-trial").firstChild.textContent = d.license;
             store(KEY, d.license); apply(d.license);
             tout.hidden = false; tf.hidden = true;
+            if (window.flintEv) window.flintEv("licencia-ok");
             var nNote = document.querySelector("[data-trial-news-note]");
             if (nNote) nNote.hidden = !d.newsletter_sent;
             setTimeout(function () { tout.scrollIntoView({ behavior: "smooth", block: "center" }); }, 50);
@@ -560,6 +561,43 @@
         .catch(function () { msg.className = "lic-help warn"; msg.textContent = T("No se pudo conectar. Inténtalo en un minuto.", "Could not connect. Try again in a minute."); })
         .then(function () { btn.disabled = false; btn.removeAttribute("aria-busy"); });
     });
+  });
+})();
+
+/* Pasos del embudo: se cuentan como rutas virtuales /ev/<paso> en el mismo registro agregado (sin identificadores). */
+window.flintEv = function (name) {
+  try {
+    if (!/^[a-z0-9-]{1,40}$/.test(name) || navigator.webdriver || navigator.globalPrivacyControl || navigator.doNotTrack === "1" || !navigator.sendBeacon) return;
+    var q = new URLSearchParams(location.search);
+    navigator.sendBeacon("/api/v", new Blob([JSON.stringify({ p: "/ev/" + name, s: q.get("utm_source") || q.get("ref") || "", c: q.get("utm_campaign") || "", e: 0 })], { type: "application/json" }));
+  } catch (e) { /* nunca romper la página por medir */ }
+};
+document.addEventListener("click", function (ev) {
+  var a = ev.target && ev.target.closest ? ev.target.closest("[data-ev]") : null;
+  if (a) window.flintEv(a.getAttribute("data-ev"));
+});
+
+/* Solicitud de piloto de 30 días (/piloto/) */
+(function () {
+  var f = document.querySelector("[data-pilot-form]");
+  if (!f) return;
+  var msg = f.querySelector("[data-pilot-msg]"), out = document.querySelector("[data-pilot-out]");
+  var say = function (cls, t) { msg.className = "lic-help" + (cls ? " " + cls : ""); msg.textContent = t; };
+  f.addEventListener("submit", function (ev) {
+    ev.preventDefault();
+    if (!f.checkValidity()) { say("warn", "Revisa los campos marcados."); f.reportValidity && f.reportValidity(); return; }
+    var btn = f.querySelector("button[type=submit]"), q = new URLSearchParams(location.search);
+    var body = { email: f.email.value, nombre: f.nombre.value, despacho: f.despacho.value, programa: f.programa.value, clientes: f.clientes.value,
+      telefono: f.telefono.value, mensaje: f.mensaje.value, acepto: f.acepto.checked, web: f.web.value, origen: q.get("utm_source") || q.get("ref") || "" };
+    btn.disabled = true; btn.setAttribute("aria-busy", "true"); say("", "Enviando…");
+    fetch("/api/piloto", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) })
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        if (d.ok) { f.hidden = true; out.hidden = false; window.flintEv("piloto-ok"); out.scrollIntoView({ behavior: "smooth", block: "center" }); }
+        else say("warn", d.error || "No se pudo enviar. Escríbenos a support@keyflint.dev.");
+      })
+      .catch(function () { say("warn", "No se pudo conectar. Inténtalo en un minuto o escribe a support@keyflint.dev."); })
+      .then(function () { btn.disabled = false; btn.removeAttribute("aria-busy"); });
   });
 })();
 

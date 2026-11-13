@@ -5,6 +5,7 @@
 import { clientIp, giveBack, hash, num, take, today } from "./limits.js";
 import { confirmNewsletter, startNewsletter, unsubscribeNewsletter } from "./newsletter.js";
 import { recordVisit, visitsReport } from "./visits.js";
+import { requestPilot } from "./pilot.js";
 import { weeklyReport } from "./weekly.js";
 
 const LICENSE_RE = /^[A-Za-z0-9._~+\/=-]{6,1024}$/;
@@ -247,6 +248,15 @@ async function newsletterConfirm(request, env, url) {
   return json({ ok: true });
 }
 
+async function pilot(request, env, url) {
+  if (!sameOrigin(request, url)) return json({ ok: false }, 403);
+  let body = {};
+  try { body = JSON.parse((await request.text()).slice(0, 4096)); } catch (e) { /* json inválido */ }
+  const r = await requestPilot(env, request, body);
+  if (!r.ok) return json({ ok: false, error: r.error }, r.status || 400);
+  return json({ ok: true });
+}
+
 async function newsletterUnsub(request, env, url) {
   if (!sameOrigin(request, url)) return json({ ok: false }, 403);
   let body = {};
@@ -271,6 +281,7 @@ export default {
     if (url.pathname === "/api/boletin/alta" && request.method === "POST") return newsletterStart(request, env, url);
     if (url.pathname === "/api/boletin/confirmar" && request.method === "POST") return newsletterConfirm(request, env, url);
     if (url.pathname === "/api/boletin/baja" && request.method === "POST") return newsletterUnsub(request, env, url);
+    if (url.pathname === "/api/piloto" && request.method === "POST") return pilot(request, env, url);
     if (url.pathname.startsWith("/api/")) return json({ ok: false, error: "No encontrado." }, 404);
     return env.ASSETS.fetch(request);
   },

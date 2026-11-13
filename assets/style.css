@@ -731,3 +731,21 @@ svg.logo{width:30px;height:30px;flex:none;filter:drop-shadow(0 1px 6px rgba(204,
   th,td{padding:12px 14px}
 }
 .brand-mark-lg{display:block;margin:0 auto 24px;filter:drop-shadow(0 8px 24px rgba(204,255,0,.28))}
+/* selector de programa (/asesorias/) y piloto (/piloto/) */
+.prog-pick{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:16px;scroll-margin-top:96px}
+.prog-pick.center{justify-content:center}
+.pill-link{display:inline-flex;align-items:center;min-height:40px;padding:8px 16px;border:1px solid var(--line);border-radius:999px;background:var(--surface);color:var(--ink);font-weight:600;font-size:.9375rem;text-decoration:none}
+.pill-link:hover,.pill-link:focus-visible{border-color:var(--brand);background:var(--brand-soft)}
+.pilot-form{display:grid;gap:16px}
+.pilot-form .row2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.pilot-form label>span:first-child{display:block;font-weight:600;font-size:.875rem;margin-bottom:8px}
+.pilot-form input[type=text],.pilot-form input[type=email],.pilot-form input[type=tel],.pilot-form select,.pilot-form textarea{width:100%;min-height:44px;padding:10px 12px;border:1px solid var(--line);border-radius:var(--r-sm);background:var(--surface);color:var(--ink);font:inherit}
+.pilot-form .check{display:flex;gap:8px;align-items:flex-start;font-size:.875rem;color:var(--ink-2)}
+.pilot-form .hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+.pilot-terms{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin:0;padding:0;list-style:none}
+.pilot-terms li{padding:16px;border:1px solid var(--line);border-radius:var(--r);background:var(--surface)}
+.pilot-terms b{display:block;margin-bottom:4px}
+@media (max-width:640px){.pilot-form .row2,.pilot-terms{grid-template-columns:1fr}}
+.note-card{padding:24px;border-radius:var(--r-lg)}
+.note-card h2{display:flex;align-items:center;gap:8px;margin:0 0 8px}
+.note-card .i{width:20px;height:20px}

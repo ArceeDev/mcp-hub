@@ -35,6 +35,7 @@ SEO_KEYWORDS = {
     "/boletin/": "boletin contable asesorias, trucos norma 43 contasol a3, newsletter gestorias espana, cierre trimestral bancos",
     "/lote/": "procesador por lotes norma 43, convertir multiples extractos bancarios, lote n43 c43 xml facturae, conciliar bancos por lotes, visor norma 43 online",
     "/confianza/": "rgpd art 28 contabilidad, proteccion datos asesorias, secreto profesional extractos bancarios, subencargados software contable, dpa gestorias, seguridad datos contables",
+    "/piloto/": "piloto gratis asesoria, prueba software contable despacho, norma 43 contasol prueba, conciliacion bancaria gestoria prueba gratis",
     "/probar/": "probar mcp gratis, creditos gratis norma 43, licencia keyflint gratis, demo conciliacion bancaria, probar servidores mcp claude cursor",
     "/empezar/": "como instalar mcp claude, guia instalar cursor mcp, configurar norma 43 mcp, mcp vs code instalacion, tutorial servidores mcp espanol",
     "/terminos/": "terminos de uso flint, condiciones del servicio keyflint, licencia software mcp, contrato bsl espana, terminos herramientas ia",
@@ -734,7 +735,7 @@ def seal(compact: bool = False) -> str:
                 "Corrupted or invalid files are rejected at zero cost, and any transient network failure instantly refunds credits to your balance."))]
     lis = "".join(f'<li><span class="tile tile-sm">{icon(i)}</span><div><h3>{t}</h3><p>{d}</p></div></li>' for i, t, d in items)
     return f"""<section class="section{' tight' if compact else ''}"><div class="wrap"><div class="seal glass">
-<div class="seal-badge" aria-hidden="true">{icon("check")}<span>{L("Cuadre 100%<br>Certificado", "100% Certified<br>Balance")}</span></div>
+<div class="seal-badge" aria-hidden="true">{icon("check")}<span>{L("Cuadre<br>comprobado", "Balance<br>verified")}</span></div>
 <div><h2>{L("Rigor contable estricto: 0% errores de cálculo, 0% alucinaciones", "Strict accounting rigor: 0% calculation errors, 0% hallucinations")}</h2><ul class="seal-list">{lis}</ul></div>
 </div></div></section>"""
 
@@ -747,6 +748,11 @@ def trial_page() -> str:
 <h1>{SITE['free_credits']} créditos gratis, sin tarjeta</h1>
 <p class="lead">Escribe tu correo y te damos una licencia al momento. Sirve para todos los servidores; si luego compras un plan con el mismo correo, se amplía la misma.</p>
 </div></section>
+<section class="section tight"><div class="wrap narrow"><div class="note-card glass">
+<h2 class="h4">{icon("landmark")}¿Eres asesoría o gestoría? No hace falta instalar nada</h2>
+<p class="muted small">Convierte un extracto Norma 43 tuyo directamente en el navegador: escribe tu correo allí y los {SITE['free_credits']} créditos se activan solos.</p>
+<div class="prog-pick"><a class="pill-link" href="/norma43-a-contasol/" data-ev="probar-contasol">ContaSol</a><a class="pill-link" href="/norma43-a-a3/" data-ev="probar-a3">a3</a><a class="pill-link" href="/norma43-a-contaplus/" data-ev="probar-contaplus">ContaPlus / Sage</a><a class="pill-link" href="/norma43-a-excel/" data-ev="probar-excel">Excel</a><a class="pill-link" href="/piloto/" data-ev="probar-piloto">Piloto 30 días</a></div>
+</div></div></section>
 <section class="section tight"><div class="wrap narrow">
 <form class="recover glass" data-trial-form novalidate>
 <div><h2 class="h3">Tu licencia de prueba</h2>
@@ -1151,12 +1157,14 @@ def advisors_page() -> str:
 <section class="hero"><div class="glow" aria-hidden="true"></div><div class="wrap narrow center">
 <div class="kicker"><span class="pill"><span class="pill-dot"></span><span>Software para despachos contables y asesorías</span></span></div>
 <h1>Conciliación bancaria Norma 43 y facturas en 1 segundo, sin picar datos</h1>
-<p class="lead">Pasa extractos bancarios (.n43, .c43) y facturas XML directamente a Excel, ContaSol o A3 con 100% de cuadre matemático certificado. Sin suscripciones cautivas ni módulos costosos.</p>
+<p class="lead">Pasa extractos bancarios (.n43, .c43) y facturas XML directamente a Excel, ContaSol o A3, con el saldo comprobado movimiento a movimiento. Sin permanencia ni módulos caros.</p>
 <div class="cta-row center">
-<a class="btn btn-primary btn-lg" href="/lote/">{icon("download")}Abrir procesador por lotes</a>
-<a class="btn btn-ghost btn-lg" href="/norma43-a-excel/">{icon("table")}Demo extracto en 1 clic</a>
+<a class="btn btn-primary btn-lg" href="#tu-programa" data-ev="cta-asesorias-extracto">{icon("download")}Probar con un extracto mío</a>
+<a class="btn btn-ghost btn-lg" href="/piloto/" data-ev="cta-asesorias-piloto">{icon("chat")}Piloto gratis 30 días</a>
 </div>
-<ul class="assure center"><li>{icon("check")}<span>25 extractos de prueba gratis</span></li><li>{icon("check")}<span>Sin tarjeta</span></li><li>{icon("check")}<span>RGPD Art. 28 estricto</span></li><li>{icon("check")}<span>Soporte en España</span></li></ul>
+<div class="prog-pick center" id="tu-programa" role="group" aria-label="Elige tu programa contable"><span class="muted small">¿A qué programa lo pasas?</span>
+<a class="pill-link" href="/norma43-a-contasol/" data-ev="prog-contasol">ContaSol</a><a class="pill-link" href="/norma43-a-a3/" data-ev="prog-a3">a3</a><a class="pill-link" href="/norma43-a-contaplus/" data-ev="prog-contaplus">ContaPlus / Sage</a><a class="pill-link" href="/norma43-a-excel/" data-ev="prog-excel">Excel / Holded</a></div>
+<ul class="assure center"><li>{icon("check")}<span>{SITE['free_credits']} créditos gratis (unos 8 extractos)</span></li><li>{icon("check")}<span>Sin tarjeta</span></li><li>{icon("check")}<span>RGPD Art. 28 estricto</span></li><li>{icon("check")}<span>Soporte en España</span></li></ul>
 </div></section>
 
 <!-- 1. SOLUCIONES DIRECTAS: ARRIBA Y SIN ESPERAS -->
@@ -1238,11 +1246,58 @@ def advisors_page() -> str:
 
 <!-- 7. BANDA DE CIERRE -->
 <section class="section"><div class="wrap"><div class="cta-band">
-<div><h2>Prueba con los extractos de este mes</h2><p class="lead-sm">{SITE['free_credits']} créditos gratis: suficientes para probar todo el flujo de tu despacho. Sin tarjeta.</p></div>
-<div class="cta-row"><a class="btn btn-primary btn-lg" href="/probar/">{icon("key")}<span>Pedir licencia gratis</span></a><a class="btn btn-ghost btn-lg" href="/norma43-a-excel/"><span>Ver demo en 1 clic</span></a></div>
+<div><h2>Prueba con los extractos de este mes</h2><p class="lead-sm">{SITE['free_credits']} créditos gratis (unos 8 extractos), sin tarjeta y sin instalar nada. ¿Preferís que lo montemos con vosotros? Piloto de 30 días gratis.</p></div>
+<div class="cta-row"><a class="btn btn-primary btn-lg" href="#tu-programa" data-ev="cta-asesorias-extracto-fin">{icon("download")}<span>Probar con un extracto mío</span></a><a class="btn btn-ghost btn-lg" href="/piloto/" data-ev="cta-asesorias-piloto-fin"><span>Pedir piloto de 30 días</span></a></div>
 </div></div></section>"""
     return page("/asesorias/", "Conciliación bancaria Norma 43 y facturas para asesorías · Flint by KeyFlint",
                 "Concilia extractos bancarios Norma 43, exporta asientos para ContaSol y A3 y audita facturas electrónicas. 0% errores de cálculo y 25 créditos gratis.",
+                body, [faq_ld(faq)])
+
+
+def pilot_page() -> str:
+    """Piloto gratis de 30 días para despachos (/piloto/): el despacho pide que le contactemos (base legal para escribirle)."""
+    progs = [("contasol", "ContaSol (DELSOL)"), ("a3", "a3ASESOR / a3ECO / a3CON"), ("contaplus", "Sage ContaPlus"), ("sage50", "Sage 50"),
+             ("holded", "Holded"), ("excel", "Excel u hoja de cálculo"), ("otro", "Otro")]
+    sizes = [("1-10", "1 a 10"), ("11-30", "11 a 30"), ("31-100", "31 a 100"), ("100+", "Más de 100")]
+    opt = lambda xs: '<option value="" selected disabled>Elige…</option>' + "".join(f'<option value="{v}">{t}</option>' for v, t in xs)
+    terms = [("Qué incluye", "El Plan Despacho Básico durante 30 días (2.500 créditos), sin tarjeta. Si os quedáis cortos, os amplío los créditos."),
+             ("Cómo empieza", "Una videollamada de 20 minutos: convertimos un extracto real vuestro y lo importamos en vuestro programa, en una empresa de pruebas."),
+             ("Qué os pido", "15 minutos a la semana para contarme qué falla o qué falta. Si os sirve, una frase de testimonio (solo si queréis)."),
+             ("Al terminar", "Si os ahorra tiempo, 49 €/mes sin permanencia. Si no, no pagáis nada y borro vuestros datos de contacto.")]
+    faq = [("¿Tenemos que instalar algo?", "No para empezar: la conversión funciona en el navegador. Si preferís que los extractos no salgan del despacho, os dejamos instalada la carpeta vigilada en vuestro ordenador en la misma llamada."),
+           ("¿Dónde se procesan los extractos?", "Con la instalación local, en vuestro ordenador: a KeyFlint solo viajan la licencia y el crédito. En el navegador, el fichero viaja cifrado a nuestro servidor en Cloudflare, se procesa en memoria y no se guarda. Detalles y encargo de tratamiento en /confianza/."),
+           ("¿Con qué programas funciona?", "Genera ficheros de importación para ContaSol (APU.ods), a3 (SUENLACE.DAT), ContaPlus (XDiario) y CSV para Excel, Holded o Sage 50. Si usáis otro, decídmelo en el formulario."),
+           ("¿Y si un movimiento no sabe dónde va?", "Va a la 555 marcado para revisar. Flint nunca inventa una contrapartida; con vuestras reglas (luz a la 628, comisiones a la 626…) la 555 queda casi vacía.")]
+    body = f"""
+<section class="hero hero-sm"><div class="glow" aria-hidden="true"></div><div class="wrap narrow">
+<nav class="crumbs" aria-label="Ruta"><a href="/">Inicio</a>{icon("chevron-right")}<a href="/asesorias/">Asesorías</a>{icon("chevron-right")}<span aria-current="page">Piloto 30 días</span></nav>
+<h1>Piloto gratis de 30 días para tu despacho</h1>
+<p class="lead">Lo dejamos funcionando con vuestros extractos reales y vuestro programa contable. Si en un mes no os ahorra horas de picar asientos, no pagáis nada.</p>
+</div></section>
+<section class="section tight"><div class="wrap narrow">
+<ul class="pilot-terms">{"".join(f"<li><b>{t}</b><span class='muted small'>{d}</span></li>" for t, d in terms)}</ul>
+</div></section>
+<section class="section tight" id="solicitar"><div class="wrap narrow">
+<form class="glass recover pilot-form" data-pilot-form novalidate>
+<div><h2 class="h3">Solicitar el piloto</h2><p class="muted small">Te escribe Jose Arce, fundador, en un día laborable. Plazas limitadas: lo monto yo con cada despacho.</p></div>
+<div class="row2"><label><span>Tu nombre</span><input type="text" name="nombre" autocomplete="name" maxlength="80" required></label>
+<label><span>Despacho</span><input type="text" name="despacho" autocomplete="organization" maxlength="120" required></label></div>
+<div class="row2"><label><span>Correo</span><input type="email" name="email" autocomplete="email" maxlength="254" required></label>
+<label><span>Teléfono (opcional)</span><input type="tel" name="telefono" autocomplete="tel" maxlength="30"></label></div>
+<div class="row2"><label><span>Programa contable</span><select name="programa" required>{opt(progs)}</select></label>
+<label><span>Clientes con banco que lleváis</span><select name="clientes" required>{opt(sizes)}</select></label></div>
+<label><span>¿Qué os gustaría resolver? (opcional)</span><textarea name="mensaje" rows="3" maxlength="600" placeholder="Por ejemplo: 40 extractos al mes de Santander y CaixaBank a a3."></textarea></label>
+<label class="hp" aria-hidden="true"><span>Web</span><input type="text" name="web" tabindex="-1" autocomplete="off"></label>
+<label class="check"><input type="checkbox" name="acepto" required><span>Acepto que KeyFlint me contacte por correo o teléfono para organizar el piloto. Solo para esto; los datos se borran si no seguimos. <a href="/confianza/">Privacidad</a>.</span></label>
+<div><button class="btn btn-primary btn-lg" type="submit">{icon("arrow-right")}Solicitar piloto</button></div>
+<p class="lic-help" data-pilot-msg aria-live="polite"></p>
+</form>
+<div class="reveal glass" data-pilot-out hidden><div class="reveal-head"><span class="tile tile-sm">{icon("check")}</span><div><h2 class="h3">Recibido</h2>
+<p class="muted small">Te escribo en un día laborable para fijar la llamada. Mientras, puedes probar ya con un extracto en <a href="/norma43-a-contasol/">ContaSol</a>, <a href="/norma43-a-a3/">a3</a> o <a href="/norma43-a-contaplus/">ContaPlus</a>.</p></div></div></div>
+</div></section>
+<section class="section tight"><div class="wrap narrow"><div class="faq"><h2 class="h3" style="margin-bottom:20px">Preguntas sobre el piloto</h2>{faq_html(faq)}</div></div></section>"""
+    return page("/piloto/", "Piloto gratis de 30 días para despachos · Flint by KeyFlint",
+                "Prueba Flint 30 días gratis en tu asesoría: extractos Norma 43 a ContaSol, a3 o ContaPlus con vuestros datos reales, montado con vosotros en una llamada.",
                 body, [faq_ld(faq)])
 
 
@@ -1275,8 +1330,8 @@ def batch_page() -> str:
 <p class="note" data-batch-msg aria-live="polite" hidden>{icon("info")}<span></span></p>
 <div class="batch-out" data-batch-out hidden><h2 class="h4">{icon("check")}{L("Resultados listos", "Results ready")}</h2>
 <p class="muted small">{L("El resumen se abre directamente en Excel (separador ; y coma decimal). El ZIP incluye además el informe auditable .flint.json de cada fichero.", "The summary opens straight in Excel. The ZIP also holds the auditable .flint.json report of each file.")}</p>
-<div class="cta-row"><button class="btn btn-primary" type="button" data-batch-csv>{icon("table")}{L("Descargar resumen Excel (.csv)", "Download Excel summary (.csv)")}</button>
-<button class="btn btn-ghost" type="button" data-batch-zip>{icon("download")}{L("Descargar todo (.zip)", "Download everything (.zip)")}</button>
+<div class="cta-row"><button class="btn btn-primary" type="button" data-batch-csv data-ev="descarga">{icon("table")}{L("Descargar resumen Excel (.csv)", "Download Excel summary (.csv)")}</button>
+<button class="btn btn-ghost" type="button" data-batch-zip data-ev="descarga-zip">{icon("download")}{L("Descargar todo (.zip)", "Download everything (.zip)")}</button>
 <a class="btn btn-primary" href="{U("balance")}#recargar">{icon("arrow-right")}{L("Recargar saldo (desde 5 €)", "Top up credits (from €5)")}</a>
 <a class="btn btn-quiet" href="{U("pricing")}">{L("Ver precios", "View pricing")}</a></div></div>
 </form>
@@ -1351,8 +1406,8 @@ def norma43_excel_page() -> str:
 
 <div class="batch-out" data-batch-out hidden><h2 class="h4">{icon("check")}Extractos convertidos con éxito</h2>
 <p class="muted small">Descarga tu resumen listo para abrir en Excel en español (separador ; y coma decimal) o el archivo comprimido ZIP con el informe auditable de cada cuenta.</p>
-<div class="cta-row"><button class="btn btn-primary" type="button" data-batch-csv>{icon("table")}Descargar resumen Excel (.csv)</button>
-<button class="btn btn-ghost" type="button" data-batch-zip>{icon("download")}Descargar todo (.zip)</button>
+<div class="cta-row"><button class="btn btn-primary" type="button" data-batch-csv data-ev="descarga">{icon("table")}Descargar resumen Excel (.csv)</button>
+<button class="btn btn-ghost" type="button" data-batch-zip data-ev="descarga-zip">{icon("download")}Descargar todo (.zip)</button>
 <a class="btn btn-primary" href="/saldo/#recargar">{icon("arrow-right")}Recargar créditos (desde 5 €)</a>
 <a class="btn btn-quiet" href="/precios/">Ver precios</a></div></div>
 </form>
@@ -1460,8 +1515,8 @@ def norma43_target_page(target: str) -> str:
 
 <div class="batch-out" data-batch-out hidden><h2 class="h4">{icon("check")}Asientos generados</h2>
 <p class="muted small">Un extracto: descargas {e(fname)}. Varios: un ZIP con un fichero por extracto, con los asientos numerados seguidos. Revisa los marcados como REVISAR_555 antes de cerrar.</p>
-<div class="cta-row"><button class="btn btn-primary" type="button" data-batch-csv>{icon("download")}Descargar {e(fname)}</button>
-<button class="btn btn-ghost" type="button" data-batch-zip>{icon("table")}Todo con resumen (.zip)</button>
+<div class="cta-row"><button class="btn btn-primary" type="button" data-batch-csv data-ev="descarga">{icon("download")}Descargar {e(fname)}</button>
+<button class="btn btn-ghost" type="button" data-batch-zip data-ev="descarga-zip">{icon("table")}Todo con resumen (.zip)</button>
 <a class="btn btn-quiet" href="/precios/#despacho">Plan Despacho</a></div></div>
 </form>
 
@@ -1730,8 +1785,8 @@ def bank_page(key: str) -> str:
 
 <div class="batch-out" data-batch-out hidden><h2 class="h4">{icon("check")}APU.ods generado</h2>
 <p class="muted small">Un fichero: descargas APU.ods. Varios: un ZIP con todos, con los asientos numerados seguidos. Revisa los marcados como REVISAR_555 antes de cerrar.</p>
-<div class="cta-row"><button class="btn btn-primary" type="button" data-batch-csv>{icon("download")}Descargar APU.ods</button>
-<button class="btn btn-ghost" type="button" data-batch-zip>{icon("table")}Todo con resumen (.zip)</button>
+<div class="cta-row"><button class="btn btn-primary" type="button" data-batch-csv data-ev="descarga">{icon("download")}Descargar APU.ods</button>
+<button class="btn btn-ghost" type="button" data-batch-zip data-ev="descarga-zip">{icon("table")}Todo con resumen (.zip)</button>
 <a class="btn btn-quiet" href="/precios/#despacho">Ver tarifas y recargas</a></div></div>
 </form>
 
@@ -1803,8 +1858,8 @@ def csv_target_page(target: str) -> str:
 
 <div class="batch-out" data-batch-out hidden><h2 class="h4">{icon("check")}Fichero {e(fname)} generado</h2>
 <p class="muted small">Un archivo: descargas {e(fname)} directo. Varios archivos: descargas un ZIP con todos los lotes numerados seguidos.</p>
-<div class="cta-row"><button class="btn btn-primary" type="button" data-batch-csv>{icon("download")}Descargar {e(fname)}</button>
-<button class="btn btn-ghost" type="button" data-batch-zip>{icon("table")}Todo con resumen (.zip)</button>
+<div class="cta-row"><button class="btn btn-primary" type="button" data-batch-csv data-ev="descarga">{icon("download")}Descargar {e(fname)}</button>
+<button class="btn btn-ghost" type="button" data-batch-zip data-ev="descarga-zip">{icon("table")}Todo con resumen (.zip)</button>
 <a class="btn btn-quiet" href="/precios/#despacho">Ver tarifas y recargas</a></div></div>
 </form>
 
@@ -2797,8 +2852,8 @@ def bank_target_page(bank_key: str, target_key: str) -> str:
 <span class="muted small tabnum" data-batch-cost aria-live="polite"></span></div>
 <p class="note" data-batch-msg aria-live="polite" hidden>{icon("info")}<span></span></p>
 <div class="batch-out" data-batch-out hidden><h2 class="h4">{icon("check")}Fichero {e(fname)} generado</h2>
-<div class="cta-row"><button class="btn btn-primary" type="button" data-batch-csv>{icon("download")}Descargar {e(fname)}</button>
-<button class="btn btn-ghost" type="button" data-batch-zip>{icon("table")}Todo con resumen (.zip)</button></div></div>
+<div class="cta-row"><button class="btn btn-primary" type="button" data-batch-csv data-ev="descarga">{icon("download")}Descargar {e(fname)}</button>
+<button class="btn btn-ghost" type="button" data-batch-zip data-ev="descarga-zip">{icon("table")}Todo con resumen (.zip)</button></div></div>
 </form>
 <div class="install-grid batch-info">
 <div><h2 class="h3">Cómo bajar el fichero de {e(b['name'])}</h2><ol class="steps" style="margin-top:14px">{steps}</ol></div>
@@ -2843,6 +2898,7 @@ def main() -> None:
     write("aviso-legal/index.html", notice_page())
     write("confianza/index.html", trust_page())
     write("asesorias/index.html", advisors_page())
+    write("piloto/index.html", pilot_page())
     write("lote/index.html", batch_page())
     write("en/batch/index.html", en_batch())
     write("norma43-a-excel/index.html", norma43_excel_page())
@@ -2893,7 +2949,7 @@ def main() -> None:
         "/probar/", "/empezar/", "/precios/", "/terminos/", "/reembolsos/", "/aviso-legal/", "/confianza/",
         "/norma43-a-excel/", "/norma43-a-contasol/", "/norma43-a-a3/", "/norma43-a-contaplus/",
         "/csv-a-contasol/", "/csv-a-a3/", "/csv-a-contaplus/",
-    ] + [b["path"] for b in BANK_PAGES.values()] + ["/en/", "/en/try/", "/en/start/", "/estado/", "/asesorias/", "/lote/", "/en/batch/"] + [f"/{m['slug']}/" for m in MCPS]
+    ] + [b["path"] for b in BANK_PAGES.values()] + ["/en/", "/en/try/", "/en/start/", "/estado/", "/asesorias/", "/piloto/", "/lote/", "/en/batch/"] + [f"/{m['slug']}/" for m in MCPS]
     write("sitemap.xml", '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
           + "".join(f"<url><loc>{SITE['url']}{p}</loc><lastmod>{TODAY}</lastmod></url>\n" for p in paths) + "</urlset>\n")
     indexnow_key = "8f4e2a9c1b7d3e5f6a0c8b2d4e6f1a3b"

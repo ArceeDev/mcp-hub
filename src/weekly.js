@@ -12,12 +12,15 @@ export const GOALS = { visitas: 150, pruebas: 3, licencias_activas: 1 };
 
 async function visitsBlock(db, from, to) {
   const tot = await db.prepare(
-    "SELECT COALESCE(SUM(n),0) AS vistas, COALESCE(SUM(entry*n),0) AS visitas FROM visits WHERE day >= ?1 AND day < ?2",
+    "SELECT COALESCE(SUM(n),0) AS vistas, COALESCE(SUM(entry*n),0) AS visitas FROM visits WHERE day >= ?1 AND day < ?2 AND path NOT LIKE '/ev/%'",
   ).bind(from, to).first();
   const top = async (col, limit = 5) => (await db.prepare(
-    `SELECT ${col} AS k, SUM(entry*n) AS visitas, SUM(n) AS vistas FROM visits WHERE day >= ?1 AND day < ?2 AND ${col} != '' GROUP BY ${col} ORDER BY visitas DESC, vistas DESC LIMIT ${limit}`,
+    `SELECT ${col} AS k, SUM(entry*n) AS visitas, SUM(n) AS vistas FROM visits WHERE day >= ?1 AND day < ?2 AND ${col} != '' AND path NOT LIKE '/ev/%' GROUP BY ${col} ORDER BY visitas DESC, vistas DESC LIMIT ${limit}`,
   ).bind(from, to).all()).results;
-  return { ...tot, origenes: await top("ref"), campanas: await top("camp"), paginas: await top("path", 8) };
+  const embudo = (await db.prepare(
+    "SELECT substr(path, 5) AS k, SUM(n) AS n FROM visits WHERE day >= ?1 AND day < ?2 AND path LIKE '/ev/%' GROUP BY path ORDER BY n DESC LIMIT 12",
+  ).bind(from, to).all()).results;
+  return { ...tot, origenes: await top("ref"), campanas: await top("camp"), paginas: await top("path", 8), embudo };
 }
 
 async function usageBlock(db, fromTs, toTs) {
@@ -67,6 +70,7 @@ export function weeklyText(r) {
     "Origen de las visitas:", list(v?.origenes),
     "Campañas (utm_campaign):", list(v?.campanas),
     "Páginas de entrada:", list(v?.paginas),
+    "Embudo (pasos completados):", v?.embudo?.length ? v.embudo.map((x) => `  - ${x.k}: ${x.n}`).join("\n") : "  - (nada)",
     "",
     "Qué hacer: si visitas OK y pruebas BAJO, el problema es la página (copy/CTA); si visitas BAJO, el problema es el canal.",
     "Ingresos y altas al boletín: panel de Stripe y Resend (no los ve el Worker).",

@@ -139,14 +139,14 @@
     if (r && !running) { items.splice(+r.getAttribute("data-remove"), 1); render(); }
     if (j) { var it = items[+j.getAttribute("data-json")]; save(it.name + ".flint.json", jsonText(it), "application/json"); }
   });
-  input.addEventListener("change", function () { addFiles(input.files); input.value = ""; });
+  input.addEventListener("change", function () { addFiles(input.files); input.value = ""; if (window.flintEv) window.flintEv("extracto-propio"); });
   ["dragenter", "dragover"].forEach(function (t) {
     drop.addEventListener(t, function (ev) { ev.preventDefault(); drop.classList.add("over"); });
   });
   ["dragleave", "drop"].forEach(function (t) {
     drop.addEventListener(t, function (ev) { ev.preventDefault(); drop.classList.remove("over"); });
   });
-  drop.addEventListener("drop", function (ev) { if (ev.dataTransfer && ev.dataTransfer.files) addFiles(ev.dataTransfer.files); });
+  drop.addEventListener("drop", function (ev) { if (ev.dataTransfer && ev.dataTransfer.files) { addFiles(ev.dataTransfer.files); if (window.flintEv) window.flintEv("extracto-propio"); } });
   /* soltar fuera de la zona no debe abrir el fichero en la pestaña */
   window.addEventListener("dragover", function (ev) { ev.preventDefault(); });
   window.addEventListener("drop", function (ev) { ev.preventDefault(); });
@@ -437,6 +437,7 @@
       if (fatalCredits) showRefill();
     }
     else if (stopFlag) say(T("Detenido. Pulsa Procesar para seguir con los pendientes.", "Stopped. Press Process to continue with the pending files."));
+    if (ok && window.flintEv) window.flintEv("conversion-ok" + (TARGET ? "-" + String(TARGET).replace(/[^a-z0-9]/g, "-").slice(0, 16) : ""));
     else say(T(ok + " fichero(s) procesados" + (bad ? ", " + bad + " con error (no se cobran)." : ".") + " Descarga el resultado abajo.",
       ok + " file(s) processed" + (bad ? ", " + bad + " failed (not charged)." : ".") + " Download the result below."), !!bad && !ok);
   }

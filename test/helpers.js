@@ -4,7 +4,7 @@ import { DatabaseSync } from "node:sqlite";
 // D1 mínimo sobre node:sqlite (prepare/bind/first/run/all) con las migraciones reales.
 export function fakeD1() {
   const db = new DatabaseSync(":memory:");
-  for (const f of ["0001_usage.sql", "0002_hub_limits.sql", "0003_visits.sql"]) db.exec(readFileSync(new URL(`../migrations/${f}`, import.meta.url), "utf8"));
+  for (const f of ["0001_usage.sql", "0002_hub_limits.sql", "0003_visits.sql", "0004_pilots.sql"]) db.exec(readFileSync(new URL(`../migrations/${f}`, import.meta.url), "utf8"));
   const wrap = (sql, args = []) => ({
     bind: (...a) => wrap(sql, a),
     first: async () => db.prepare(sql).get(...args) ?? null,
