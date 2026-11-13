@@ -1,0 +1,202 @@
+[
+ {
+  "id": "2026-11-16-linkedin-es",
+  "fecha": "2026-11-16T08:30:00+01:00",
+  "canal": "linkedin",
+  "idioma": "es",
+  "tema": "visor",
+  "texto": "Cierre de mes en un despacho: descargar el Norma 43 de cada cliente, abrirlo, teclear movimientos en ContaSol o A3.\n\nHe hecho una herramienta gratuita para el primer paso: un visor de Norma 43 que comprueba en tu navegador que saldo inicial + movimientos = saldo final y que los totales del registro 33 cuadran. El fichero no se sube a ningún sitio.\n\nSi lo pruebas con un extracto real y algo no cuadra, me ayuda mucho que me lo digas.",
+  "url": "https://mcp.keyflint.dev/visor-norma-43/?utm_source=linkedin&utm_medium=social&utm_campaign=cola-2026-11-16",
+  "estado": "pendiente"
+ },
+ {
+  "id": "2026-11-17-x-es",
+  "fecha": "2026-11-17T09:00:00+01:00",
+  "canal": "x",
+  "idioma": "es",
+  "tema": "guias",
+  "texto": "¿Tu banco te da el extracto en Norma 43 y no sabes dónde?\n\nGuías paso a paso para Santander, BBVA, CaixaBank, Sabadell, Bankinter, Unicaja, Kutxabank, Ibercaja, Abanca y Cajamar.",
+  "url": "https://mcp.keyflint.dev/descargar-norma-43-santander/?utm_source=x&utm_medium=social&utm_campaign=cola-2026-11-17",
+  "estado": "pendiente"
+ },
+ {
+  "id": "2026-11-18-linkedin-es",
+  "fecha": "2026-11-18T08:30:00+01:00",
+  "canal": "linkedin",
+  "idioma": "es",
+  "tema": "555",
+  "texto": "Lo que nunca debería hacer una herramienta contable: inventarse una cuenta.\n\nCuando Flint pasa un extracto a asientos y un movimiento no encaja en tus reglas, va a la 555 y aparece en una lista para revisar. No adivina. Mismo fichero de entrada, mismo resultado, siempre.\n\n25 créditos gratis (unos 8 extractos), sin tarjeta.",
+  "url": "https://mcp.keyflint.dev/norma43-a-contasol/?utm_source=linkedin&utm_medium=social&utm_campaign=cola-2026-11-18",
+  "estado": "pendiente"
+ },
+ {
+  "id": "2026-11-18-x-en",
+  "fecha": "2026-11-18T16:00:00+01:00",
+  "canal": "x",
+  "idioma": "en",
+  "tema": "mcp-billing",
+  "texto": "Charging for an MCP server without losing the user's trust:\n\n- credits per call\n- if the tool throws or returns isError, the credit is refunded automatically\n- license checked with Ed25519, no account wall\n\nThat is how all 5 Flint servers bill.",
+  "url": "https://mcp.keyflint.dev/?utm_source=x&utm_medium=social&utm_campaign=cola-2026-11-18",
+  "estado": "pendiente"
+ },
+ {
+  "id": "2026-11-19-x-es",
+  "fecha": "2026-11-19T09:00:00+01:00",
+  "canal": "x",
+  "idioma": "es",
+  "tema": "validador",
+  "texto": "Validar IBAN, NIF, NIE, CIF o el identificador de acreedor SEPA antes de mandar la remesa al banco.\n\nGratis, en el navegador, sin registro.",
+  "url": "https://mcp.keyflint.dev/validar-iban-cif/?utm_source=x&utm_medium=social&utm_campaign=cola-2026-11-19",
+  "estado": "pendiente"
+ },
+ {
+  "id": "2026-11-23-linkedin-es",
+  "fecha": "2026-11-23T08:30:00+01:00",
+  "canal": "linkedin",
+  "idioma": "es",
+  "tema": "a3-feedback",
+  "texto": "Pregunta para asesorías que usan A3: ¿cuánto tiempo os lleva al mes meter los extractos bancarios de los clientes?\n\nEstoy midiendo cuánto ahorra pasar el Norma 43 directamente a SUENLACE.DAT (con la 572 de cada banco y lo dudoso en la 555). Si queréis probarlo con un cliente real, os doy créditos extra a cambio de 15 minutos de feedback.",
+  "url": "https://mcp.keyflint.dev/norma43-a-a3/?utm_source=linkedin&utm_medium=social&utm_campaign=cola-2026-11-23",
+  "estado": "pendiente"
+ },
+ {
+  "id": "2026-11-24-x-es",
+  "fecha": "2026-11-24T09:00:00+01:00",
+  "canal": "x",
+  "idioma": "es",
+  "tema": "contaplus",
+  "texto": "Norma 43 → ContaPlus sin teclear.\n\nSube el extracto, indica la 572 del banco y descarga el XDiario listo para importar. Si el fichero no cuadra, no se cobra.",
+  "url": "https://mcp.keyflint.dev/norma43-a-contaplus/?utm_source=x&utm_medium=social&utm_campaign=cola-2026-11-24",
+  "estado": "pendiente"
+ },
+ {
+  "id": "2026-11-25-linkedin-es",
+  "fecha": "2026-11-25T08:30:00+01:00",
+  "canal": "linkedin",
+  "idioma": "es",
+  "tema": "boletin",
+  "texto": "Diciembre es el peor mes del año para un despacho: cierre, modelos, remesas de enero.\n\nCada mes mando un correo corto con trucos de Norma 43, ContaSol y A3 y los cambios de los bancos. Sin spam y con baja en un clic. Si te sirve, el alta está aquí.",
+  "url": "https://mcp.keyflint.dev/boletin/?utm_source=linkedin&utm_medium=social&utm_campaign=cola-2026-11-25",
+  "estado": "pendiente"
+ },
+ {
+  "id": "2026-11-25-x-en",
+  "fecha": "2026-11-25T16:00:00+01:00",
+  "canal": "x",
+  "idioma": "en",
+  "tema": "determinismo",
+  "texto": "Deterministic finance tools for AI agents: same input file, same SHA-256 of the output.\n\nOur Norma 43 / journal MCP servers never invent amounts or dates; ambiguous rows go to a review list instead of being guessed. Open on PyPI.",
+  "url": "https://mcp.keyflint.dev/?utm_source=x&utm_medium=social&utm_campaign=cola-2026-11-25",
+  "estado": "pendiente"
+ },
+ {
+  "id": "2026-11-26-x-es",
+  "fecha": "2026-11-26T09:00:00+01:00",
+  "canal": "x",
+  "idioma": "es",
+  "tema": "sepa",
+  "texto": "¿Cobras recibos a clientes? Flint genera la remesa SEPA (pain.008, Cuaderno 19.14) y valida cada IBAN y mandato antes de subirla al banco.",
+  "url": "https://mcp.keyflint.dev/?utm_source=x&utm_medium=social&utm_campaign=cola-2026-11-26",
+  "estado": "pendiente"
+ },
+ {
+  "id": "2026-11-30-linkedin-es",
+  "fecha": "2026-11-30T08:30:00+01:00",
+  "canal": "linkedin",
+  "idioma": "es",
+  "tema": "pdf",
+  "texto": "Extractos en PDF: el banco te lo da, el programa contable no lo lee.\n\nFlint lee el PDF digital (texto seleccionable, sin OCR ni IA), comprueba fila a fila que saldo anterior + importe = saldo impreso y marca lo que no cuadra antes de generar el fichero para ContaSol, A3 o ContaPlus.",
+  "url": "https://mcp.keyflint.dev/?utm_source=linkedin&utm_medium=social&utm_campaign=cola-2026-11-30",
+  "estado": "pendiente"
+ },
+ {
+  "id": "2026-12-01-x-es",
+  "fecha": "2026-12-01T09:00:00+01:00",
+  "canal": "x",
+  "idioma": "es",
+  "tema": "csv",
+  "texto": "Revolut, Stripe o PayPal no dan Norma 43, pero sí CSV.\n\nFlint convierte ese CSV en asientos para ContaSol, A3 o ContaPlus, con la 572 que elijas.",
+  "url": "https://mcp.keyflint.dev/revolut-a-contasol/?utm_source=x&utm_medium=social&utm_campaign=cola-2026-12-01",
+  "estado": "pendiente"
+ },
+ {
+  "id": "2026-12-02-linkedin-es",
+  "fecha": "2026-12-02T08:30:00+01:00",
+  "canal": "linkedin",
+  "idioma": "es",
+  "tema": "confianza",
+  "texto": "Lo que me han preguntado más estas semanas: «¿mis extractos salen del despacho?».\n\nCon la instalación local, no: solo viajan la licencia y el crédito. En la web, el fichero viaja cifrado, se procesa en memoria y no se guarda. Lo explico con detalle en la página de confianza.",
+  "url": "https://mcp.keyflint.dev/confianza/?utm_source=linkedin&utm_medium=social&utm_campaign=cola-2026-12-02",
+  "estado": "pendiente"
+ },
+ {
+  "id": "2026-12-02-x-en",
+  "fecha": "2026-12-02T16:00:00+01:00",
+  "canal": "x",
+  "idioma": "en",
+  "tema": "lecciones",
+  "texto": "Building a paid MCP server? Things that took us longer than the tools themselves:\n\n1. idempotent Stripe webhooks\n2. refunds on tool failure\n3. OAuth 2.1 + DCR for remote clients\n4. one license across 5 servers\n\nNotes and code on GitHub.",
+  "url": "https://mcp.keyflint.dev/?utm_source=x&utm_medium=social&utm_campaign=cola-2026-12-02",
+  "estado": "pendiente"
+ },
+ {
+  "id": "2026-12-03-x-es",
+  "fecha": "2026-12-03T09:00:00+01:00",
+  "canal": "x",
+  "idioma": "es",
+  "tema": "diario",
+  "texto": "Pasar un libro diario de A3 a ContaPlus (o al revés) redimensionando subcuentas: 4300001 → 43000001.\n\nSin hojas de cálculo intermedias.",
+  "url": "https://mcp.keyflint.dev/?utm_source=x&utm_medium=social&utm_campaign=cola-2026-12-03",
+  "estado": "pendiente"
+ },
+ {
+  "id": "2026-12-07-linkedin-es",
+  "fecha": "2026-12-07T08:30:00+01:00",
+  "canal": "linkedin",
+  "idioma": "es",
+  "tema": "piloto",
+  "texto": "Cuatro semanas enseñando Flint a despachos. Lo que he aprendido:\n\n1. El problema no es convertir el fichero, es fiarse del resultado.\n2. Nadie quiere instalar nada en diciembre.\n3. La 555 con lista de revisión convence más que cualquier «IA».\n\nSigo buscando 3 despachos piloto para enero. Si te interesa, escríbeme.",
+  "url": "https://mcp.keyflint.dev/asesorias/?utm_source=linkedin&utm_medium=social&utm_campaign=cola-2026-12-07",
+  "estado": "pendiente"
+ },
+ {
+  "id": "2026-12-08-x-es",
+  "fecha": "2026-12-08T09:00:00+01:00",
+  "canal": "x",
+  "idioma": "es",
+  "tema": "visor",
+  "texto": "Antes de importar un extracto: ¿cuadra?\n\nEl visor gratuito de Norma 43 lo comprueba en tu navegador en un segundo.",
+  "url": "https://mcp.keyflint.dev/visor-norma-43/?utm_source=x&utm_medium=social&utm_campaign=cola-2026-12-08",
+  "estado": "pendiente"
+ },
+ {
+  "id": "2026-12-09-linkedin-es",
+  "fecha": "2026-12-09T08:30:00+01:00",
+  "canal": "linkedin",
+  "idioma": "es",
+  "tema": "precios",
+  "texto": "Plan Despacho de Flint: desde 49 €/mes con 2.500 créditos para Norma 43, ContaSol, A3, ContaPlus y remesas SEPA.\n\nLo que falla no se cobra. Antes, prueba gratis con 25 créditos.",
+  "url": "https://mcp.keyflint.dev/precios/?utm_source=linkedin&utm_medium=social&utm_campaign=cola-2026-12-09",
+  "estado": "pendiente"
+ },
+ {
+  "id": "2026-12-09-x-en",
+  "fecha": "2026-12-09T16:00:00+01:00",
+  "canal": "x",
+  "idioma": "en",
+  "tema": "nicho",
+  "texto": "Spain-specific accounting formats are a moat nobody wants to build: Norma 43, SUENLACE.DAT, XDiario, APU.ods, Cuaderno 19.14.\n\nWe built them as MCP servers so Claude, Cursor or any agent can do the bookkeeping plumbing.",
+  "url": "https://mcp.keyflint.dev/?utm_source=x&utm_medium=social&utm_campaign=cola-2026-12-09",
+  "estado": "pendiente"
+ },
+ {
+  "id": "2026-12-10-x-es",
+  "fecha": "2026-12-10T09:00:00+01:00",
+  "canal": "x",
+  "idioma": "es",
+  "tema": "truco",
+  "texto": "Truco de cierre: descarga un Norma 43 por cuenta y por mes. Así cada fichero cuadra con su extracto y la revisión es inmediata.",
+  "url": "https://mcp.keyflint.dev/descargar-norma-43-bbva/?utm_source=x&utm_medium=social&utm_campaign=cola-2026-12-10",
+  "estado": "pendiente"
+ }
+]

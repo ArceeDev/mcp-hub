@@ -1640,6 +1640,35 @@ BANK_PAGES = {
         "kw": "santander contasol, importar extracto santander contasol, norma 43 santander, cuaderno 43 santander empresas, extracto santander apu.ods",
     },
 }
+# Bancos con ruta genérica (sin nombres de menú inventados).
+EXTRA_N43_BANKS = {
+    "bankinter": "Bankinter", "unicaja": "Unicaja", "kutxabank": "Kutxabank",
+    "ibercaja": "Ibercaja", "abanca": "Abanca", "cajamar": "Cajamar",
+}
+for _k, _n in EXTRA_N43_BANKS.items():
+    BANK_PAGES.setdefault(_k, {
+        "path": f"/{_k}-a-contasol/", "name": _n, "kind": "banco", "csv": False,
+        "h1": f"Importar extracto {_n} (Norma 43 o CSV) en ContaSol",
+        "desc": f"Convierte el extracto de {_n} (Norma 43 o CSV) en el APU.ods de ContaSol con la 572 del banco. Saldos comprobados y lo dudoso a la 555.",
+        "lead": f"{_n} entrega los movimientos en Norma 43, el formato estándar de la banca española. Flint lo convierte en el APU.ods que importa ContaSol y comprueba los saldos antes.",
+        "export": [
+            f"En la banca online para empresas de {_n}, descarga los movimientos en Norma 43 (Cuaderno 43).",
+            "Si solo tienes Excel o CSV, guárdalo como CSV con columnas de fecha, importe y concepto.",
+            "Descarga un fichero por cuenta y por mes para cuadrar con el extracto.",
+        ],
+        "cols": [("Fecha", "Fecha"), ("Importe", "Importe (negativo = cargo)"), ("Concepto", "Concepto")],
+        "cols_note": "Con Norma 43 no hay que tocar nada. Con CSV, si tu descarga usa otros títulos de columna, renómbralos a Fecha, Importe y Concepto.",
+        "tips": [
+            ("Norma 43 con cuadre", "Flint comprueba que saldo inicial + abonos - cargos = saldo final y marca el fichero si no cuadra."),
+            ("Varios bancos a la vez", f"Puedes arrastrar el de {_n} junto a los de otros bancos del cliente; cambia la 572 entre lotes si cada banco tiene la suya."),
+            ("Sin adivinar cuentas", "Lo que no encaja en tus reglas va a la 555 y se lista para revisión."),
+        ],
+        "faq": [
+            (f"¿Dónde descargo el Norma 43 de {_n}?", f"En la banca online para empresas de {_n}, en movimientos o extractos. Tienes la guía en /descargar-norma-43-{_k}/."),
+            ("¿Sube mis datos a algún sitio?", "En esta página cada fichero viaja cifrado a nuestro servidor, se procesa en memoria y no se guarda. Con la instalación local, los extractos no salen del despacho hacia nosotros: solo viajan la licencia y el crédito."),
+        ],
+        "kw": f"{_k} contasol, importar extracto {_k} contasol, norma 43 {_k}, cuaderno 43 {_k}, extracto {_k} apu.ods",
+    })
 SEO_KEYWORDS.update({b["path"]: b["kw"] for b in BANK_PAGES.values()})
 
 
@@ -2500,6 +2529,14 @@ N43_GUIDES = {
     "sabadell": {"name": "Banco Sabadell", "app": "Sabadell Professional",
                  "route": ["Entra en Sabadell Professional y abre Cuentas > Movimientos.", "Elige cuenta y periodo.", "Usa Descargar o Exportar y selecciona Norma 43.", "Guarda el fichero."]},
 }
+# Bancos con ruta genérica (sin nombres de menú inventados): el texto lo deja claro y remite a la ayuda del banco.
+for _k, _n in EXTRA_N43_BANKS.items():
+    N43_GUIDES[_k] = {"name": _n, "app": f"la banca online para empresas de {_n}", "route": [
+        f"Entra en la banca online para empresas de {_n} y abre la cuenta.",
+        "Busca la consulta de movimientos o extractos y elige el periodo (mejor un mes por fichero).",
+        "Usa la opción de descarga o exportación y elige Norma 43 (también Cuaderno 43 o AEB43). Si no aparece, pídela a tu oficina: es un formato estándar de la banca española.",
+        "Guarda el fichero (.txt, .n43, .c43 o .q43) y compruébalo en el visor.",
+    ]}
 
 
 def n43_guide_page(key: str) -> str:
@@ -2709,6 +2746,7 @@ BANK_TARGET_COMBOS = [
     ("santander", "a3"), ("bbva", "a3"), ("caixabank", "a3"),
     ("santander", "contaplus_ascii"), ("bbva", "contaplus_ascii"), ("caixabank", "contaplus_ascii"),
 ]
+BANK_TARGET_COMBOS += [(k, t) for k in EXTRA_N43_BANKS for t in ("a3", "contaplus_ascii")]
 for _bk, _tk in BANK_TARGET_COMBOS:
     _bname = BANK_PAGES[_bk]["name"]
     _slug_t = "contaplus" if _tk == "contaplus_ascii" else _tk

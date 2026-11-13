@@ -21,6 +21,7 @@ import api from "./worker.js";
 import { EMAIL_RE, bindLicense, closeSession, issueTrial, licensesFor, normEmail, openSession, readSession, startEmailLogin, verifyEmailCode } from "./emailauth.js";
 import { demo } from "./demo.js";
 import { status } from "./status.js";
+import { WEEKLY_CRON, weekly } from "./weekly.js";
 
 import { NAMES, SLUGS } from "./slugs.js";
 
@@ -541,7 +542,7 @@ export default {
     if (path.startsWith("/oauth/") || path.startsWith("/.well-known/oauth-")) return as.fetch(request, env, ctx);
     return api.fetch(request, env, ctx);
   },
-  async scheduled(_event, env, ctx) {
-    ctx.waitUntil(daily(env));
+  async scheduled(event, env, ctx) {
+    ctx.waitUntil(event?.cron === WEEKLY_CRON ? weekly(env) : daily(env));
   },
 };

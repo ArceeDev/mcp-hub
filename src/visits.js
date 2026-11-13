@@ -41,7 +41,7 @@ export async function recordVisit(request, env, url) {
   return noContent();
 }
 
-function sameKey(a, b) {
+export function sameKey(a, b) {
   const x = new TextEncoder().encode(a), y = new TextEncoder().encode(b);
   if (!x.length || x.length !== y.length) return false;
   let d = 0;

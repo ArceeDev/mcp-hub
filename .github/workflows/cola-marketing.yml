@@ -1,0 +1,30 @@
+# Cola de marketing: valida marketing/cola.json y cada lunes abre un issue con las publicaciones de la semana
+# para que Arcee las apruebe. No publica nada en redes: eso solo ocurre tras la aprobación.
+name: cola-marketing
+on:
+  schedule:
+    - cron: "0 6 * * 1"   # lunes 07:00 (Madrid, horario de invierno)
+  workflow_dispatch:
+  pull_request:
+    paths: ["marketing/**", "scripts/cola_semana.py"]
+  push:
+    branches: [production]
+    paths: ["marketing/**", "scripts/cola_semana.py"]
+permissions:
+  contents: read
+  issues: write
+jobs:
+  cola:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validar cola
+        run: python3 scripts/cola_semana.py --check
+      - name: Abrir issue de la semana
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 scripts/cola_semana.py --semana > semana.md
+          gh label create marketing --color CCFF00 --description "Cola de publicaciones" 2>/dev/null || true
+          gh issue create --title "Publicaciones de la semana $(date -u +%G-W%V)" --label marketing --assignee ArceeDev --body-file semana.md
