@@ -1147,7 +1147,7 @@ def advisors_page() -> str:
     
     faq = [
         ("¿Tengo que saber de informática para usarlo?", "No. Puedes usar el procesador en el navegador arrastrando los extractos sin instalar nada, o dejar una carpeta vigilada en tu ordenador con un solo comando."),
-        ("¿Mis datos bancarios salen del despacho?", "Con la instalación local o carpeta vigilada, no: los ficheros se procesan en tu equipo. En el navegador viajan cifrados bajo TLS a la UE, se procesan en memoria volátil y nunca se almacenan (cumplimiento estricto RGPD Art. 28)."),
+        ("¿Mis datos bancarios salen del despacho?", "Con la instalación local o carpeta vigilada, no: los ficheros se procesan en tu equipo. En el navegador viajan cifrados (TLS) a nuestro servidor en la red de Cloudflare, se procesan en memoria y no se guardan. Encargo de tratamiento (art. 28 RGPD) en /confianza/."),
         ("¿Y si la herramienta se equivoca con un apunte?", "Flint no utiliza IA para el cálculo numérico: aplica el algoritmo matemático oficial del cuaderno AEB 43. Verifica saldo inicial, sumas de debe y haber y saldo final. Error de cálculo: 0%."),
         ("¿Es compatible con ContaSol, A3 y Sage?", "Sí. Exporta ficheros de asientos directamente compatibles con ContaSol (DELSOL), plantillas de diario para A3 y hojas de cálculo normalizadas para Excel y Sage 50."),
         ("¿Cuánto cuesta?", "Empiezas con 25 créditos totalmente gratuitos. Después eliges: Plan Despacho desde 49 €/mes (2.500 créditos al mes, unos 625 extractos leídos y conciliados, sin permanencia) o recargas sueltas desde 5 € que no caducan."),
