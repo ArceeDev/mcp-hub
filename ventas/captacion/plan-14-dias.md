@@ -1,43 +1,76 @@
-# Plan de captación de despachos · 14 días (sáb 14 – vie 27 nov 2026)
+# Plan de captación de despachos desde cero · 14 días (sáb 14 – vie 27 nov 2026)
 
-## La verdad primero
-No existe un plan infalible. Con 0 clientes, lo que más se acerca es **hablar con muchos despachos reales, rápido, por canales donde ya confían en alguien**, y medir cada paso para corregir en días, no en meses. En B2B de nicho los primeros 10 clientes salen casi siempre de: contactos cálidos > presentaciones > comunidades donde aportas > contenido. El tráfico de devs (PH, HN, X) no compra Norma 43 → ContaSol.
+## Punto de partida
+- 0 € de ingresos externos, 0 clientes, **0 red de contactos** y tráfico humano casi nulo.
+- El producto funciona: Norma 43 → ContaSol / a3 / ContaPlus / Excel en el navegador, piloto en /piloto/ y el embudo medido.
+- Lo que falta es que **un asesor lo vea delante de él**. Sin red, la confianza hay que ganarla cara a cara.
 
-**Meta 14 días:** 15 conversaciones con despachos, 5 demos, 2 pilotos activos, 1 con fecha de cobro.
-**Meta 30 días (13 dic):** 3 despachos pagando (49–99 €/mes).
+No hay plan infalible. Este es el de mayor probabilidad con 0 contactos: **muchas llamadas y visitas a asesorías pequeñas cercanas**, medir y corregir cada semana. Cada demo empieza a construir la red (pedir 1-2 presentaciones).
 
-## Canales ordenados por probabilidad de cliente (y horas de Arcee)
-| # | Canal | Prob. | Horas/sem | Por qué |
+**Meta 14 días:** ~60 llamadas → 15 conversaciones → 5 demos → 2 pilotos → 1 fecha de cobro.
+**Meta 30 días (13 dic):** 3 despachos pagando.
+
+## Reglas legales (LSSI art. 21 y Ley 11/2022)
+- **Teléfono y visita a la empresa:** sí. Pides permiso antes de enviar nada y aceptas un «no» a la primera.
+- **Correo, WhatsApp o LinkedIn:** solo a quien te ha dado permiso o te ha presentado.
+- Nunca: listas compradas, envíos masivos ni insistir a quien dijo que no. Anota quien pide no ser contactado.
+
+## Canales por probabilidad (horas de Arcee por semana)
+| # | Canal | Prob. | h/sem | Cómo |
 |---|---|---|---|---|
-| 1 | Contacto cálido: la conocida secretaria → su asesoría | Alta | 1 | Presentación personal = confianza prestada. Es tu mejor bala: cuídala. |
-| 2 | Red personal (familia, amigos, excompañeros con negocio): «¿quién te lleva la contabilidad?» | Alta | 1 | Cada pyme tiene una asesoría; el cliente presenta al asesor. |
-| 3 | Presentación tras cada demo («¿a quién más le pasa?») | Alta | 0,5 | Los asesores se conocen entre ellos. |
-| 4 | Consultores/formadores de ContaSol, a3, ContaPlus (distribuidores, academias, YouTubers del programa) | Media | 2 | Un socio = decenas de despachos. Les das comisión del 20 % 12 meses. |
-| 5 | Colegios y asociaciones (Colegio de Gestores Administrativos de tu provincia, AECE, REAF-CGE, colegio de economistas) | Media | 1 | Charla gratis de 30 min o artículo en su boletín. Lento pero muy creíble. |
-| 6 | Grupos de Facebook/Telegram de asesores | Media-baja | 2 | Aportar el visor N43 gratis y respuestas útiles. Nunca vender en frío. |
-| 7 | LinkedIn (100 contactos ya listados) | Baja-media | 1,5 | 15–20 invitaciones/día con nota; contenido 2×/sem. |
-| 8 | SEO (guías por banco/programa ya publicadas) | Baja a 14 d, alta a 6 meses | 0 | Ya hecho; solo medir. |
+| 1 | **Llamadas a asesorías pequeñas** de tu ciudad (Google Maps, 1-10 empleados) | Media-alta | 3 | 15 al día, de 9:30 a 13:30. Guion `mensajes.md` §1 |
+| 2 | **Visitas sin cita** a asesorías cercanas | Media-alta | 2 | Portátil + one-pager impreso. Guion §2 |
+| 3 | Consultores y formadores de ContaSol, a3, ContaPlus | Media | 2 | Propuesta de colaboración, 20 % de comisión 12 meses. §4 |
+| 4 | Colegio de Gestores de tu provincia, AECE, REAF, colegio de economistas | Media | 1 | Charla gratis de 30 min. §5 |
+| 5 | Eventos (Accountex IFEMA 18-19 nov, verificar fecha) | Media | 1 día | Conversaciones cara a cara |
+| 6 | Presentación y referido tras cada demo | Alta cuando haya demos | 0,5 | Mes gratis para los dos. §7 |
+| 7 | Grupos de Facebook/Telegram de asesores | Media-baja | 1,5 | Aportar el visor N43, sin vender. §3 |
+| 8 | LinkedIn (100 contactos listados) | Baja | 1 | 15 invitaciones/día con nota. §6 |
+| 9 | SEO ya publicado | Baja a 14 d | 0 | Solo medir |
 
 ## Calendario
 | Día | Acción | Tiempo | Éxito |
 |---|---|---|---|
-| sáb 14 | Desplegar #31, #32 y #33 (ver informe). X + LinkedIn del Día D con UTMs | 45 min | /piloto/ responde; `/api/admin/visitas` con `embudo` |
-| sáb 14 | **Probar el kit en ContaSol y a3 reales** (empresa de pruebas). Sin esto, no hay demo | 60 min | importa sin errores + captura |
+| sáb 14 | Desplegar lo pendiente (#30 y `REPORT_EMAIL`). X + LinkedIn del Día D | 30 min | web al día |
+| sáb 14 | **Probar el kit en ContaSol y a3 reales** (empresa de pruebas). Sin esto no hay demo | 60 min | importa sin errores |
 | dom 15 | Show HN + Reddit (visibilidad dev, no ventas) | 30 min | — |
-| dom 15 | Lista de red personal: 20 nombres con negocio propio | 30 min | lista |
-| lun 16 | Mensaje a la secretaria (mensajes.md §1) | 5 min | sí a la presentación |
-| lun 16 | 5 mensajes a red personal (§2) | 20 min | 2 nombres de asesoría |
-| lun 16 | Entrar en 5 grupos FB/Telegram; leer normas; **no publicar aún** | 30 min | 5 grupos |
-| mar 17 | Llamar al Colegio de Gestores de tu provincia y a la delegación AECE: ofrecer charla de 30 min «Cierre bancario sin picar: Norma 43 a ContaSol/a3» (§5) | 30 min | 1 fecha o contacto |
-| mar 17 | Localizar 10 consultores/formadores de ContaSol, a3, ContaPlus (web, YouTube, LinkedIn) y escribir por su formulario de contacto (§4) | 60 min | 2 respuestas |
-| mié 18 | Primera aportación en 2 grupos (§3: respuesta útil a una duda real o el visor gratis) | 30 min | 10 usos del visor con `utm_source=facebook/telegram` |
-| mié 18–jue 19 | Accountex IFEMA si sigue en esas fechas (verificar en accountex.es): ir con el portátil y el kit; no vender, preguntar | 1 día | 5 conversaciones, 2 demos agendadas |
-| jue 19 | Revisar embudo (10 min) y decidir con la tabla de abajo | 10 min | — |
-| vie 20 | **Demo con la asesoría de la conocida** (guion-demo-10min.md) | 30 min | piloto aceptado |
-| lun 23 | Seguimiento de pilotos: 15 min por despacho («¿qué ha fallado?») | 30 min | uso real (≥2 conversiones) |
-| lun 23–mié 25 | Demos con presentaciones obtenidas (objetivo 3) | 2 h | 2 pilotos más |
-| jue 26 | Revisión del embudo + decisión | 15 min | — |
-| vie 27 | Proponer cobro a quien lleve 7+ días usando (no esperar a los 30) | 15 min | 1 fecha de cobro |
+| dom 15 | Hoja con 30 asesorías de tu ciudad: nombre, teléfono, web, programa si lo dice | 45 min | 30 filas |
+| dom 15 | Imprimir 10 one-pagers con tu teléfono | 15 min | 10 copias |
+| lun 16 | **15 llamadas** (§1). A quien diga sí: correo A de `secuencia-gestorias.md` en < 1 h | 90 min | 3 «envíamelo», 1 demo |
+| lun 16 | Escribir a 3 consultores de ContaSol/a3 por su formulario (§4) | 30 min | 1 respuesta |
+| mar 17 | **15 llamadas más** | 90 min | 3 «sí» |
+| mar 17 | Llamar al colegio de gestores y a AECE para ofrecer la charla (§5) | 30 min | 1 contacto |
+| mié 18 | Accountex IFEMA si se confirma; si no, 15 llamadas | 1 día | 5 conversaciones |
+| jue 19 | Visitas sin cita a 3-5 asesorías cercanas (§2) | 2 h | 1 demo |
+| jue 19 | Revisar embudo (tabla de abajo) | 10 min | — |
+| vie 20 | **Primera demo** (guion-demo-10min.md) + pedir presentación (§7) | 30 min | piloto |
+| lun 23 | 15 llamadas a las asesorías restantes + seguimiento de pilotos | 2 h | 2 demos |
+| mar 24–mié 25 | Demos agendadas y 3 consultores más | 2 h | 2 pilotos |
+| jue 26 | Revisión del embudo y decisión | 15 min | — |
+| vie 27 | Proponer cobro a quien lleve 7 días o más usándolo (§8) | 15 min | 1 fecha de cobro |
+
+Total: unas 15 h en 2 semanas, compatible con trabajar entre semana si las llamadas se hacen en la franja de la mañana o en días libres. Si solo puedes por la tarde, llama de 16:00 a 18:00 (muchas asesorías abren) y deja las visitas para el día que libres.
+
+## Ingresos posibles (12 meses)
+Supuestos, todos por mes y con ~120 llamadas al mes (~10 h):
+- 25 % de llamadas llegan a conversación con interés; 30 % de esas aceptan demo; 50 % de demos hacen piloto; 40 % de pilotos pagan.
+- Mezcla de planes: 70 % Básico 49 €, 25 % Pro 99 €, 5 % Empresa 149 € ⇒ **ingreso medio ≈ 66 €/despacho/mes**.
+- Bajas: 3 % al mes. Costes de servidor casi 0; Stripe se queda ~1,5 % + 0,25 € por cobro.
+- Primer cobro: finales de noviembre (cierre al día 7) o finales de diciembre (fin del piloto).
+
+| Escenario | Clientes nuevos/mes | Mes 1 (dic) | Mes 3 (feb) | Mes 6 (may) | Mes 12 (nov 2027) | Total cobrado en 12 meses |
+|---|---|---|---|---|---|---|
+| Pesimista (las llamadas apenas convierten) | 0,5 | 1 cliente · 33 €/mes | 1-2 · ~100 € | 3 · ~185 € | 5 · **~340 €/mes** | ~2.300 € |
+| Base (supuestos de arriba) | 2 | 1 · 66 € | 5 · ~325 € | 10 · ~680 € | 20 · **~1.300 €/mes** | ~8.600 € |
+| Optimista (consultor o colegio que recomiende + referidos) | 3 → 6 | 1 · 66 € | 8 · ~520 € | 21 · ~1.400 € | 50 · **~3.400 €/mes** | ~19.500 € |
+
+Cómo leerlo:
+- **El escenario base exige constancia**: ~10 h/mes de llamadas todos los meses. Si se dejan de hacer, se cae al pesimista.
+- **La palanca grande son los prescriptores**: un consultor de a3 o un colegio que lo recomiende vale más que 100 llamadas. Por eso están en la semana 1.
+- **Para vivir de esto** (~2.000 € netos/mes) harían falta ~40-45 despachos: a ritmo base, unos 2 años; con prescriptores, ~12 meses.
+- **Techo del mercado:** 62.234 despachos en España; con el 1 % (~620) serían ~41.000 €/mes. No es una previsión, es el tamaño del premio.
+- Las recargas sueltas (desde 5 €) y los usuarios de pago fuera de despachos no están contados: son extra.
+- Revisar estos números el 13 dic con los datos reales del embudo; si la tasa de llamada → demo es < 5 %, el escenario es el pesimista y toca cambiar oferta (servicio gestionado) o canal.
 
 ## Embudo y criterios de decisión (revisión lunes y jueves)
 Fuente: `GET /api/admin/visitas?dias=7` (campo `embudo`) + Stripe + correos de /piloto/.
